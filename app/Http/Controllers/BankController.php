@@ -6,9 +6,11 @@ use App\Models\Bank;
 use App\Models\Question;
 use App\Models\SubTest;
 use App\Models\ParticipantResponse;
+use App\Models\ApplicantCredential;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -52,7 +54,11 @@ class BankController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'duration_minutes' => 'nullable|integer|min:1|max:600',
+            'target' => 'nullable|in:karyawan,calon_karyawan',
         ]);
+
+        // default to 'karyawan' when not provided
+        if (empty($validated['target'])) $validated['target'] = 'karyawan';
 
         $bank = Bank::create(array_merge($validated, ['user_id' => Auth::id()]));
         ActivityLog::log('create', 'bank', 'Membuat bank soal: ' . $validated['title']);
@@ -139,7 +145,10 @@ class BankController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('questions/images', 'public');
+            $file = $request->file('image');
+            $validated['image'] = $file->store('questions/images', 'public');
+            $validated['image_data'] = file_get_contents($file->getRealPath());
+            $validated['image_mime'] = $file->getClientMimeType();
         }
         if ($request->hasFile('audio')) {
             $validated['audio'] = $request->file('audio')->store('questions/audio', 'public');
@@ -169,7 +178,165 @@ class BankController extends Controller
     {
         $this->authorize('update', $bank);
         $subTests = $bank->subTests()->withCount(['questions', 'exampleQuestions'])->get();
-        return view('banks.edit', compact('bank', 'subTests'));
+        // Load applicant credentials for calon_karyawan banks
+        $applicantCredentials = [];
+        if ($bank->target === 'calon_karyawan') {
+            $applicantCredentials = $bank->applicantCredentials()->get()->map(function($c) {
+                try {
+                    $plain = Crypt::decryptString($c->password_encrypted);
+                } catch (\Exception $e) {
+                    $plain = null;
+                }
+                $c->plain_password = $plain;
+                return $c;
+            });
+        }
+
+        return view('banks.edit', compact('bank', 'subTests', 'applicantCredentials'));
+    }
+
+    public function generateApplicantCredential(Request $request, Bank $bank)
+    {
+        $this->authorize('update', $bank);
+        if ($bank->target !== 'calon_karyawan') {
+            return back()->with('error', 'Fitur hanya untuk bank dengan target calon karyawan.');
+        }
+
+        $validated = $request->validate([
+            'email' => 'required|email|max:255',
+        ]);
+
+        $username = $validated['email'];
+        $password = \Illuminate\Support\Str::random(6);
+        $encrypted = Crypt::encryptString($password);
+
+        $cred = ApplicantCredential::create([
+            'bank_id' => $bank->id,
+            'username' => $username,
+            'password_encrypted' => $encrypted,
+            'used' => false,
+        ]);
+
+        ActivityLog::log('create', 'credential', 'Membuat kredensial calon karyawan untuk bank: ' . $bank->title . ' ('.$username.')');
+
+        // Return back with the generated password visible once
+        return redirect()->route('banks.edit', $bank)->with('generated', ['username' => $username, 'password' => $password]);
+    }
+
+    public function deleteApplicantCredential(Bank $bank, ApplicantCredential $credential)
+    {
+        $this->authorize('update', $bank);
+        if ($credential->bank_id !== $bank->id) abort(404);
+        ActivityLog::log('delete', 'credential', 'Menghapus kredensial: ' . $credential->username . ' dari bank: ' . $bank->title);
+        $credential->delete();
+        return back()->with('success', 'Kredensial dihapus.');
+    }
+
+    // Download Excel template (single header: email)
+    public function downloadCredentialTemplate(Bank $bank)
+    {
+        $this->authorize('update', $bank);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setCellValue('A1', 'email');
+        $sheet->setCellValue('A2', 'example@example.com');
+
+        $writer = new Xlsx($spreadsheet);
+        $fileName = 'credentials_template.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $fileName . '"');
+        $writer->save('php://output');
+        exit;
+    }
+
+    // Export existing credentials (with decrypted plain password) as Excel
+    public function exportCredentials(Bank $bank)
+    {
+        $this->authorize('update', $bank);
+
+        $creds = $bank->applicantCredentials()->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setCellValue('A1', 'username');
+        $sheet->setCellValue('B1', 'password');
+
+        $row = 2;
+        foreach ($creds as $c) {
+            $plain = null;
+            try { $plain = Crypt::decryptString($c->password_encrypted); } catch (\Exception $e) { $plain = ''; }
+            $sheet->setCellValue('A' . $row, $c->username);
+            $sheet->setCellValue('B' . $row, $plain);
+            $row++;
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $fileName = 'credentials_export_' . $bank->id . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $fileName . '"');
+        $writer->save('php://output');
+        exit;
+    }
+
+    // Import credentials from uploaded Excel with single column 'email'
+    public function importCredentials(Request $request, Bank $bank)
+    {
+        $this->authorize('update', $bank);
+        $validated = $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+
+        $path = $request->file('file')->getPathname();
+
+        // Read using PhpSpreadsheet
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($path);
+        $spreadsheet = $reader->load($path);
+        $sheet = $spreadsheet->getActiveSheet();
+        $rows = $sheet->toArray(null, true, true, true);
+
+        $generated = [];
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        for ($i = 2; $i <= count($rows); $i++) {
+            $email = trim($rows[$i]['A'] ?? '');
+            if (!$email) continue;
+            $username = $email;
+            $password = '';
+            for ($k = 0; $k < 6; $k++) { $password .= $chars[random_int(0, strlen($chars)-1)]; }
+            $encrypted = Crypt::encryptString($password);
+            ApplicantCredential::create([
+                'bank_id' => $bank->id,
+                'username' => $username,
+                'password_encrypted' => $encrypted,
+                'used' => false,
+            ]);
+            $generated[] = ['username' => $username, 'password' => $password];
+        }
+
+        ActivityLog::log('create', 'credential_bulk', 'Import kredensial untuk bank: ' . $bank->title . ' — ' . count($generated) . ' dibuat');
+
+        return redirect()->route('banks.edit', $bank)->with('generated_bulk', $generated);
+    }
+
+    // Bulk delete selected applicant credentials
+    public function deleteMultipleCredentials(Request $request, Bank $bank)
+    {
+        $this->authorize('update', $bank);
+
+        $ids = $request->input('credentials', []);
+        if (empty($ids) || !is_array($ids)) {
+            return back()->with('error', 'Pilih kredensial terlebih dahulu.');
+        }
+
+        $toDelete = ApplicantCredential::where('bank_id', $bank->id)->whereIn('id', $ids);
+        $count = $toDelete->count();
+        $toDelete->delete();
+
+        ActivityLog::log('delete', 'credential_bulk', 'Menghapus ' . $count . ' kredensial dari bank: ' . $bank->title);
+
+        return back()->with('success', $count . ' kredensial dihapus.');
     }
 
     public function update(Request $request, Bank $bank)
@@ -180,6 +347,7 @@ class BankController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'duration_minutes' => 'nullable|integer|min:1|max:600',
+            'target' => 'nullable|in:karyawan,calon_karyawan',
         ]);
 
         $bank->update($validated);
@@ -389,7 +557,10 @@ class BankController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('questions/images', 'public');
+              $file = $request->file('image');
+              $validated['image'] = $file->store('questions/images', 'public');
+              $validated['image_data'] = file_get_contents($file->getRealPath());
+              $validated['image_mime'] = $file->getClientMimeType();
         }
         if ($request->hasFile('audio')) {
             $validated['audio'] = $request->file('audio')->store('questions/audio', 'public');
@@ -408,6 +579,21 @@ class BankController extends Controller
         $question->update($validated);
         ActivityLog::log('update', 'question', 'Mengupdate soal di bank: ' . $bank->title);
         return redirect()->route('sub-tests.edit', $question->sub_test_id)->with('success', 'Soal berhasil diperbarui.');
+    }
+
+    // Serve question image from database if available, otherwise fall back to storage
+    public function getQuestionImage(Question $question)
+    {
+        if ($question->image_data) {
+            $mime = $question->image_mime ?? 'image/jpeg';
+            return response($question->image_data, 200)->header('Content-Type', $mime);
+        }
+
+        if ($question->image && file_exists(storage_path('app/public/' . $question->image))) {
+            return response()->file(storage_path('app/public/' . $question->image));
+        }
+
+        abort(404);
     }
 
     public function deleteQuestion(Question $question)

@@ -10,7 +10,7 @@ class Bank extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'title', 'description', 'slug', 'is_active', 'duration_minutes'];
+    protected $fillable = ['user_id', 'title', 'description', 'slug', 'is_active', 'duration_minutes', 'target'];
 
     protected static function boot()
     {
@@ -40,5 +40,10 @@ class Bank extends Model
     public function responses()
     {
         return $this->hasMany(ParticipantResponse::class);
+    }
+
+    public function applicantCredentials()
+    {
+        return $this->hasMany(\App\Models\ApplicantCredential::class)->orderBy('created_at', 'desc');
     }
 }

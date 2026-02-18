@@ -7,6 +7,8 @@ use App\Models\Bank;
 use App\Models\SubTest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Hash;
 
 class TestController extends Controller
 {
@@ -22,7 +24,60 @@ class TestController extends Controller
         }
 
         $departments = \App\Models\Department::orderBy('name')->get();
+        if ($bank->target === 'calon_karyawan') {
+            // show only credential entry page first
+            return view('test.verify', compact('bank', 'slug'));
+        }
         return view('test.form', compact('bank', 'slug', 'departments'));
+    }
+
+    // Show biodata form after credential verification (for calon_karyawan)
+    public function biodata($slug)
+    {
+        $bank = Bank::where('slug', $slug)->firstOrFail();
+        if ($bank->target !== 'calon_karyawan') abort(404);
+        $departments = \App\Models\Department::orderBy('name')->get();
+        // require that credential id is present in session
+        if (!session()->has('applicant_credential_id')) {
+            return redirect()->route('test.register', $slug)->withErrors(['applicant_username' => 'Silakan verifikasi kredensial terlebih dahulu.']);
+        }
+        return view('test.biodata', compact('bank', 'slug', 'departments'));
+    }
+
+    // Verify credential (calon_karyawan) and redirect to biodata
+    public function verify(Request $request, $slug)
+    {
+        $bank = Bank::where('slug', $slug)->firstOrFail();
+        if ($bank->target !== 'calon_karyawan') abort(404);
+
+        $validated = $request->validate([
+            'applicant_username' => 'required|string|max:255',
+            'applicant_password' => 'required|string|min:4|max:100',
+        ]);
+
+        $cred = \App\Models\ApplicantCredential::where('bank_id', $bank->id)
+            ->where('username', $validated['applicant_username'])
+            ->where('used', false)
+            ->first();
+
+        if (!$cred) {
+            return back()->withErrors(['applicant_username' => 'Kredensial tidak ditemukan atau sudah dipakai.'])->withInput();
+        }
+
+        try {
+            $plain = Crypt::decryptString($cred->password_encrypted);
+        } catch (\Exception $e) {
+            return back()->withErrors(['applicant_username' => 'Kredensial rusak.'])->withInput();
+        }
+
+        if ($validated['applicant_password'] !== $plain) {
+            return back()->withErrors(['applicant_password' => 'Password salah.'])->withInput();
+        }
+
+        // store credential id and plain password temporarily in session
+        session(['applicant_credential_id' => $cred->id, 'applicant_plain_password' => $plain]);
+
+        return redirect()->route('test.biodata', $slug);
     }
 
     /**
@@ -36,20 +91,51 @@ class TestController extends Controller
             abort(403, 'Tes ini sudah ditutup oleh admin.');
         }
 
-        $validated = $request->validate([
-            'nik' => 'required|string|max:50',
-            'participant_name' => 'required|string|max:255',
-            'department' => 'required|string|max:255',
-            'position' => 'required|string|max:255',
-            'participant_email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
-        ]);
+        // Validation differs by target
+        if ($bank->target === 'calon_karyawan') {
+            $rules = [
+                'participant_name' => 'required|string|max:255',
+                'participant_email' => 'required|email|max:255',
+                'phone' => 'required|string|max:20',
+                'address' => 'required|string|max:2000',
+            ];
+        } else {
+            $rules = [
+                'nik' => 'required|string|max:50',
+                'participant_name' => 'required|string|max:255',
+                'department' => 'required|string|max:255',
+                'position' => 'required|string|max:255',
+                'participant_email' => 'required|email|max:255',
+                'phone' => 'required|string|max:20',
+            ];
+        }
 
-        // Check if same NIK already started but not completed (resume)
-        $existing = ParticipantResponse::where('bank_id', $bank->id)
-            ->where('nik', $validated['nik'])
-            ->where('completed', false)
-            ->first();
+        $validated = $request->validate($rules);
+
+        // For calon_karyawan, require credential verification previously stored in session
+        if ($bank->target === 'calon_karyawan') {
+            if (!session()->has('applicant_credential_id') || !session()->has('applicant_plain_password')) {
+                return redirect()->route('test.register', $slug)->withErrors(['applicant_username' => 'Silakan verifikasi kredensial terlebih dahulu.']);
+            }
+            $credId = session('applicant_credential_id');
+            $cred = \App\Models\ApplicantCredential::find($credId);
+            if (!$cred || $cred->bank_id !== $bank->id || $cred->used) {
+                return redirect()->route('test.register', $slug)->withErrors(['applicant_username' => 'Kredensial tidak valid atau sudah dipakai.']);
+            }
+        }
+
+        // Check resume: for calon_karyawan use email, otherwise use NIK
+        if ($bank->target === 'calon_karyawan') {
+            $existing = ParticipantResponse::where('bank_id', $bank->id)
+                ->where('participant_email', $validated['participant_email'])
+                ->where('completed', false)
+                ->first();
+        } else {
+            $existing = ParticipantResponse::where('bank_id', $bank->id)
+                ->where('nik', $validated['nik'])
+                ->where('completed', false)
+                ->first();
+        }
 
         if ($existing) {
             // Resume existing session
@@ -58,17 +144,39 @@ class TestController extends Controller
 
         // Create new participant response
         $token = Str::random(32);
-        ParticipantResponse::create([
-            'bank_id' => $bank->id,
-            'nik' => $validated['nik'],
-            'participant_name' => $validated['participant_name'],
-            'participant_email' => $validated['participant_email'],
-            'phone' => $validated['phone'],
-            'department' => $validated['department'],
-            'position' => $validated['position'],
-            'token' => $token,
-            'started_at' => now(),
-        ]);
+        if ($bank->target === 'calon_karyawan') {
+            $createData = [
+                'bank_id' => $bank->id,
+                'participant_name' => $validated['participant_name'],
+                'participant_email' => $validated['participant_email'],
+                'phone' => $validated['phone'],
+                'address' => $validated['address'],
+                'token' => $token,
+                'started_at' => now(),
+            ];
+
+            // attach credential and mark used
+            $cred->used = true;
+            $cred->save();
+            $createData['applicant_username'] = $cred->username;
+            $createData['applicant_password'] = Hash::make(session('applicant_plain_password'));
+            // clear session temp
+            session()->forget(['applicant_credential_id', 'applicant_plain_password']);
+        } else {
+            $createData = [
+                'bank_id' => $bank->id,
+                'nik' => $validated['nik'],
+                'participant_name' => $validated['participant_name'],
+                'participant_email' => $validated['participant_email'],
+                'phone' => $validated['phone'],
+                'department' => $validated['department'],
+                'position' => $validated['position'],
+                'token' => $token,
+                'started_at' => now(),
+            ];
+        }
+
+        ParticipantResponse::create($createData);
 
         return redirect()->route('test.show', $token);
     }

@@ -46,6 +46,12 @@ Route::middleware(['auth', 'role:superadmin,top_level_management,recruitmentteam
 // Authenticated routes for managing question banks
 Route::middleware(['auth', 'role:superadmin,recruitmentteam'])->group(function () {
     Route::resource('banks', BankController::class);
+    Route::post('/banks/{bank}/credentials', [BankController::class, 'generateApplicantCredential'])->name('banks.credentials.generate');
+    Route::delete('/banks/{bank}/credentials/{credential}', [BankController::class, 'deleteApplicantCredential'])->name('banks.credentials.delete');
+    Route::get('/banks/{bank}/credentials/template', [BankController::class, 'downloadCredentialTemplate'])->name('banks.credentials.template');
+    Route::get('/banks/{bank}/credentials/export', [BankController::class, 'exportCredentials'])->name('banks.credentials.export');
+    Route::post('/banks/{bank}/credentials/import', [BankController::class, 'importCredentials'])->name('banks.credentials.import');
+    Route::post('/banks/{bank}/credentials/delete-multiple', [BankController::class, 'deleteMultipleCredentials'])->name('banks.credentials.delete_multiple');
     Route::get('/banks/{bank}/results', [BankController::class, 'results'])->name('banks.results');
 
     Route::post('/banks/{bank}/toggle', [BankController::class, 'toggleBank'])->name('banks.toggle');
@@ -94,6 +100,11 @@ Route::post('/test/take/{token}/submit', [TestController::class, 'submit'])->nam
 Route::get('/test/take/{token}/thankyou', [TestController::class, 'thankyou'])->name('test.thankyou');
 Route::get('/test/{slug}', [TestController::class, 'register'])->name('test.register');
 Route::post('/test/{slug}/start', [TestController::class, 'start'])->name('test.start');
+Route::get('/test/{slug}/biodata', [TestController::class, 'biodata'])->name('test.biodata');
+Route::post('/test/{slug}/verify', [TestController::class, 'verify'])->name('test.verify');
+
+// Serve question images (from DB or storage)
+Route::get('/questions/{question}/image', [BankController::class, 'getQuestionImage'])->name('questions.image');
 
 // Activity Logs (superadmin only)
 Route::middleware(['auth', 'role:superadmin'])->group(function () {

@@ -124,6 +124,7 @@
  <form method="POST" action="{{ route('test.start', $slug) }}">
  @csrf
 
+ 
  <div class="form-group">
  <label for="nik">NIK (Nomor Induk Karyawan) *</label>
  <input 
@@ -136,19 +137,6 @@
  autofocus
  >
  <div class="info-text">Nomor Induk Karyawan sesuai data perusahaan</div>
- </div>
-
- <div class="form-group">
- <label for="participant_name">Nama Lengkap *</label>
- <input 
- type="text" 
- id="participant_name" 
- name="participant_name" 
- placeholder="Masukkan nama lengkap Anda"
- value="{{ old('participant_name') }}"
- required
- >
- <div class="info-text">Nama sesuai dengan identitas diri</div>
  </div>
 
  <div class="form-group">
@@ -203,6 +191,8 @@
 
  <button type="submit" class="btn">Lanjutkan ke Tes</button>
  </form>
+
+ 
  </div>
  </div>
 

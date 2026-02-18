@@ -235,11 +235,15 @@
  <div class="eq-label">Contoh {{ $eIdx + 1 }}</div>
  <div class="question-text" style="border-left-color:#f59e0b;">{{ $eq->question }}</div>
 
- @if($eq->image)
- <div style="margin:12px 0; text-align:center;">
- <img src="/hrissdi/storage/{{ $eq->image }}" alt="Gambar contoh" style="max-width:100%; max-height:300px; border-radius:6px;">
- </div>
- @endif
+@if($eq->image_data)
+<div style="margin:12px 0; text-align:center;">
+<img src="{{ route('questions.image', $eq) }}" alt="Gambar contoh" style="max-width:100%; max-height:300px; border-radius:6px;">
+</div>
+@elseif($eq->image)
+<div style="margin:12px 0; text-align:center;">
+<img src="/hrissdi/storage/{{ $eq->image }}" alt="Gambar contoh" style="max-width:100%; max-height:300px; border-radius:6px;">
+</div>
+@endif
 
  @if($eq->audio)
  <div style="margin:12px 0;">
@@ -307,11 +311,15 @@
  <div class="question-counter">Pertanyaan {{ $qIdx + 1 }} dari {{ $subTest->questions->count() }}</div>
  <div class="question-text">{{ $question->question }}</div>
 
- @if($question->image)
- <div style="margin:12px 0; text-align:center;">
- <img src="/hrissdi/storage/{{ $question->image }}" alt="Gambar soal" style="max-width:100%; max-height:400px; border-radius:6px;">
- </div>
- @endif
+@if($question->image_data)
+<div style="margin:12px 0; text-align:center;">
+<img src="{{ route('questions.image', $question) }}" alt="Gambar soal" style="max-width:100%; max-height:400px; border-radius:6px;">
+</div>
+@elseif($question->image)
+<div style="margin:12px 0; text-align:center;">
+<img src="/hrissdi/storage/{{ $question->image }}" alt="Gambar soal" style="max-width:100%; max-height:400px; border-radius:6px;">
+</div>
+@endif
 
  @if($question->audio)
  <div style="margin:12px 0;">
@@ -395,11 +403,15 @@
  <div class="question-counter">Pertanyaan {{ $index + 1 }} dari {{ $questions->count() }}</div>
  <div class="question-text">{{ $question->question }}</div>
 
- @if($question->image)
- <div style="margin:12px 0; text-align:center;">
- <img src="/hrissdi/storage/{{ $question->image }}" alt="Gambar soal" style="max-width:100%; max-height:400px; border-radius:6px;">
- </div>
- @endif
+@if($question->image_data)
+<div style="margin:12px 0; text-align:center;">
+<img src="{{ route('questions.image', $question) }}" alt="Gambar soal" style="max-width:100%; max-height:400px; border-radius:6px;">
+</div>
+@elseif($question->image)
+<div style="margin:12px 0; text-align:center;">
+<img src="/hrissdi/storage/{{ $question->image }}" alt="Gambar soal" style="max-width:100%; max-height:400px; border-radius:6px;">
+</div>
+@endif
 
  @if($question->audio)
  <div style="margin:12px 0;">

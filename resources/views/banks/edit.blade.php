@@ -68,6 +68,15 @@
  </div>
  @error('duration_minutes')<div class="error">{{ $message }}</div>@enderror
  </div>
+ <div class="form-group">
+ <label for="target">Tipe Peserta</label>
+ <select id="target" name="target">
+ <option value="karyawan" {{ old('target', $bank->target ?? 'karyawan') === 'karyawan' ? 'selected' : '' }}>Karyawan</option>
+ <option value="calon_karyawan" {{ old('target', $bank->target ?? '') === 'calon_karyawan' ? 'selected' : '' }}>Calon Karyawan</option>
+ </select>
+ @error('target')<div class="error">{{ $message }}</div>@enderror
+ </div>
+
  <button type="submit" class="btn">Simpan</button>
  </form>
  </div>
@@ -137,6 +146,89 @@
  <input type="text" id="sharedLink" value="{{ route('test.register', $bank->slug) }}" readonly style="flex:1;padding:10px 12px;border:2px solid #e2e8f0;border-radius:8px;font-size:13px;background:#f8fafc;color:#0f172a;font-family:monospace;">
  <button onclick="copyLink()" type="button" class="btn btn-link" id="copyBtn" style="white-space:nowrap;">Copy Link</button>
  </div>
+@if($bank->target === 'calon_karyawan')
+<div style="margin-top:12px;padding:12px;border-radius:8px;background:#f1f5f9;">
+		<h3 style="margin:0 0 8px 0;">Generate contoh kredensial untuk calon karyawan</h3>
+		<form method="POST" action="{{ route('banks.credentials.generate', $bank) }}">
+			@csrf
+			<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+				<input id="gen_email" name="email" type="email" placeholder="Masukkan email calon..." style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;width:320px;" required>
+				<button type="submit" class="btn">Generate & Simpan</button>
+			</div>
+		</form>
+
+		<div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+			<a href="{{ route('banks.credentials.template', $bank) }}" class="btn" style="padding:6px 10px;font-size:13px;">Download Template (Excel)</a>
+			<a href="{{ route('banks.credentials.export', $bank) }}" class="btn" style="padding:6px 10px;font-size:13px;">Export Kredensial</a>
+			<form method="POST" action="{{ route('banks.credentials.import', $bank) }}" enctype="multipart/form-data" style="display:inline-flex;gap:8px;align-items:center;">
+				@csrf
+				<input type="file" name="file" accept=".xlsx,.xls,.csv" style="padding:6px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;">
+				<button type="submit" class="btn" style="padding:6px 10px;font-size:13px;">Import</button>
+			</form>
+		</div>
+
+		@if(session('generated_bulk'))
+		<div style="margin-top:12px;padding:10px;border-radius:6px;background:#ecfccb;color:#134e4a;font-size:13px;">
+			<strong>Hasil Import:</strong>
+			<ul style="margin:8px 0 0 18px;">
+			@foreach(session('generated_bulk') as $gb)
+				<li>{{ $gb['username'] }} — {{ $gb['password'] }}</li>
+			@endforeach
+			</ul>
+			<div style="font-size:12px;color:#475569;margin-top:6px;">Password hanya ditampilkan sekali setelah import. Simpan atau kirim ke kandidat.</div>
+		</div>
+		@endif
+
+		@if(session('generated'))
+			@php $g = session('generated'); @endphp
+			<div style="margin-top:10px;padding:10px;border-radius:6px;background:#ecfccb;color:#134e4a;">
+				<div>Berhasil dibuat — <strong>{{ $g['username'] }}</strong></div>
+				<div style="margin-top:6px;">Password: <strong>{{ $g['password'] }}</strong></div>
+				<div style="font-size:12px;color:#475569;margin-top:6px;">Catat password ini dan berikan ke kandidat — ini hanya ditampilkan sekali.</div>
+			</div>
+		@endif
+
+		<div style="font-size:12px;color:#64748b;margin-top:8px;">Username menggunakan email kandidat. Password acak 6 karakter disimpan terenkripsi. Anda dapat menghapus akses kapan saja.</div>
+
+		@if(isset($applicantCredentials) && $applicantCredentials->count() > 0)
+			<form method="POST" action="{{ route('banks.credentials.delete_multiple', $bank) }}" onsubmit="return confirm('Hapus semua kredensial yang terpilih?');">
+				@csrf
+				<div style="margin-top:12px;overflow:auto;">
+					<table style="width:100%;border-collapse:collapse;font-size:13px;">
+						<thead>
+							<tr style="text-align:left;border-bottom:1px solid #e2e8f0;">
+								<th style="padding:8px; width:36px;"><input type="checkbox" id="select_all_creds" onclick="toggleAllCreds(this)"></th>
+								<th style="padding:8px;">Username</th>
+								<th style="padding:8px;">Password (lihat admin)</th>
+								<th style="padding:8px;">Status</th>
+								<th style="padding:8px;">Dibuat</th>
+								<th style="padding:8px;">Aksi</th>
+							</tr>
+						</thead>
+						<tbody>
+						@foreach($applicantCredentials as $cred)
+							<tr style="border-bottom:1px solid #f1f5f9;">
+								<td style="padding:8px;vertical-align:middle;"><input type="checkbox" name="credentials[]" value="{{ $cred->id }}"></td>
+								<td style="padding:8px;vertical-align:middle;">{{ $cred->username }}</td>
+								<td style="padding:8px;vertical-align:middle;">{{ $cred->plain_password ?? '-' }}</td>
+								<td style="padding:8px;vertical-align:middle;">@if($cred->used)<span style="color:#dc2626;font-weight:600;">Dipakai</span>@else<span style="color:#065f46;font-weight:600;">Tersedia</span>@endif</td>
+								<td style="padding:8px;vertical-align:middle;">{{ $cred->created_at->format('Y-m-d H:i') }}</td>
+								<td style="padding:8px;vertical-align:middle;">
+									<button type="button" class="btn btn-danger" style="padding:6px 10px;font-size:12px;" onclick="singleDelete('{{ route('banks.credentials.delete', [$bank, $cred]) }}')">Hapus</button>
+								</td>
+							</tr>
+						@endforeach
+						</tbody>
+					</table>
+				</div>
+				<div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
+					<button type="submit" class="btn btn-danger" style="padding:8px 12px;">Hapus Terpilih</button>
+				</div>
+			</form>
+		@endif
+
+</div>
+@endif
  <div style="margin-top:12px;background:#dbeafe;color:#0c4a6e;padding:10px 14px;border-radius:6px;font-size:12px;">
  <strong>Satu link untuk semua sub-test.</strong> Peserta akan mengerjakan tiap sub-test secara berurutan.
  </div>
@@ -148,6 +240,20 @@
  btn.textContent = 'Copied!';
  setTimeout(function() { btn.textContent = 'Copy Link'; }, 2000);
  }
+function toggleAllCreds(master){
+	var checkboxes = document.querySelectorAll('input[name="credentials[]"]');
+	checkboxes.forEach(function(cb){ cb.checked = master.checked; });
+}
+function singleDelete(url){
+	if(!confirm('Hapus kredensial ini?')) return;
+	var form = document.createElement('form');
+	form.method = 'POST';
+	form.action = url;
+	var token = document.createElement('input'); token.type = 'hidden'; token.name = '_token'; token.value = '{{ csrf_token() }}'; form.appendChild(token);
+	var method = document.createElement('input'); method.type = 'hidden'; method.name = '_method'; method.value = 'DELETE'; form.appendChild(method);
+	document.body.appendChild(form);
+	form.submit();
+}
  </script>
  </div>
  </div>
