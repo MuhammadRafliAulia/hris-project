@@ -22,11 +22,11 @@ Route::get('/login', [LoginController::class, 'show'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1')->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'role:superadmin,top_level_management'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'role:superadmin,top_level_management,internal_hr'])->name('dashboard');
 Route::get('/recruitment-dashboard', [DashboardController::class, 'recruitmentDashboard'])->middleware(['auth', 'role:recruitmentteam'])->name('recruitment.dashboard');
 
 // Task Management (top_level_management & recruitmentteam)
-Route::middleware(['auth', 'role:superadmin,top_level_management,recruitmentteam'])->group(function () {
+Route::middleware(['auth', 'role:superadmin,top_level_management,recruitmentteam,internal_hr'])->group(function () {
     Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
     Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
     Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
@@ -74,6 +74,10 @@ Route::middleware(['auth', 'role:superadmin,recruitmentteam'])->group(function (
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::resource('departments', DepartmentController::class);
     Route::resource('users', UserController::class);
+});
+
+// Employees access: allow Internal HR and Superadmin to manage employee database
+Route::middleware(['auth', 'role:superadmin,internal_hr'])->group(function () {
     Route::resource('employees', EmployeeController::class);
     Route::get('/employees-import', [EmployeeController::class, 'showImport'])->name('employees.import-form');
     Route::post('/employees-import', [EmployeeController::class, 'import'])->name('employees.import');
@@ -82,7 +86,7 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
 });
 
 // Authenticated routes for managing warning letters (Surat Peringatan)
-Route::middleware(['auth', 'role:superadmin,admin_prod'])->group(function () {
+Route::middleware(['auth', 'role:superadmin,admin_prod,internal_hr'])->group(function () {
     Route::resource('warning-letters', WarningLetterController::class)->except(['show']);
     Route::get('/warning-letters/{warning_letter}/pdf', [WarningLetterController::class, 'showPdf'])->name('warning-letters.show-pdf');
     Route::get('/warning-letters/{warning_letter}/download-pdf', [WarningLetterController::class, 'downloadPdf'])->name('warning-letters.download-pdf');

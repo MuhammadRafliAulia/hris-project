@@ -53,6 +53,11 @@ class User extends Authenticatable
         return $this->role === 'top_level_management';
     }
 
+    public function isInternalHR()
+    {
+        return $this->role === 'internal_hr';
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

@@ -38,6 +38,7 @@
                         <option value="recruitmentteam" {{ old('role', $user->role) === 'recruitmentteam' ? 'selected' : '' }}>Recruitment Team</option>
                         <option value="admin_prod" {{ old('role', $user->role) === 'admin_prod' ? 'selected' : '' }}>Admin Department</option>
                         <option value="top_level_management" {{ old('role', $user->role) === 'top_level_management' ? 'selected' : '' }}>Top Level Management</option>
+                        <option value="internal_hr" {{ old('role', $user->role) === 'internal_hr' ? 'selected' : '' }}>Internal HR</option>
                     </select>
                     @error('role')
                         <div style="color:#dc2626;font-size:12px;margin-top:4px;">{{ $message }}</div>

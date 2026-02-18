@@ -20,14 +20,20 @@ class EmployeeController extends Controller
 
     public function show(Employee $employee)
     {
-        if ($employee->user_id !== Auth::id()) {
+        // Superadmin and Internal HR can view any employee; others only their own
+        if (! (auth()->user()->isSuperAdmin() || auth()->user()->isInternalHR() || $employee->user_id === Auth::id()) ) {
             abort(403);
         }
         return view('employees.show', compact('employee'));
     }
     public function index(Request $request)
     {
-        $query = Employee::where('user_id', Auth::id());
+        // Superadmin and Internal HR see all employees; others see only their own
+        if (auth()->user()->isSuperAdmin() || auth()->user()->isInternalHR()) {
+            $query = Employee::query();
+        } else {
+            $query = Employee::where('user_id', Auth::id());
+        }
 
         // Global search
         if ($request->filled('q')) {
@@ -62,11 +68,12 @@ class EmployeeController extends Controller
         $departments = \App\Models\Department::orderBy('name')->get();
 
         // Get distinct values for filter dropdowns
-        $userId = Auth::id();
+        $userId = (auth()->user()->isSuperAdmin() || auth()->user()->isInternalHR()) ? null : Auth::id();
         $filterOptions = [];
         foreach ($textFilters as $filter) {
-            $filterOptions[$filter] = Employee::where('user_id', $userId)
-                ->whereNotNull($filter)->where($filter, '!=', '')
+            $fquery = Employee::query();
+            if ($userId) $fquery->where('user_id', $userId);
+            $filterOptions[$filter] = $fquery->whereNotNull($filter)->where($filter, '!=', '')
                 ->distinct()->orderBy($filter)->pluck($filter)->toArray();
         }
 
@@ -129,6 +136,7 @@ class EmployeeController extends Controller
             'area_asal' => 'nullable|string|max:100',
         ]);
 
+        // Associate created record with creator for auditing; shared access controlled by role
         Employee::create(array_merge($validated, ['user_id' => Auth::id()]));
         ActivityLog::log('create', 'employee', 'Menambahkan karyawan: ' . $validated['nama']);
         return redirect()->route('employees.index')->with('success', 'Karyawan berhasil ditambahkan.');
@@ -136,7 +144,7 @@ class EmployeeController extends Controller
 
     public function edit(Employee $employee)
     {
-        if ($employee->user_id !== Auth::id()) {
+        if (! (auth()->user()->isSuperAdmin() || auth()->user()->isInternalHR() || $employee->user_id === Auth::id()) ) {
             abort(403);
         }
         return view('employees.edit', compact('employee'));
@@ -144,7 +152,7 @@ class EmployeeController extends Controller
 
     public function update(Request $request, Employee $employee)
     {
-        if ($employee->user_id !== Auth::id()) {
+        if (! (auth()->user()->isSuperAdmin() || auth()->user()->isInternalHR() || $employee->user_id === Auth::id()) ) {
             abort(403);
         }
 
@@ -204,7 +212,7 @@ class EmployeeController extends Controller
 
     public function destroy(Employee $employee)
     {
-        if ($employee->user_id !== Auth::id()) {
+        if (! (auth()->user()->isSuperAdmin() || auth()->user()->isInternalHR() || $employee->user_id === Auth::id()) ) {
             abort(403);
         }
 

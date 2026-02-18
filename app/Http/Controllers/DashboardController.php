@@ -15,28 +15,41 @@ class DashboardController extends Controller
     public function index()
     {
         // ===== EMPLOYEE STATS =====
-        $totalEmployees = Employee::where('user_id', Auth::id())->count();
+        // Superadmin and Internal HR should see the full employee database.
+        $isGlobalEmployeeView = auth()->user()->isSuperAdmin() || auth()->user()->isInternalHR();
 
-        $employeesByDept = Employee::where('user_id', Auth::id())
+        $totalEmployees = Employee::when(!$isGlobalEmployeeView, function($q) {
+            $q->where('user_id', Auth::id());
+        })->count();
+
+        $employeesByDept = Employee::when(!$isGlobalEmployeeView, function($q) {
+                $q->where('user_id', Auth::id());
+            })
             ->selectRaw('dept, COUNT(*) as count')
             ->whereNotNull('dept')->where('dept', '!=', '')
             ->groupBy('dept')
             ->orderByDesc('count')
             ->pluck('count', 'dept');
 
-        $employeesByStatus = Employee::where('user_id', Auth::id())
+        $employeesByStatus = Employee::when(!$isGlobalEmployeeView, function($q) {
+                $q->where('user_id', Auth::id());
+            })
             ->selectRaw('COALESCE(status_aktif, "Tidak Diketahui") as status_label, COUNT(*) as count')
             ->groupBy('status_label')
             ->pluck('count', 'status_label');
 
-        $employeesByPendidikan = Employee::where('user_id', Auth::id())
+        $employeesByPendidikan = Employee::when(!$isGlobalEmployeeView, function($q) {
+                $q->where('user_id', Auth::id());
+            })
             ->selectRaw('COALESCE(pendidikan, "Tidak Diketahui") as pendidikan_label, COUNT(*) as count')
             ->whereNotNull('pendidikan')->where('pendidikan', '!=', '')
             ->groupBy('pendidikan_label')
             ->orderByDesc('count')
             ->pluck('count', 'pendidikan_label');
 
-        $employeesByStatusKaryawan = Employee::where('user_id', Auth::id())
+        $employeesByStatusKaryawan = Employee::when(!$isGlobalEmployeeView, function($q) {
+                $q->where('user_id', Auth::id());
+            })
             ->selectRaw('COALESCE(status_karyawan, "Tidak Diketahui") as sk_label, COUNT(*) as count')
             ->whereNotNull('status_karyawan')->where('status_karyawan', '!=', '')
             ->groupBy('sk_label')

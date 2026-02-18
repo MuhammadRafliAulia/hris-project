@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use Database\Seeders\InternalHrSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -41,5 +42,8 @@ class DatabaseSeeder extends Seeder
                 'role' => 'admin_prod',
             ]);
         }
+
+        // Seed internal HR user
+        $this->call(InternalHrSeeder::class);
     }
 }
