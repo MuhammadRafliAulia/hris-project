@@ -26,7 +26,7 @@ class BankController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        if ($user->isSuperAdmin() || $user->isRecruitmentTeam()) {
+        if (optional($user)->isSuperAdmin() || optional($user)->isRecruitmentTeam()) {
             // Superadmin & recruitment team share the same bank soal data
             $sharedUserIds = \App\Models\User::whereIn('role', ['superadmin', 'recruitmentteam'])->pluck('id');
             $banks = Bank::whereIn('user_id', $sharedUserIds)->get();
@@ -1031,7 +1031,7 @@ class BankController extends Controller
         $user = Auth::user();
 
         // Get all shared bank IDs
-        if ($user->isSuperAdmin() || $user->isRecruitmentTeam()) {
+        if (optional($user)->isSuperAdmin() || optional($user)->isRecruitmentTeam()) {
             $sharedUserIds = \App\Models\User::whereIn('role', ['superadmin', 'recruitmentteam'])->pluck('id');
             $bankIds = Bank::whereIn('user_id', $sharedUserIds)->pluck('id');
         } else {

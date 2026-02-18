@@ -21,7 +21,7 @@ class ActivityLogController extends Controller
 
     public function index(Request $request)
     {
-        if (!$this->authUser()->isSuperAdmin()) {
+        if (! optional($this->authUser())->isSuperAdmin()) {
             abort(403);
         }
 
@@ -72,7 +72,7 @@ class ActivityLogController extends Controller
 
     public function clear(Request $request)
     {
-        if (!$this->authUser()->isSuperAdmin()) {
+        if (! optional($this->authUser())->isSuperAdmin()) {
             abort(403);
         }
 

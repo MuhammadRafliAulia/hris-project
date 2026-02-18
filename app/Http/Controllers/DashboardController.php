@@ -16,7 +16,7 @@ class DashboardController extends Controller
     {
         // ===== EMPLOYEE STATS =====
         // Superadmin and Internal HR should see the full employee database.
-        $isGlobalEmployeeView = auth()->user()->isSuperAdmin() || auth()->user()->isInternalHR();
+        $isGlobalEmployeeView = optional(auth()->user())->isSuperAdmin() || optional(auth()->user())->isInternalHR();
 
         $totalEmployees = Employee::when(!$isGlobalEmployeeView, function($q) {
             $q->where('user_id', Auth::id());

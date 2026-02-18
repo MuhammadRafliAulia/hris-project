@@ -20,7 +20,7 @@
     </div>
     <h2 style="font-size:11px;color:#6b7280;margin:0 0 12px 0;font-weight:400;text-transform:uppercase;letter-spacing:0.6px;">Menu</h2>
     <ul class="sidebar-menu" style="list-style:none;margin:0;padding:0;">
-      @if(auth()->user()->isSuperAdmin())
+      @if(optional(auth()->user())->isSuperAdmin())
       <li style="margin-bottom:8px;"><a href="{{ route('dashboard') }}" style="display:block;padding:10px 12px;color:#6b7280;text-decoration:none;border-radius:6px;font-size:13px;font-weight:400;">Dashboard</a></li>
       <li style="margin-bottom:8px;"><a href="{{ route('banks.index') }}" style="display:block;padding:10px 12px;color:#6b7280;text-decoration:none;border-radius:6px;font-size:13px;font-weight:400;">Psikotest Online</a></li>
       <li style="margin-bottom:8px;"><a href="{{ route('banks.cheat-log') }}" style="display:block;padding:10px 12px;color:#6b7280;text-decoration:none;border-radius:6px;font-size:13px;font-weight:400;">Log Kecurangan</a></li>
@@ -28,27 +28,27 @@
       <li style="margin-bottom:8px;"><a href="{{ route('warning-letters.index') }}" style="display:block;padding:10px 12px;color:#6b7280;text-decoration:none;border-radius:6px;font-size:13px;font-weight:400;">Surat Peringatan</a></li>
       <li style="margin-bottom:8px;"><a href="{{ route('activity-logs.index') }}" style="display:block;padding:10px 12px;color:#6b7280;text-decoration:none;border-radius:6px;font-size:13px;font-weight:400;">Log Aktivitas</a></li>
       @endif
-      @if(auth()->user()->isRecruitmentTeam())
+      @if(optional(auth()->user())->isRecruitmentTeam())
       <li style="margin-bottom:8px;"><a href="{{ route('recruitment.dashboard') }}" style="display:block;padding:10px 12px;color:#6b7280;text-decoration:none;border-radius:6px;font-size:13px;font-weight:400;">Dashboard</a></li>
       <li style="margin-bottom:8px;"><a href="{{ route('banks.index') }}" style="display:block;padding:10px 12px;color:#6b7280;text-decoration:none;border-radius:6px;font-size:13px;font-weight:400;">Psikotest Online</a></li>
       <li style="margin-bottom:8px;"><a href="{{ route('banks.cheat-log') }}" style="display:block;padding:10px 12px;color:#6b7280;text-decoration:none;border-radius:6px;font-size:13px;font-weight:400;">Log Kecurangan</a></li>
       <li style="margin-bottom:8px;"><a href="{{ route('tasks.index') }}" style="display:block;padding:10px 12px;color:#6b7280;text-decoration:none;border-radius:6px;font-size:13px;font-weight:400;">Task Management</a></li>
       @endif
-      @if(auth()->user()->isInternalHR())
+      @if(optional(auth()->user())->isInternalHR())
       <li style="margin-bottom:8px;"><a href="{{ route('dashboard') }}" style="display:block;padding:10px 12px;color:#6b7280;text-decoration:none;border-radius:6px;font-size:13px;font-weight:400;">Dashboard</a></li>
       <li style="margin-bottom:8px;"><a href="{{ route('tasks.index') }}" style="display:block;padding:10px 12px;color:#6b7280;text-decoration:none;border-radius:6px;font-size:13px;font-weight:400;">Task Management</a></li>
       <li style="margin-bottom:8px;"><a href="{{ route('employees.index') }}" style="display:block;padding:10px 12px;color:#6b7280;text-decoration:none;border-radius:6px;font-size:13px;font-weight:400;">Database Karyawan</a></li>
       <li style="margin-bottom:8px;"><a href="{{ route('warning-letters.index') }}" style="display:block;padding:10px 12px;color:#6b7280;text-decoration:none;border-radius:6px;font-size:13px;font-weight:400;">Surat Peringatan</a></li>
       @endif
-      @if(auth()->user()->isAdminProd())
+      @if(optional(auth()->user())->isAdminProd())
       <li style="margin-bottom:8px;"><a href="{{ route('warning-letters.create') }}" style="display:block;padding:10px 12px;color:#334155;text-decoration:none;border-radius:6px;font-size:14px;">⚠️ Input Surat Peringatan</a></li>
       @endif
-      @if(auth()->user()->isTopLevelManagement())
+      @if(optional(auth()->user())->isTopLevelManagement())
       <li style="margin-bottom:8px;"><a href="{{ route('dashboard') }}" style="display:block;padding:10px 12px;color:#334155;text-decoration:none;border-radius:6px;font-size:14px;">Dashboard</a></li>
       <li style="margin-bottom:8px;"><a href="{{ route('tasks.index') }}" style="display:block;padding:10px 12px;color:#334155;text-decoration:none;border-radius:6px;font-size:14px;">📋 Task Management</a></li>
       @endif
     </ul>
-    @if(auth()->user()->isSuperAdmin())
+    @if(optional(auth()->user())->isSuperAdmin())
     <div style="border-top:1px solid rgba(15,23,42,0.04);padding-top:16px;margin-top:16px;">
       <div style="font-size:13px;color:#6b7280;font-weight:400;margin-bottom:8px;cursor:pointer;" onclick="document.getElementById('setting-dropdown').classList.toggle('show');">
         ⚙️ Setting <span style="float:right;">&#9660;</span>
