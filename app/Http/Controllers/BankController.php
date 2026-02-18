@@ -75,12 +75,12 @@ class BankController extends Controller
         $baseRules = [
             'question' => 'required|string|max:1000',
             'type' => 'required|in:text,multiple_choice,narrative,survey',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'audio' => 'nullable|mimes:mp3,wav,ogg|max:5120',
-            'option_a_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'option_b_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'option_c_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'option_d_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'option_a_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'option_b_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'option_c_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'option_d_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ];
 
         if ($type === 'narrative') {
@@ -488,12 +488,12 @@ class BankController extends Controller
         $baseRules = [
             'question' => 'required|string|max:1000',
             'type' => 'required|in:text,multiple_choice,narrative,survey',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'audio' => 'nullable|mimes:mp3,wav,ogg|max:5120',
-            'option_a_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'option_b_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'option_c_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'option_d_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'option_a_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'option_b_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'option_c_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'option_d_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ];
 
         if ($type === 'narrative') {

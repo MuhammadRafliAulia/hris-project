@@ -79,8 +79,8 @@
       <a href="https://hrmsystemapp.com/login" target="_blank" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f8fafc;border:1px solid #e6eef7;border-radius:6px;color:#6b7280;text-decoration:none;font-size:10px;font-weight:400;transition:all 0.15s;" onmouseover="this.style.background='#eef8ff';this.style.borderColor='#cfefff';" onmouseout="this.style.background='#f8fafc';this.style.borderColor='#e6eef7';">
         <span style="font-size:16px;">📊</span> Human Resource Management System SDI
       </a>
-      <a href="https://portal2.example.com" target="_blank" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f8fafc;border:1px solid #e6f0ea;border-radius:6px;color:#6b7280;text-decoration:none;font-size:10px;font-weight:400;transition:all 0.15s;" onmouseover="this.style.background='#f0fbf1';this.style.borderColor='#cfeed4';" onmouseout="this.style.background='#f8fafc';this.style.borderColor='#e6f0ea';">
-        <span style="font-size:16px;">📧</span> IDFileShare
+      <a href="https://sdi-fileshare.com/" target="_blank" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f8fafc;border:1px solid #e6f0ea;border-radius:6px;color:#6b7280;text-decoration:none;font-size:10px;font-weight:400;transition:all 0.15s;" onmouseover="this.style.background='#f0fbf1';this.style.borderColor='#cfeed4';" onmouseout="this.style.background='#f8fafc';this.style.borderColor='#e6f0ea';">
+        <span style="font-size:16px;">📧</span> SDI-FileShare
       </a>
       <!-- Assesment Test portal link removed per design update -->
     </div>

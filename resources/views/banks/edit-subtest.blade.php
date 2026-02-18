@@ -180,6 +180,17 @@
  <input type="hidden" name="sub_test_id" value="{{ $subTest->id }}">
  <input type="hidden" name="is_example" id="isExampleInput" value="0">
 
+ @if($errors->any())
+ <div style="background:#fee2e2;color:#9b1c1c;padding:10px;border-radius:6px;margin-bottom:12px;">
+	 <strong>Terjadi kesalahan:</strong>
+	 <ul style="margin:8px 0 0 18px;padding:0;">
+		 @foreach($errors->all() as $err)
+			 <li>{{ $err }}</li>
+		 @endforeach
+	 </ul>
+ </div>
+ @endif
+
  <div class="form-group">
  <label for="type">Tipe Soal</label>
  <select id="type" name="type" required>
@@ -198,11 +209,14 @@
  <div class="form-group">
  <label for="image">Gambar (opsional)</label>
  <input id="image" type="file" name="image" accept="image/*">
+ <small style="color:#64748b;">Maksimal 5MB. Format: JPEG, PNG, JPG, GIF</small>
+ @error('image')<div class="error">{{ $message }}</div>@enderror
  </div>
 
  <div class="form-group">
  <label for="audio">Audio (opsional)</label>
  <input id="audio" type="file" name="audio" accept="audio/*">
+ @error('audio')<div class="error">{{ $message }}</div>@enderror
  </div>
 
  <div id="multipleChoiceOptions">
@@ -255,7 +269,8 @@
  var mcOpts = document.getElementById('multipleChoiceOptions');
  var surveyOpts = document.getElementById('surveyOptions');
  var textOpt = document.getElementById('textAnswerOption');
- var mcInputs = mcOpts.querySelectorAll('input, select');
+ // Only target text inputs and selects for required validation. Keep file inputs (images/audio) optional.
+ var mcInputs = mcOpts.querySelectorAll('input[type="text"], select');
  var textInput = document.getElementById('correct_answer_text');
  var optCountSelect = document.getElementById('option_count');
  var isExampleToggle = document.getElementById('isExampleToggle');
@@ -265,41 +280,65 @@
  isExampleInput.value = this.checked ? '1' : '0';
  });
 
- function toggleType() {
- var t = typeSelect.value;
- mcOpts.style.display = 'none';
- surveyOpts.style.display = 'none';
- textOpt.style.display = 'none';
- mcInputs.forEach(function(i) { i.removeAttribute('required'); i.disabled = true; });
- textInput.removeAttribute('required'); textInput.disabled = true;
- document.querySelectorAll('.survey-option-input').forEach(function(i) { i.removeAttribute('required'); i.disabled = true; });
- if (optCountSelect) optCountSelect.disabled = true;
-
- if (t === 'multiple_choice') {
- mcOpts.style.display = 'block';
- mcInputs.forEach(function(i) { i.setAttribute('required','required'); i.disabled = false; });
- } else if (t === 'survey') {
- surveyOpts.style.display = 'block';
- if (optCountSelect) optCountSelect.disabled = false;
- updateSurveyOpts();
- } else if (t === 'text') {
- textOpt.style.display = 'block';
- textInput.setAttribute('required','required'); textInput.disabled = false;
+ // Robust toggle: show/hide sections and set `required` only on visible text/select inputs.
+ function isVisible(el) {
+	 return el && el.offsetParent !== null;
  }
+
+ function setRequiredIfVisible(el, required) {
+	 if (!el) return;
+	 if (required && isVisible(el)) el.setAttribute('required', 'required');
+	 else el.removeAttribute('required');
+ }
+
+ function toggleType() {
+	 var t = typeSelect.value;
+	 mcOpts.style.display = 'none';
+	 surveyOpts.style.display = 'none';
+	 textOpt.style.display = 'none';
+
+	 // Show the selected section
+	 if (t === 'multiple_choice') {
+		 mcOpts.style.display = 'block';
+	 } else if (t === 'survey') {
+		 surveyOpts.style.display = 'block';
+	 } else if (t === 'text') {
+		 textOpt.style.display = 'block';
+	 }
+
+	 // For all text/select inputs inside the MC block, require only if visible
+	 mcOpts.querySelectorAll('input[type="text"], select').forEach(function(i) {
+		 setRequiredIfVisible(i, true);
+	 });
+
+	 // Survey options: require only visible option inputs
+	 document.querySelectorAll('.survey-option-input').forEach(function(i) {
+		 setRequiredIfVisible(i, true);
+	 });
+
+	 // Correct answer text field
+	 setRequiredIfVisible(textInput, true);
  }
 
  function updateSurveyOpts() {
- var c = parseInt(optCountSelect.value);
- ['a','b','c','d','e'].forEach(function(l, i) {
- var el = document.getElementById('survey_opt_' + l);
- var inp = el.querySelector('input');
- if (i < c) { el.style.display='block'; inp.setAttribute('required','required'); inp.disabled=false; }
- else { el.style.display='none'; inp.removeAttribute('required'); inp.disabled=true; inp.value=''; }
- });
+	 var c = parseInt(optCountSelect.value);
+	 ['a','b','c','d','e'].forEach(function(l, i) {
+		 var el = document.getElementById('survey_opt_' + l);
+		 var inp = el.querySelector('input');
+		 if (i < c) {
+			 el.style.display = 'block';
+		 } else {
+			 el.style.display = 'none';
+			 inp.value = '';
+		 }
+	 });
+	 // Re-apply required rules after changing visibility
+	 document.querySelectorAll('.survey-option-input').forEach(function(i) { setRequiredIfVisible(i, true); });
  }
 
  typeSelect.addEventListener('change', toggleType);
  optCountSelect.addEventListener('change', updateSurveyOpts);
+ // Initialize UI
  toggleType();
  </script>
  </div>

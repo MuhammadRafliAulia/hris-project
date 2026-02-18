@@ -172,7 +172,7 @@
  <div class="form-group">
  <label for="image">Gambar Soal</label>
  <input type="file" id="image" name="image" class="file-input" accept="image/*">
- <small style="color:#64748b;">Maksimal 2MB. Format: JPEG, PNG, JPG, GIF</small>
+ <small style="color:#64748b;">Maksimal 5MB. Format: JPEG, PNG, JPG, GIF</small>
 @if($question->image_data)
 <div style="margin-top:12px;">
 <img src="{{ route('questions.image', $question) }}" alt="Preview" style="max-width:200px; max-height:200px; border-radius:6px;">
@@ -198,14 +198,15 @@
  </div>
 
  <div>
- <button type="submit" class="btn"> Simpan Perubahan</button>
- <a href="{{ route('banks.edit', $bank) }}" class="btn btn-secondary">Batal</a>
- <form method="POST" action="{{ route('questions.delete', $question) }}" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus soal ini?');">
- @csrf
- @method('DELETE')
- <button type="submit" class="btn btn-danger"> Hapus Soal</button>
- </form>
+	 <button type="submit" class="btn"> Simpan Perubahan</button>
+	 <a href="{{ route('banks.edit', $bank) }}" class="btn btn-secondary">Batal</a>
  </div>
+ </form>
+
+ <form method="POST" action="{{ route('questions.delete', $question) }}" style="display:inline; margin-top:8px;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus soal ini?');">
+	 @csrf
+	 @method('DELETE')
+	 <button type="submit" class="btn btn-danger"> Hapus Soal</button>
  </form>
  </div>
  </div>
