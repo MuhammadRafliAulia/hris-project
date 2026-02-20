@@ -72,6 +72,42 @@ class BankController extends Controller
 
         $type = $request->input('type', 'multiple_choice');
 
+        // No debug logs (production-ready): prefer posted values or fallback fields if present
+
+        // Trim text inputs to avoid whitespace-only values and merge back to request.
+        // Also accept fallback values from client-side `_posted_*` hidden fields if present.
+        $trimFields = ['question','option_a','option_b','option_c','option_d','option_e','correct_answer','correct_answer_text'];
+        $trimmed = [];
+        foreach ($trimFields as $f) {
+            $val = $request->input($f);
+            // fallback to client-supplied `_posted_` prefixed field when original is empty
+            if (($val === null || $val === '') && $request->has('_posted_' . $f)) {
+                $val = $request->input('_posted_' . $f);
+            }
+            if (is_string($val)) $val = trim($val);
+            $trimmed[$f] = $val;
+        }
+        $request->merge($trimmed);
+
+        // Quick pre-check to provide clearer errors when required MC fields missing
+        if ($type === 'multiple_choice') {
+            $requiredFields = ['question', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_answer'];
+            $missing = [];
+            foreach ($requiredFields as $f) {
+                $v = $request->input($f);
+                if ($v === null || $v === '') $missing[] = $f;
+            }
+            if (!empty($missing)) {
+                $messages = $this->uploadValidationMessages();
+                $errors = [];
+                foreach ($missing as $m) {
+                    $key = $m . '.required';
+                    $errors[$m] = $messages[$key] ?? ($messages['required'] ?? 'Wajib diisi');
+                }
+                return back()->withInput()->withErrors($errors);
+            }
+        }
+
         $baseRules = [
             'question' => 'required|string|max:1000',
             'type' => 'required|in:text,multiple_choice,narrative,survey',
@@ -81,10 +117,11 @@ class BankController extends Controller
             'option_b_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'option_c_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'option_d_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'option_e_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ];
 
         if ($type === 'narrative') {
-            $validated = $request->validate($baseRules);
+            $validated = $request->validate($baseRules, $this->uploadValidationMessages());
             $validated['option_a'] = null;
             $validated['option_b'] = null;
             $validated['option_c'] = null;
@@ -96,7 +133,7 @@ class BankController extends Controller
         } elseif ($type === 'text') {
             $validated = $request->validate(array_merge($baseRules, [
                 'correct_answer_text' => 'required|string|max:500',
-            ]));
+            ]), $this->uploadValidationMessages());
             $validated['option_a'] = null;
             $validated['option_b'] = null;
             $validated['option_c'] = null;
@@ -119,7 +156,7 @@ class BankController extends Controller
                 }
             }
 
-            $validated = $request->validate(array_merge($baseRules, $surveyRules));
+            $validated = $request->validate(array_merge($baseRules, $surveyRules), $this->uploadValidationMessages());
 
             // Null out unused options
             $i = 0;
@@ -138,27 +175,41 @@ class BankController extends Controller
                 'option_b' => 'required|string|max:500',
                 'option_c' => 'required|string|max:500',
                 'option_d' => 'required|string|max:500',
-                'correct_answer' => 'required|in:A,B,C,D',
-            ]));
+                'option_e' => 'nullable|string|max:500',
+                'correct_answer' => 'required|in:A,B,C,D,E',
+            ]), $this->uploadValidationMessages());
             $validated['option_e'] = null;
             $validated['option_count'] = null;
         }
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
+            // double-check file size to avoid DB packet issues
+            if ($file->getSize() > 5 * 1024 * 1024) {
+                return back()->withInput()->with('error', 'gagal upload file lebih dari 5 mb');
+            }
             $validated['image'] = $file->store('questions/images', 'public');
             $validated['image_data'] = file_get_contents($file->getRealPath());
             $validated['image_mime'] = $file->getClientMimeType();
         }
+        // audio
         if ($request->hasFile('audio')) {
-            $validated['audio'] = $request->file('audio')->store('questions/audio', 'public');
+            $audio = $request->file('audio');
+            if ($audio->getSize() > 5 * 1024 * 1024) {
+                return back()->withInput()->with('error', 'gagal upload file lebih dari 5 mb');
+            }
+            $validated['audio'] = $audio->store('questions/audio', 'public');
         }
 
         // Option images (for multiple_choice)
         foreach (['a', 'b', 'c', 'd'] as $letter) {
             $fieldName = 'option_' . $letter . '_image';
             if ($request->hasFile($fieldName)) {
-                $validated[$fieldName] = $request->file($fieldName)->store('questions/option-images', 'public');
+                $f = $request->file($fieldName);
+                if ($f->getSize() > 5 * 1024 * 1024) {
+                    return back()->withInput()->with('error', 'gagal upload file lebih dari 5 mb');
+                }
+                $validated[$fieldName] = $f->store('questions/option-images', 'public');
             }
         }
 
@@ -423,6 +474,42 @@ class BankController extends Controller
         return redirect()->route('banks.edit', $bank)->with('success', 'Sub-test berhasil dihapus.');
     }
 
+    /**
+     * Custom validation messages for upload errors to show friendly alerts.
+     */
+    private function uploadValidationMessages()
+    {
+        $sizeMsg = 'gagal upload file lebih dari 5 mb';
+        $formatMsg = 'format salah';
+
+        return [
+            // General messages
+            'required' => 'Wajib diisi',
+            'question.required' => 'Soal harus diisi',
+            'option_a.required' => 'Opsi A wajib diisi',
+            'option_b.required' => 'Opsi B wajib diisi',
+            'option_c.required' => 'Opsi C wajib diisi',
+            'option_d.required' => 'Opsi D wajib diisi',
+            'correct_answer.required' => 'Pilih jawaban benar',
+
+            'image.max' => $sizeMsg,
+            'image.mimes' => $formatMsg,
+            'audio.max' => $sizeMsg,
+            'audio.mimes' => $formatMsg,
+            'option_a_image.max' => $sizeMsg,
+            'option_a_image.mimes' => $formatMsg,
+            'option_b_image.max' => $sizeMsg,
+            'option_b_image.mimes' => $formatMsg,
+            'option_c_image.max' => $sizeMsg,
+            'option_c_image.mimes' => $formatMsg,
+            'option_d_image.max' => $sizeMsg,
+            'option_d_image.mimes' => $formatMsg,
+            'option_e_image.max' => $sizeMsg,
+            'option_e_image.mimes' => $formatMsg,
+            'option_e.required' => 'Opsi E wajib diisi',
+        ];
+    }
+
     public function results(Bank $bank, Request $request)
     {
         $this->authorize('view', $bank);
@@ -497,7 +584,7 @@ class BankController extends Controller
         ];
 
         if ($type === 'narrative') {
-            $validated = $request->validate($baseRules);
+            $validated = $request->validate($baseRules, $this->uploadValidationMessages());
             $validated['option_a'] = null;
             $validated['option_b'] = null;
             $validated['option_c'] = null;
@@ -509,7 +596,7 @@ class BankController extends Controller
         } elseif ($type === 'text') {
             $validated = $request->validate(array_merge($baseRules, [
                 'correct_answer_text' => 'required|string|max:500',
-            ]));
+            ]), $this->uploadValidationMessages());
             $validated['option_a'] = null;
             $validated['option_b'] = null;
             $validated['option_c'] = null;
@@ -532,7 +619,7 @@ class BankController extends Controller
                 }
             }
 
-            $validated = $request->validate(array_merge($baseRules, $surveyRules));
+            $validated = $request->validate(array_merge($baseRules, $surveyRules), $this->uploadValidationMessages());
 
             $i = 0;
             foreach ($labels as $letter => $field) {
@@ -550,27 +637,38 @@ class BankController extends Controller
                 'option_b' => 'required|string|max:500',
                 'option_c' => 'required|string|max:500',
                 'option_d' => 'required|string|max:500',
-                'correct_answer' => 'required|in:A,B,C,D',
-            ]));
-            $validated['option_e'] = null;
+                'option_e' => 'nullable|string|max:500',
+                'correct_answer' => 'required|in:A,B,C,D,E',
+            ]), $this->uploadValidationMessages());
             $validated['option_count'] = null;
         }
 
         if ($request->hasFile('image')) {
               $file = $request->file('image');
+              if ($file->getSize() > 5 * 1024 * 1024) {
+                  return back()->withInput()->with('error', 'gagal upload file lebih dari 5 mb');
+              }
               $validated['image'] = $file->store('questions/images', 'public');
               $validated['image_data'] = file_get_contents($file->getRealPath());
               $validated['image_mime'] = $file->getClientMimeType();
         }
         if ($request->hasFile('audio')) {
-            $validated['audio'] = $request->file('audio')->store('questions/audio', 'public');
+            $audio = $request->file('audio');
+            if ($audio->getSize() > 5 * 1024 * 1024) {
+                return back()->withInput()->with('error', 'gagal upload file lebih dari 5 mb');
+            }
+            $validated['audio'] = $audio->store('questions/audio', 'public');
         }
 
         // Option images (for multiple_choice)
         foreach (['a', 'b', 'c', 'd'] as $letter) {
             $fieldName = 'option_' . $letter . '_image';
             if ($request->hasFile($fieldName)) {
-                $validated[$fieldName] = $request->file($fieldName)->store('questions/option-images', 'public');
+                $f = $request->file($fieldName);
+                if ($f->getSize() > 5 * 1024 * 1024) {
+                    return back()->withInput()->with('error', 'gagal upload file lebih dari 5 mb');
+                }
+                $validated[$fieldName] = $f->store('questions/option-images', 'public');
             } elseif ($request->input('remove_' . $fieldName) === '1') {
                 $validated[$fieldName] = null;
             }

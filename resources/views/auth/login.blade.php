@@ -26,7 +26,7 @@
     .btn{margin-top:12px;width:100%;background:var(--blue);color:#fff;border:none;padding:10px 12px;border-radius:8px;font-size:15px;cursor:pointer}
     .btn:hover{background:#002a4f}
     .muted{font-size:8px;color:var(--muted);text-align:center;margin-top:5px}
-    .small{font-size:10px;color:#64748b;text-align:center;margin-top:-30px}
+    .small{font-size:10px;color:#64748b;text-align:center;margin-top:-25px}
     .error{color:#dc2626;font-size:13px;margin-top:8px}
     form>div{margin-bottom:12px}
 

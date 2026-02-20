@@ -134,7 +134,31 @@
     </div>
 
     <div class="content">
+      <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;">
+        <div style="flex:1;">
+            <div id="dashboardToggle" style="display:inline-flex;gap:8px;">
+            <button type="button" id="btnEmp" class="quick-link" style="background:#003e6f;color:#fff;">Data Karyawan</button>
+            <button type="button" id="btnSP" class="quick-link" style="background:#fff;color:#475569;border:1px solid #e2e8f0;">Data Surat Peringatan</button>
+          </div>
+        </div>
+      </div>
 
+      <style>
+        .quick-link {
+          transition: background-color 220ms ease, color 220ms ease, transform 200ms ease, box-shadow 220ms ease;
+          will-change: background-color, transform;
+          border-radius:20px;
+        }
+        .quick-link:hover { transform: translateY(-1px); }
+        .quick-link.active {
+          background:#003e6f;color:#fff;border-color:#003e6f;
+          box-shadow: 0 8px 20px rgba(3,78,111,0.16);
+          transform: translateY(-3px) scale(1.02);
+        }
+      </style>
+
+      {{-- Employee Dashboard --}}
+      <div id="empDashboard">
       {{-- ===== SUMMARY CARDS ===== --}}
       <div class="summary-grid">
         <div class="summary-card">
@@ -183,7 +207,67 @@
         <a href="{{ route('warning-letters.export') }}" class="quick-link"><span class="ql-icon">📥</span> Export Excel</a>
       </div>
 
-      {{-- ===== SP MONTHLY TREND (FULL WIDTH) ===== --}}
+      {{-- ===== SP MONTHLY TREND (FULL WIDTH) --}}
+      {{-- Employee detail charts (dept / pendidikan / status) inserted here so toggling hides/shows all employee visuals --}}
+
+      <div class="row-3">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon">🏢</span> Karyawan per Departemen</h3>
+          </div>
+          <div class="chart-wrap sm">
+            <canvas id="empDeptChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon">🎓</span> Karyawan per Pendidikan</h3>
+          </div>
+          <div class="chart-wrap sm">
+            <canvas id="empPendidikanChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon">📝</span> Status Karyawan</h3>
+          </div>
+          <div class="chart-wrap sm">
+            <canvas id="empStatusKaryawanChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-2" style="margin-top:12px;">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon">🔖</span> Karyawan per Status (Aktif/Tidak)</h3>
+          </div>
+          <div class="chart-wrap sm">
+            <canvas id="empStatusChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon">🏆</span> Top Departemen (5)</h3>
+          </div>
+          <div style="padding:10px;">
+            @if($employeesByDept->count() > 0)
+              <ol style="margin:0 0 0 16px;padding:0;font-size:13px;color:#374151;">
+                @foreach($employeesByDept->take(5) as $dept => $count)
+                  <li style="margin-bottom:6px;"><strong style="color:#0f172a">{{ $dept }}</strong> — {{ $count }} karyawan</li>
+                @endforeach
+              </ol>
+            @else
+              <div class="empty-state">Belum ada data departemen.</div>
+            @endif
+          </div>
+        </div>
+      </div>
+
+      </div> {{-- end empDashboard --}}
+
+      {{-- SP Dashboard --}}
+      <div id="spDashboard" style="display:none;">
       <div class="row-full">
         <div class="card">
           <div class="card-header">
@@ -192,6 +276,43 @@
           </div>
           <div class="chart-wrap lg">
             <canvas id="spMonthlyChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      {{-- SP Summary Cards (quick KPIs for SP dashboard) --}}
+      <div class="summary-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:12px;">
+        <div class="summary-card">
+          <div class="sc-icon-wrap amber">⚠️</div>
+          <div class="sc-info">
+            <div class="sc-value">{{ $totalSP }}</div>
+            <div class="sc-label">Total SP</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-icon-wrap green">📈</div>
+          <div class="sc-info">
+            <div id="spAvgPerMonth" class="sc-value">-</div>
+            <div class="sc-label">Rata-rata / Bulan (12 bln)</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-icon-wrap blue">📅</div>
+          <div class="sc-info">
+            <div class="sc-value">{{ collect($sp1Monthly)->last() + collect($sp2Monthly)->last() + collect($sp3Monthly)->last() }}</div>
+            <div class="sc-label">SP Bulan Ini</div>
+          </div>
+        </div>
+        @php
+          $topDept = $spByDept->sortDesc();
+          $topDeptName = $topDept->keys()->first() ?? '-';
+          $topDeptCount = $topDept->first() ?? 0;
+        @endphp
+        <div class="summary-card">
+          <div class="sc-icon-wrap purple">🏢</div>
+          <div class="sc-info">
+            <div class="sc-value">{{ $topDeptCount }}</div>
+            <div class="sc-label">Dept Paling Banyak SP ({{ $topDeptName }})</div>
           </div>
         </div>
       </div>
@@ -224,16 +345,9 @@
         </div>
       </div>
 
-      {{-- ===== EMPLOYEE CHARTS + RECENT SP ===== --}}
+      {{-- SP extra charts moved here: (only single copy kept above) --}}
+
       <div class="row-2">
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title"><span class="icon">👥</span> Karyawan per Departemen</h3>
-          </div>
-          <div class="chart-wrap">
-            <canvas id="empDeptChart"></canvas>
-          </div>
-        </div>
         <div class="card">
           <div class="card-header">
             <h3 class="card-title"><span class="icon">📄</span> SP Terbaru</h3>
@@ -276,27 +390,20 @@
           <div class="empty-state">Belum ada data surat peringatan.</div>
           @endif
         </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon">📊</span> Statistik SP Ringkas</h3>
+          </div>
+          <div style="padding:12px;">
+            <div style="font-size:13px;color:#334155;font-weight:600;margin-bottom:8px;">Total SP: {{ $totalSP }}</div>
+            <div>Pending: {{ $spPending + $spPendingHR }} • Approved: {{ $spApproved }}</div>
+          </div>
+        </div>
       </div>
 
-      {{-- ===== EMPLOYEE DETAIL CHARTS ===== --}}
-      <div class="row-2">
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title"><span class="icon">🎓</span> Karyawan per Pendidikan</h3>
-          </div>
-          <div class="chart-wrap sm">
-            <canvas id="empPendidikanChart"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title"><span class="icon">📝</span> Status Karyawan</h3>
-          </div>
-          <div class="chart-wrap sm">
-            <canvas id="empStatusKaryawanChart"></canvas>
-          </div>
-        </div>
-      </div>
+      </div> {{-- end spDashboard --}}
+
+      {{-- ===== EMPLOYEE DETAIL CHARTS ===== (moved into empDashboard) --}}
 
       <div class="copyright">
         &copy; 2026 Shindengen HR Internal Team
@@ -320,20 +427,33 @@
       data: {
         labels: {!! json_encode($monthLabels) !!},
         datasets: [
-          { label: 'SP-1', data: {!! json_encode($sp1Monthly) !!}, backgroundColor: '#fbbf24', borderRadius: 3, barPercentage: 0.7 },
-          { label: 'SP-2', data: {!! json_encode($sp2Monthly) !!}, backgroundColor: '#fb923c', borderRadius: 3, barPercentage: 0.7 },
-          { label: 'SP-3', data: {!! json_encode($sp3Monthly) !!}, backgroundColor: '#f87171', borderRadius: 3, barPercentage: 0.7 }
+          { label: 'SP-1', data: {!! json_encode($sp1Monthly) !!}, backgroundColor: '#fbbf24', borderRadius: 3, barPercentage: 0.7, stack: 'levels' },
+          { label: 'SP-2', data: {!! json_encode($sp2Monthly) !!}, backgroundColor: '#fb923c', borderRadius: 3, barPercentage: 0.7, stack: 'levels' },
+          { label: 'SP-3', data: {!! json_encode($sp3Monthly) !!}, backgroundColor: '#f87171', borderRadius: 3, barPercentage: 0.7, stack: 'levels' }
         ]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { position: 'top', labels: { font: { size: 10, weight: 500 }, pointStyle: 'rectRounded', padding: 12 } } },
         scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 9 } } },
-          y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } }, grid: { color: '#f1f5f9', drawBorder: false } }
+          x: { grid: { display: false }, ticks: { font: { size: 9 } }, stacked: true },
+          y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } }, grid: { color: '#f1f5f9', drawBorder: false }, stacked: true }
         }
       }
     });
+
+    // compute & show average SP per month (12 months)
+    (function(){
+      try{
+        var a = {!! json_encode($sp1Monthly) !!};
+        var b = {!! json_encode($sp2Monthly) !!};
+        var c = {!! json_encode($sp3Monthly) !!};
+        var total = 0;
+        for(var i=0;i<a.length;i++){ total += (a[i]||0) + (b[i]||0) + (c[i]||0); }
+        var avg = Math.round((total / (a.length||1)) * 10) / 10;
+        var el = document.getElementById('spAvgPerMonth'); if(el) el.innerText = avg;
+      }catch(e){ console.error(e); }
+    })();
 
     // ===== 2. SP PER DEPARTEMEN =====
     new Chart(document.getElementById('spDeptChart').getContext('2d'), {
@@ -409,6 +529,60 @@
           y: { grid: { display: false }, ticks: { font: { size: 9 } } }
         }
       }
+    });
+
+    // ===== 5b. KARYAWAN PER STATUS (AKTIF/TIDAK) =====
+    new Chart(document.getElementById('empStatusChart').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: {!! json_encode($employeesByStatus->keys()) !!},
+        datasets: [{
+          data: {!! json_encode($employeesByStatus->values()) !!},
+          backgroundColor: ['#10b981','#f59e0b','#ef4444','#60a5fa','#9ca3af'],
+          borderWidth: 2, borderColor: '#fff', hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '50%',
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 8 } } }
+      }
+    });
+
+    // ===== UI Toggle between dashboards =====
+    document.addEventListener('DOMContentLoaded', function() {
+      var btnEmp = document.getElementById('btnEmp');
+      var btnSP = document.getElementById('btnSP');
+      var emp = document.getElementById('empDashboard');
+      var sp = document.getElementById('spDashboard');
+      function setActiveButton(activeBtn, inactiveBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.setAttribute('aria-pressed', 'true');
+        activeBtn.style.background = '#003e6f';
+        activeBtn.style.color = '#fff';
+        activeBtn.style.border = '1px solid #003e6f';
+
+        inactiveBtn.classList.remove('active');
+        inactiveBtn.setAttribute('aria-pressed', 'false');
+        inactiveBtn.style.background = '#fff';
+        inactiveBtn.style.color = '#475569';
+        inactiveBtn.style.border = '1px solid #e2e8f0';
+      }
+
+      function showEmp() {
+        emp.style.display = '';
+        sp.style.display = 'none';
+        setActiveButton(btnEmp, btnSP);
+      }
+      function showSP() {
+        emp.style.display = 'none';
+        sp.style.display = '';
+        setActiveButton(btnSP, btnEmp);
+      }
+
+      btnEmp.addEventListener('click', showEmp);
+      btnSP.addEventListener('click', showSP);
+      // default
+      showEmp();
     });
 
     // ===== 6. KARYAWAN PER PENDIDIKAN =====

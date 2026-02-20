@@ -176,7 +176,36 @@ class TestController extends Controller
             ];
         }
 
-        ParticipantResponse::create($createData);
+        // If a record with same bank_id + participant_email already exists (possibly completed),
+        // reset and reuse it instead of attempting to insert a duplicate (which would fail
+        // due to the unique constraint). This allows participants to re-start even when
+        // an earlier completed record exists.
+        $existingAny = null;
+        if (!empty($createData['participant_email'])) {
+            $existingAny = ParticipantResponse::where('bank_id', $bank->id)
+                ->where('participant_email', $createData['participant_email'])
+                ->first();
+        }
+
+        if ($existingAny) {
+            $existingAny->token = $token;
+            $existingAny->participant_name = $createData['participant_name'] ?? $existingAny->participant_name;
+            $existingAny->phone = $createData['phone'] ?? $existingAny->phone;
+            $existingAny->address = $createData['address'] ?? $existingAny->address;
+            $existingAny->nik = $createData['nik'] ?? $existingAny->nik;
+            $existingAny->department = $createData['department'] ?? $existingAny->department;
+            $existingAny->position = $createData['position'] ?? $existingAny->position;
+            $existingAny->responses = null;
+            $existingAny->score = 0;
+            $existingAny->completed = false;
+            $existingAny->started_at = now();
+            $existingAny->completed_at = null;
+            if (isset($createData['applicant_username'])) $existingAny->applicant_username = $createData['applicant_username'];
+            if (isset($createData['applicant_password'])) $existingAny->applicant_password = $createData['applicant_password'];
+            $existingAny->save();
+        } else {
+            ParticipantResponse::create($createData);
+        }
 
         return redirect()->route('test.show', $token);
     }

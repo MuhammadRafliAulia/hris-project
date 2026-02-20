@@ -46,6 +46,13 @@
  <div class="success" style="margin-top:12px;">{{ session('success') }}</div>
  @endif
 
+@if(session('error'))
+<div style="background:#fee2e2;color:#9b1c1c;padding:10px;border-radius:6px;margin-bottom:12px;">
+	<strong>Gagal:</strong>
+	<div style="margin-top:6px;">{{ session('error') }}</div>
+</div>
+@endif
+
  <form method="POST" action="{{ route('sub-tests.update', $subTest) }}" style="margin-top:16px;">
  @csrf @method('PUT')
  <div class="form-group">
@@ -228,10 +235,12 @@
  <div style="margin-top:6px;"><label style="font-size:12px;color:#64748b;margin-bottom:4px;">Gambar Opsi C (opsional)</label><input type="file" name="option_c_image" accept="image/*" style="font-size:12px;"></div></div>
  <div class="form-group"><label>Opsi D</label><input type="text" name="option_d" placeholder="Opsi D...">
  <div style="margin-top:6px;"><label style="font-size:12px;color:#64748b;margin-bottom:4px;">Gambar Opsi D (opsional)</label><input type="file" name="option_d_image" accept="image/*" style="font-size:12px;"></div></div>
+ <div class="form-group"><label>Opsi E</label><input type="text" name="option_e" placeholder="Opsi E...">
+ <div style="margin-top:6px;"><label style="font-size:12px;color:#64748b;margin-bottom:4px;">Gambar Opsi E (opsional)</label><input type="file" name="option_e_image" accept="image/*" style="font-size:12px;"></div></div>
  <div class="form-group">
  <label>Jawaban Benar</label>
  <select name="correct_answer" style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:6px;">
- <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+ <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option>
  </select>
  </div>
  </div>
@@ -340,6 +349,28 @@
  optCountSelect.addEventListener('change', updateSurveyOpts);
  // Initialize UI
  toggleType();
+
+// Ensure values are explicitly posted: copy visible values into `_posted_*` hidden fields before submit
+document.getElementById('addQuestionForm').addEventListener('submit', function(e){
+	var form = this;
+	var names = ['question','option_a','option_b','option_c','option_d','option_e','correct_answer','option_count','correct_answer_text'];
+	names.forEach(function(n){
+		var src = form.querySelector('[name="' + n + '"]');
+		var val = src ? (typeof src.value !== 'undefined' ? src.value : '') : '';
+		val = ('' + val).trim();
+		var hiddenName = '_posted_' + n;
+		var existing = form.querySelector('[name="' + hiddenName + '"]');
+		if (existing) {
+			existing.value = val;
+		} else {
+			var inp = document.createElement('input');
+			inp.type = 'hidden';
+			inp.name = hiddenName;
+			inp.value = val;
+			form.appendChild(inp);
+		}
+	});
+});
  </script>
  </div>
  </div>

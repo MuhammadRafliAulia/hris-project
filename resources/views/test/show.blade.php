@@ -119,6 +119,16 @@
  box-shadow:0 4px 12px rgba(0,0,0,0.3); animation:acw-pop 0.3s ease;
  }
  .ss-blocked-toast.show { display:block; }
+ /* Confirmation modal styles */
+ .confirm-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:11000; }
+ .confirm-modal-backdrop.show { display:flex; }
+ .confirm-modal { background:#fff; border-radius:10px; padding:18px; width:92%; max-width:460px; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
+ .confirm-modal h3 { margin:0 0 8px 0; font-size:18px; color:#0f172a; }
+ .confirm-modal p { margin:0 0 16px 0; color:#475569; font-size:14px; }
+ .confirm-actions { display:flex; gap:10px; justify-content:flex-end; }
+ .confirm-btn { padding:10px 14px; border-radius:8px; font-weight:600; cursor:pointer; border:none; }
+ .confirm-cancel { background:#e5e7eb; color:#0f172a; }
+ .confirm-yes { background:#003e6f; color:#fff; }
  </style>
  <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
 </head>
@@ -127,6 +137,18 @@
  <div class="screen-protect" id="screenProtect"></div>
  <!-- Screenshot blocked toast -->
  <div class="ss-blocked-toast" id="ssBlockedToast">&#x26D4; Screenshot terdeteksi! Tindakan ini dicatat sebagai pelanggaran.</div>
+
+<!-- Confirmation modal -->
+<div class="confirm-modal-backdrop" id="confirmModal">
+	<div class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+		<h3 id="confirmModalTitle">Konfirmasi Pengiriman</h3>
+		<p id="confirmModalMessage">Anda yakin ingin mengirim jawaban?</p>
+		<div class="confirm-actions">
+			<button type="button" class="confirm-btn confirm-cancel" id="confirmCancelBtn">Batal</button>
+			<button type="button" class="confirm-btn confirm-yes" id="confirmYesBtn">Kirim</button>
+		</div>
+	</div>
+</div>
 
  <div class="container">
  <div class="card">
@@ -784,27 +806,51 @@
  lastWidth = w; lastHeight = h;
  });
 
- // Manual submit with confirmation
- document.getElementById('testForm').addEventListener('submit', function(e) {
- if (isAutoSubmit) return;
- isSubmitting = true;
- var unanswered = totalQuestions - answeredSet.size;
- var confirmed = false;
- if (unanswered > 0) {
- confirmed = confirm('Masih ada ' + unanswered + ' soal yang belum dijawab. Yakin ingin mengirim?');
- } else {
- confirmed = confirm('Yakin ingin mengirimkan jawaban? Anda tidak dapat mengubah jawaban setelah ini.');
- }
- if (!confirmed) {
- e.preventDefault();
- isSubmitting = false;
- return;
- }
- // Attach violation data on normal submit too
- appendViolationData(violationCount > 0 ? 'Peserta submit manual dengan ' + violationCount + ' pelanggaran' : '');
- document.getElementById('submitBtn').disabled = true;
- document.getElementById('submitBtn').textContent = 'Mengirim...';
- });
+// Manual submit with confirmation (custom modal)
+document.getElementById('testForm').addEventListener('submit', function(e) {
+	if (isAutoSubmit) return;
+	// prevent immediate submit, show modal instead
+	e.preventDefault();
+	if (isSubmitting) return;
+	isSubmitting = true;
+
+	var unanswered = totalQuestions - answeredSet.size;
+	var msg = '';
+	if (unanswered > 0) {
+		msg = 'Masih ada ' + unanswered + ' soal yang belum dijawab. Yakin ingin mengirim?';
+	} else {
+		msg = 'Yakin ingin mengirimkan jawaban? Anda tidak dapat mengubah jawaban setelah ini.';
+	}
+
+	var modal = document.getElementById('confirmModal');
+	var msgEl = document.getElementById('confirmModalMessage');
+	msgEl.textContent = msg;
+	modal.classList.add('show');
+
+	var onCancel = function() {
+		modal.classList.remove('show');
+		isSubmitting = false;
+		cleanup();
+	};
+
+	var onYes = function() {
+		modal.classList.remove('show');
+		// Attach violation data and submit
+		appendViolationData(violationCount > 0 ? 'Peserta submit manual dengan ' + violationCount + ' pelanggaran' : '');
+		var btn = document.getElementById('submitBtn');
+		if (btn) { btn.disabled = true; btn.textContent = 'Mengirim...'; }
+		cleanup();
+		document.getElementById('testForm').submit();
+	};
+
+	function cleanup() {
+		document.getElementById('confirmCancelBtn').removeEventListener('click', onCancel);
+		document.getElementById('confirmYesBtn').removeEventListener('click', onYes);
+	}
+
+	document.getElementById('confirmCancelBtn').addEventListener('click', onCancel);
+	document.getElementById('confirmYesBtn').addEventListener('click', onYes);
+});
 
  // === TIMER ===
  @if($remainingSeconds !== null)
