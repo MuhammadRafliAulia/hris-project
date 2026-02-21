@@ -354,7 +354,7 @@
 
  @if($question->type === 'text')
  <div style="margin-bottom:24px;">
- <input type="text" name="answers[{{ $question->id }}]" class="text-input answer-input" placeholder="Masukkan jawaban Anda..." required>
+ <input type="text" name="answers[{{ $question->id }}]" class="text-input answer-input" placeholder="Masukkan jawaban Anda...">
  </div>
  @elseif($question->type === 'narrative')
  <div style="margin-bottom:24px;">
@@ -384,7 +384,7 @@
  @php $optImgField = 'option_' . strtolower($key) . '_image'; @endphp
  <div class="option">
  <label>
- <input type="radio" name="answers[{{ $question->id }}]" value="{{ $key }}" class="answer-input" required>
+ <input type="radio" name="answers[{{ $question->id }}]" value="{{ $key }}" class="answer-input">
  <span>
  <strong>{{ $key }}.</strong> {{ $option }}
  @if($question->$optImgField)
@@ -652,12 +652,56 @@
 
  function finishSubTest(stId) {
  pauseSubTestTimer(stId);
- completedSubTests.add(stId);
- // Update card UI
- var card = document.getElementById('stCard' + stId);
- if (card) { card.classList.remove('active'); card.classList.add('completed'); }
- var status = document.getElementById('stStatus' + stId);
- if (status) { status.className = 'st-status done'; status.textContent = ' Selesai'; }
+	// mark completed locally
+	completedSubTests.add(stId);
+
+	// collect answers for this subtest (include empty answers) and attach as hidden inputs
+	try {
+		var form = document.getElementById('testForm');
+		if (form) {
+			// remove any previous hidden markers for this subtest
+			var prev = form.querySelectorAll('input[data-subtest-id="' + stId + '"]');
+			prev.forEach(function(n){ n.remove(); });
+
+			var qblocks = document.querySelectorAll('.question-block[data-subtest="' + stId + '"]');
+			qblocks.forEach(function(qb){
+				var qid = qb.dataset.question;
+				var input = qb.querySelector('.answer-input');
+				var val = '';
+				if (input) {
+					if (input.type === 'radio') {
+						var sel = qb.querySelector('.answer-input:checked');
+						val = sel ? sel.value : '';
+					} else {
+						val = input.value || '';
+					}
+				} else {
+					// multiple inputs (e.g., radio group) - try to find checked
+					var sel2 = qb.querySelector('.answer-input:checked');
+					val = sel2 ? sel2.value : '';
+				}
+				var h = document.createElement('input');
+				h.type = 'hidden';
+				h.name = 'answers[' + qid + ']';
+				h.value = val;
+				h.setAttribute('data-subtest-id', stId);
+				form.appendChild(h);
+			});
+
+			// add marker that this subtest was finished
+			var mh = document.createElement('input');
+			mh.type = 'hidden'; mh.name = 'subtest_completed[' + stId + ']'; mh.value = '1'; mh.setAttribute('data-subtest-id', stId);
+			form.appendChild(mh);
+		}
+	} catch (e) {
+		console.error('finishSubTest attach error', e);
+	}
+
+	// Update card UI
+	var card = document.getElementById('stCard' + stId);
+	if (card) { card.classList.remove('active'); card.classList.add('completed'); }
+	var status = document.getElementById('stStatus' + stId);
+	if (status) { status.className = 'st-status done'; status.textContent = ' Selesai'; }
  // Update card meta with remaining time
  var timerEl = document.getElementById('stTimer' + stId);
  if (timerEl && typeof subTestRemaining[stId] !== 'undefined' && subTestRemaining[stId] <= 0) {
@@ -743,6 +787,8 @@
  var lastViolationTime = 0;
  var isAutoSubmit = false;
  var isSubmitting = false;
+// timestamp of last detected screenshot (used to avoid double-counting blur/visibility events)
+window.__lastScreenshotAt = 0;
  function triggerViolation(reason) {
  if (isSubmitting) return;
  var now = Date.now();
@@ -752,10 +798,14 @@
  }
  document.addEventListener('visibilitychange', function() {
  if (document.hidden) {
- triggerViolation('Anda terdeteksi berpindah tab atau meninggalkan halaman ujian.');
+	 // ignore visibility changes that immediately follow a detected screenshot
+	 if (window.__lastScreenshotAt && (Date.now() - window.__lastScreenshotAt) < 2500) return;
+	 triggerViolation('Anda terdeteksi berpindah tab atau meninggalkan halaman ujian.');
  }
  });
  window.addEventListener('blur', function() {
+ // ignore blur events that immediately follow a detected screenshot (snipping tool may cause blur)
+ if (window.__lastScreenshotAt && (Date.now() - window.__lastScreenshotAt) < 2500) return;
  triggerViolation('Anda terdeteksi meninggalkan jendela ujian.');
  });
 
@@ -809,22 +859,27 @@
 // Manual submit with confirmation (custom modal)
 document.getElementById('testForm').addEventListener('submit', function(e) {
 	if (isAutoSubmit) return;
-	// prevent immediate submit, show modal instead
+	// prevent immediate submit to control flow
 	e.preventDefault();
 	if (isSubmitting) return;
 	isSubmitting = true;
 
 	var unanswered = totalQuestions - answeredSet.size;
-	var msg = '';
+
+	// If there are unanswered questions, allow immediate submit (user requested behavior)
 	if (unanswered > 0) {
-		msg = 'Masih ada ' + unanswered + ' soal yang belum dijawab. Yakin ingin mengirim?';
-	} else {
-		msg = 'Yakin ingin mengirimkan jawaban? Anda tidak dapat mengubah jawaban setelah ini.';
+		appendViolationData(violationCount > 0 ? 'Peserta submit manual dengan ' + violationCount + ' pelanggaran' : '');
+		var btn = document.getElementById('submitBtn');
+		if (btn) { btn.disabled = true; btn.textContent = 'Mengirim...'; }
+		// submit form (hidden inputs for finished subtests are attached by finishSubTest)
+		document.getElementById('testForm').submit();
+		return;
 	}
 
+	// No unanswered questions -> show confirmation modal as safeguard
 	var modal = document.getElementById('confirmModal');
 	var msgEl = document.getElementById('confirmModalMessage');
-	msgEl.textContent = msg;
+	msgEl.textContent = 'Yakin ingin mengirimkan jawaban? Anda tidak dapat mengubah jawaban setelah ini.';
 	modal.classList.add('show');
 
 	var onCancel = function() {
@@ -946,6 +1001,8 @@ document.getElementById('testForm').addEventListener('submit', function(e) {
  function onScreenshotAttempt(method) {
  flashProtect();
  showSSToast();
+ // mark time so blur/visibility handlers ignore the immediate follow-up
+ window.__lastScreenshotAt = Date.now();
  triggerViolation('Screenshot terdeteksi (' + method + '). Screenshot tidak diizinkan selama ujian.');
  }
 

@@ -225,15 +225,23 @@ class BankController extends Controller
         return redirect()->route('sub-tests.edit', $request->sub_test_id)->with('success', 'Soal berhasil ditambahkan.');
     }
 
-    public function edit(Bank $bank)
+    public function edit(Request $request, Bank $bank)
     {
         $this->authorize('update', $bank);
         $subTests = $bank->subTests()->withCount(['questions', 'exampleQuestions'])->get();
         // Load applicant credentials for calon_karyawan banks
         $applicantCredentials = [];
         if ($bank->target === 'calon_karyawan') {
-            $applicantCredentials = $bank->applicantCredentials()->get()->map(function($c) {
-                try {
+            // support sorting via query params ?sort=column&dir=asc|desc
+            $allowed = ['username', 'used', 'created_at'];
+            $sort = $request->query('sort', 'created_at');
+            $dir = strtolower($request->query('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+            if (!in_array($sort, $allowed)) {
+                $sort = 'created_at';
+            }
+
+            $applicantCredentials = $bank->applicantCredentials()->orderBy($sort, $dir)->get()->map(function($c) {
+                    try { 
                     $plain = Crypt::decryptString($c->password_encrypted);
                 } catch (\Exception $e) {
                     $plain = null;
@@ -243,7 +251,10 @@ class BankController extends Controller
             });
         }
 
-        return view('banks.edit', compact('bank', 'subTests', 'applicantCredentials'));
+        // pass current sort to view for toggling links
+        return view('banks.edit', compact('bank', 'subTests', 'applicantCredentials'))
+            ->with('currentSort', $request->query('sort'))
+            ->with('currentDir', $request->query('dir'));
     }
 
     public function generateApplicantCredential(Request $request, Bank $bank)
@@ -404,6 +415,35 @@ class BankController extends Controller
         $bank->update($validated);
         ActivityLog::log('update', 'bank', 'Mengupdate bank soal: ' . $validated['title']);
         return redirect()->route('banks.edit', $bank)->with('success', 'Bank soal berhasil diperbarui.');
+    }
+
+    /**
+     * Return applicant credentials as JSON for AJAX sorting/refresh in admin UI.
+     */
+    public function credentialsList(Request $request, Bank $bank)
+    {
+        $this->authorize('update', $bank);
+        if ($bank->target !== 'calon_karyawan') {
+            return response()->json(['error' => 'Not available'], 400);
+        }
+
+        $allowed = ['username', 'used', 'created_at'];
+        $sort = $request->query('sort', 'created_at');
+        $dir = strtolower($request->query('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        if (!in_array($sort, $allowed)) $sort = 'created_at';
+
+        $creds = $bank->applicantCredentials()->orderBy($sort, $dir)->get()->map(function($c){
+            try { $plain = Crypt::decryptString($c->password_encrypted); } catch (\Exception $e) { $plain = null; }
+            return [
+                'id' => $c->id,
+                'username' => $c->username,
+                'plain_password' => $plain,
+                'used' => (bool) $c->used,
+                'created_at' => $c->created_at->format('Y-m-d H:i'),
+            ];
+        });
+
+        return response()->json(['data' => $creds]);
     }
 
     public function destroy(Bank $bank)

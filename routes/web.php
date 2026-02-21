@@ -47,6 +47,8 @@ Route::middleware(['auth', 'role:superadmin,top_level_management,recruitmentteam
 Route::middleware(['auth', 'role:superadmin,recruitmentteam'])->group(function () {
     Route::resource('banks', BankController::class);
     Route::post('/banks/{bank}/credentials', [BankController::class, 'generateApplicantCredential'])->name('banks.credentials.generate');
+    // AJAX: fetch credentials list (JSON) for bank (used by client-side sorting)
+    Route::get('/banks/{bank}/credentials', [BankController::class, 'credentialsList'])->name('banks.credentials.list');
     Route::delete('/banks/{bank}/credentials/{credential}', [BankController::class, 'deleteApplicantCredential'])->name('banks.credentials.delete');
     Route::get('/banks/{bank}/credentials/template', [BankController::class, 'downloadCredentialTemplate'])->name('banks.credentials.template');
     Route::get('/banks/{bank}/credentials/export', [BankController::class, 'exportCredentials'])->name('banks.credentials.export');

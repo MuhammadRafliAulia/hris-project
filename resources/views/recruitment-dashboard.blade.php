@@ -129,6 +129,25 @@
     </div>
 
     <div class="content">
+      <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;">
+        <div style="flex:1;">
+          <div id="recruitmentToggle" style="display:inline-flex;gap:8px;">
+            <button type="button" id="btnParticipants" class="quick-link" style="background:#003e6f;color:#fff;">Dashboard Peserta</button>
+            <button type="button" id="btnCheat" class="quick-link" style="background:#fff;color:#475569;border:1px solid #e2e8f0;">Dashboard Kecurangan</button>
+          </div>
+        </div>
+      </div>
+
+      <style>
+        .quick-link { transition: background-color 220ms ease, color 220ms ease, transform 200ms ease, box-shadow 220ms ease; will-change: background-color, transform; border-radius:20px; padding:6px 12px; border:1px solid #e2e8f0; }
+        .quick-link:hover { transform: translateY(-1px); }
+        .quick-link.active { background:#003e6f;color:#fff;border-color:#003e6f; box-shadow: 0 8px 20px rgba(3,78,111,0.16); transform: translateY(-3px) scale(1.02); }
+
+      {{-- Top Violators Table --}}
+      </style>
+
+      {{-- Participants Dashboard / Cheat Dashboard toggle wrappers --}}
+      <div id="participantsDashboard">
 
       {{-- ===== SUMMARY CARDS ===== --}}
       <div class="summary-grid">
@@ -268,6 +287,9 @@
         @endif
       </div>
 
+      </div> {{-- end participantsDashboard --}}
+
+      <div id="cheatDashboard" style="display:none;">
       {{-- ===== SECTION: ANALISIS KECURANGAN ===== --}}
       <div style="margin-top:20px; margin-bottom:12px; padding-top:16px; border-top:2px solid #fecaca;">
         <h2 style="margin:0 0 4px 0; font-size:15px; color:#dc2626; font-weight:700; display:flex; align-items:center; gap:8px;">
@@ -431,7 +453,39 @@
         @else
         <div class="empty-state">Belum ada pelanggaran terdeteksi.</div>
         @endif
-      </div>
+      </div> {{-- end cheatDashboard --}}
+
+  <script>
+    // Toggle logic for recruitment dashboard (participants <-> cheat)
+    document.addEventListener('DOMContentLoaded', function() {
+      var btnParticipants = document.getElementById('btnParticipants');
+      var btnCheat = document.getElementById('btnCheat');
+      var participants = document.getElementById('participantsDashboard');
+      var cheat = document.getElementById('cheatDashboard');
+
+      function setActiveButton(activeBtn, inactiveBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.setAttribute('aria-pressed', 'true');
+        activeBtn.style.background = '#003e6f';
+        activeBtn.style.color = '#fff';
+        activeBtn.style.border = '1px solid #003e6f';
+
+        inactiveBtn.classList.remove('active');
+        inactiveBtn.setAttribute('aria-pressed', 'false');
+        inactiveBtn.style.background = '#fff';
+        inactiveBtn.style.color = '#475569';
+        inactiveBtn.style.border = '1px solid #e2e8f0';
+      }
+
+      function showParticipants(){ participants.style.display = ''; cheat.style.display = 'none'; setActiveButton(btnParticipants, btnCheat); }
+      function showCheat(){ participants.style.display = 'none'; cheat.style.display = ''; setActiveButton(btnCheat, btnParticipants); }
+
+      btnParticipants.addEventListener('click', showParticipants);
+      btnCheat.addEventListener('click', showCheat);
+      // default
+      showParticipants();
+    });
+  </script>
 
       <div class="copyright">copyright &copy;2026 Shindengen HR Internal Team</div>
     </div>

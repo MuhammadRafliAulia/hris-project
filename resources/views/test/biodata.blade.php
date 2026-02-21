@@ -49,5 +49,47 @@
     <div class="info">Jika ada masalah, hubungi tim rekrutmen.</div>
   </div>
  </div>
+
+<!-- Modal Tata Tertib -->
+<div id="rulesModal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.6);backdrop-filter:blur(2px);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="max-width:720px;width:100%;background:#fff;border-radius:12px;padding:22px;box-shadow:0 20px 60px rgba(2,6,23,0.4);">
+    <h2 style="margin:0 0 12px 0">Tata Tertib Mengikuti Assessment</h2>
+    <ul style="color:#0f172a;margin:12px 0 18px 18px;line-height:1.6">
+      <li>Peserta wajib hadir tepat waktu dan mengikuti instruksi pengawas.</li>
+      <li>Peserta dilarang berganti tab/browser selama assessment berlangsung.</li>
+      <li>Peserta dilarang melakukan screenshot, screen recording, atau tindakan serupa.</li>
+      <li>Peserta dilarang melakukan copy-paste dari soal maupun jawaban.</li>
+      <li>Peserta wajib mengerjakan assessment secara mandiri tanpa bantuan pihak lain.</li>
+      <li>Pelanggaran terhadap tata tertib ini dapat berakibat pada pembatalan hasil assessment.</li>
+    </ul>
+    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px">
+      <button id="rulesCancel" style="background:#f1f5f9;border:none;padding:10px 14px;border-radius:8px;cursor:pointer">Batal</button>
+      <button id="rulesAccept" style="background:#003e6f;color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer">Saya Setuju, Lanjutkan ke Tes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const form = document.querySelector('form[method="POST"][action]');
+    if (!form) return;
+    const modal = document.getElementById('rulesModal');
+    const btnAccept = document.getElementById('rulesAccept');
+    const btnCancel = document.getElementById('rulesCancel');
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      if (modal) modal.style.display = 'flex';
+    });
+    if (btnAccept) btnAccept.addEventListener('click', function(){
+      if (modal) modal.style.display = 'none';
+      form.submit();
+    });
+    if (btnCancel) btnCancel.addEventListener('click', function(){
+      if (modal) modal.style.display = 'none';
+    });
+  })();
+</script>
+
 </body>
 </html>

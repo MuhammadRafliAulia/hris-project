@@ -198,10 +198,22 @@
 						<thead>
 							<tr style="text-align:left;border-bottom:1px solid #e2e8f0;">
 								<th style="padding:8px; width:36px;"><input type="checkbox" id="select_all_creds" onclick="toggleAllCreds(this)"></th>
-								<th style="padding:8px;">Username</th>
+								<th style="padding:8px;">
+									<a href="{{ request()->fullUrlWithQuery(['sort' => 'username', 'dir' => (request()->query('sort')=='username' && request()->query('dir')=='asc') ? 'desc' : 'asc']) }}" data-sort="username" style="color:inherit;text-decoration:none;">Username
+										<span class="sort-indicator" aria-hidden="true" style="margin-left:6px;font-size:12px;">↕</span>
+									</a>
+								</th>
 								<th style="padding:8px;">Password (lihat admin)</th>
-								<th style="padding:8px;">Status</th>
-								<th style="padding:8px;">Dibuat</th>
+								<th style="padding:8px;">
+									<a href="{{ request()->fullUrlWithQuery(['sort' => 'used', 'dir' => (request()->query('sort')=='used' && request()->query('dir')=='asc') ? 'desc' : 'asc']) }}" data-sort="used" style="color:inherit;text-decoration:none;">Status
+										<span class="sort-indicator" aria-hidden="true" style="margin-left:6px;font-size:12px;">↕</span>
+									</a>
+								</th>
+								<th style="padding:8px;">
+									<a href="{{ request()->fullUrlWithQuery(['sort' => 'created_at', 'dir' => (request()->query('sort')=='created_at' && request()->query('dir')=='asc') ? 'desc' : 'asc']) }}" data-sort="created_at" style="color:inherit;text-decoration:none;">Dibuat
+										<span class="sort-indicator" aria-hidden="true" style="margin-left:6px;font-size:12px;">↕</span>
+									</a>
+								</th>
 								<th style="padding:8px;">Aksi</th>
 							</tr>
 						</thead>
@@ -226,6 +238,84 @@
 				</div>
 			</form>
 		@endif
+
+		<script>
+		// AJAX sort: intercept header link clicks and fetch sorted data without full page reload
+		(function(){
+			var table = document.querySelector('table');
+			if(!table) return;
+			var tbody = table.querySelector('tbody');
+			var bankId = '{{ $bank->id }}';
+			var baseUrl = '{{ route('banks.credentials.list', $bank) }}'; // GET endpoint (uses route helper to include prefix)
+			var deleteBase = baseUrl; // DELETE endpoint will be deleteBase + '/' + id
+
+			function renderRows(items){
+				var html = '';
+				items.forEach(function(c){
+					html += '<tr style="border-bottom:1px solid #f1f5f9;">';
+					html += '<td style="padding:8px;vertical-align:middle;"><input type="checkbox" name="credentials[]" value="'+c.id+'"></td>';
+					html += '<td style="padding:8px;vertical-align:middle;">'+escapeHtml(c.username)+'</td>';
+					html += '<td style="padding:8px;vertical-align:middle;">'+(c.plain_password?escapeHtml(c.plain_password):'-')+'</td>';
+					html += '<td style="padding:8px;vertical-align:middle;">'+(c.used?'<span style="color:#dc2626;font-weight:600;">Dipakai</span>':'<span style="color:#065f46;font-weight:600;">Tersedia</span>')+'</td>';
+					html += '<td style="padding:8px;vertical-align:middle;">'+escapeHtml(c.created_at)+'</td>';
+					html += '<td style="padding:8px;vertical-align:middle;">';
+					html += '<button type="button" class="btn btn-danger" style="padding:6px 10px;font-size:12px;" onclick="singleDelete(\''+ deleteBase + '/' + c.id + '\')">Hapus</button>';
+					html += '</td>';
+					html += '</tr>';
+				});
+				tbody.innerHTML = html;
+			}
+
+			function escapeHtml(str){ if(!str) return ''; return String(str).replace(/[&<>"]+/g, function(s){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s];}); }
+
+			// attach listeners to header links
+			var headerLinks = table.querySelectorAll('th a');
+			function updateIndicators(activeSort, activeDir){
+				headerLinks.forEach(function(link){
+					var s = link.getAttribute('data-sort');
+					var ind = link.querySelector('.sort-indicator');
+					if(!ind) return;
+					if(s === activeSort){
+						ind.textContent = (activeDir === 'asc') ? '↑' : '↓';
+						ind.style.opacity = '1';
+					} else {
+						ind.textContent = '↕';
+						ind.style.opacity = '0.5';
+					}
+				});
+			}
+
+			// set initial indicator based on server query params
+			var initialSort = '{{ request()->query('sort', 'created_at') }}';
+			var initialDir = '{{ request()->query('dir', 'desc') }}';
+			var headerLinks = table.querySelectorAll('th a');
+			updateIndicators(initialSort, initialDir);
+
+			headerLinks.forEach(function(a){
+				a.addEventListener('click', function(e){
+					e.preventDefault();
+					var href = a.href;
+					try{
+						var url = new URL(href);
+						var sort = url.searchParams.get('sort') || 'created_at';
+						var dir = url.searchParams.get('dir') || 'desc';
+						var fetchUrl = baseUrl + '?sort=' + encodeURIComponent(sort) + '&dir=' + encodeURIComponent(dir);
+						console.log('Fetching credentials:', fetchUrl);
+						fetch(fetchUrl, {credentials: 'same-origin', headers: {'X-Requested-With':'XMLHttpRequest', 'Accept':'application/json'}})
+						.then(function(resp){
+							if(!resp.ok){ console.error('Failed to fetch credentials', resp.status); alert('Gagal memuat data kredensial (status '+resp.status+'). Cek console.'); return null; }
+							return resp.json();
+						})
+						.then(function(json){ if(json && json.data){ renderRows(json.data); console.log('Credentials loaded:', json.data.length); } else { console.warn('No data in response', json); } })
+						.catch(function(err){ console.error('Fetch error', err); alert('Terjadi kesalahan saat memuat data. Cek console.'); });
+
+						// update indicators immediately to provide feedback
+						updateIndicators(sort, dir);
+					}catch(ex){ console.error(ex); }
+				});
+			});
+		})();
+		</script>
 
 </div>
 @endif
