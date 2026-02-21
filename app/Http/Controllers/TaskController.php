@@ -29,7 +29,7 @@ class TaskController extends Controller
             ->orderBy('start_time')
             ->get();
 
-        $users = User::orderBy('name')->get();
+        $users = User::whereIn('role', ['internal_hr', 'recruitmentteam'])->orderBy('name')->get();
 
         // Stats
         $totalWeek = $tasks->count();
