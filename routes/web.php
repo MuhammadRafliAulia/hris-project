@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Route;
 // Tambah route keluarga
 require __DIR__.'/families.php';
+// Serve site favicon (use PNG from public/images)
+Route::get('/favicon.ico', function () {
+    return response()->file(public_path('images/human-resources.png'));
+});
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\TestController;
