@@ -11,6 +11,7 @@ use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -1199,5 +1200,350 @@ class BankController extends Controller
         $banks = Bank::whereIn('id', $bankIds)->orderBy('title')->get();
 
         return view('banks.cheat-log', compact('violations', 'banks'));
+    }
+
+    /**
+     * Helper: store image from cell content which may be data URI or base64 or URL/path.
+     * Returns stored relative path on 'public' disk or null.
+     */
+    private function storeImageFromCell($cellValue, $destDir)
+    {
+        if (empty($cellValue)) return null;
+        $val = trim($cellValue);
+
+        // Data URI: data:{mime};base64,{data}
+        if (preg_match('/^data:(image\/[a-zA-Z0-9+.-]+);base64,(.+)$/', $val, $m)) {
+            $mime = $m[1];
+            $b64 = $m[2];
+            try {
+                $data = base64_decode($b64);
+            } catch (\Exception $e) {
+                return null;
+            }
+            $ext = explode('/', $mime)[1] ?? 'png';
+            $fileName = $destDir . '/' . uniqid() . '.' . $ext;
+            Storage::disk('public')->put($fileName, $data);
+            return $fileName;
+        }
+
+        // If it's an absolute URL, try to fetch (best-effort)
+        if (preg_match('/^https?:\/\//', $val)) {
+            try {
+                $context = stream_context_create(['http' => ['timeout' => 5]]);
+                $raw = @file_get_contents($val, false, $context);
+                if ($raw !== false) {
+                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                    $mime = finfo_buffer($finfo, $raw);
+                    finfo_close($finfo);
+                    $ext = 'png';
+                    if (preg_match('/image\/(\w+)/', $mime, $mm)) $ext = $mm[1];
+                    $fileName = $destDir . '/' . uniqid() . '.' . $ext;
+                    Storage::disk('public')->put($fileName, $raw);
+                    return $fileName;
+                }
+            } catch (\Exception $e) {
+                return null;
+            }
+        }
+
+        // If it's a local storage path (relative), try to move/copy from storage path
+        if (strpos($val, 'storage/') === 0 || strpos($val, 'public/') === 0 || preg_match('/^[\w\-\/]+\.(png|jpe?g|gif)$/i', $val)) {
+            // best-effort: if file exists in project, copy into public storage
+            $candidate = base_path($val);
+            if (!file_exists($candidate)) {
+                // try storage path
+                $candidate = storage_path('app/public/' . ltrim($val, '/'));
+            }
+            if (file_exists($candidate)) {
+                $ext = pathinfo($candidate, PATHINFO_EXTENSION) ?: 'png';
+                $fileName = $destDir . '/' . uniqid() . '.' . $ext;
+                Storage::disk('public')->put($fileName, file_get_contents($candidate));
+                return $fileName;
+            }
+        }
+
+        return null;
+    }
+
+    // Download XLSX template for question import per type
+    public function downloadQuestionTemplate(Bank $bank, $type)
+    {
+        $this->authorize('update', $bank);
+
+        $type = strtolower($type);
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        if ($type === 'multiple_choice' || $type === 'pilgan') {
+            $headers = ['sub_test_title', 'type', 'question', 'image', 'option_a', 'option_a_image', 'option_b', 'option_b_image', 'option_c', 'option_c_image', 'option_d', 'option_d_image', 'option_e', 'option_e_image', 'correct_answer', 'is_example'];
+            $example = ['', 'multiple_choice', 'Contoh: Apa warna langit?', '<base64 or URL>', 'Biru', '<base64 or URL>', 'Merah', '', 'Kuning', '', 'Hijau', '', '', '', 'A', '0'];
+        } elseif ($type === 'text' || $type === 'isian') {
+            $headers = ['sub_test_title', 'type', 'question', 'image', 'correct_answer_text', 'is_example'];
+            $example = ['', 'text', 'Contoh: Sebutkan ibu kota Indonesia?', '<base64 or URL>', 'Jakarta', '0'];
+        } elseif ($type === 'survey') {
+            $headers = ['sub_test_title', 'type', 'question', 'image', 'option_count', 'option_a', 'option_a_image', 'option_b', 'option_b_image', 'option_c', 'option_c_image', 'option_d', 'option_d_image', 'option_e', 'option_e_image', 'is_example'];
+            $example = ['', 'survey', 'Contoh: Seberapa puas Anda?', '<base64 or URL>', 4, 'Sangat Puas', '', 'Puas', '', 'Cukup', '', 'Tidak Puas', '', '', '', '0'];
+        } elseif ($type === 'narrative') {
+            $headers = ['sub_test_title', 'type', 'question', 'image', 'is_example'];
+            $example = ['', 'narrative', 'Contoh: Jelaskan pengalaman kerja Anda.', '<base64 or URL>', '0'];
+        } else {
+            abort(400, 'Tipe template tidak dikenali');
+        }
+
+        // Write headers
+        foreach ($headers as $col => $h) {
+            $sheet->setCellValueByColumnAndRow($col + 1, 1, $h);
+        }
+        // Example row
+        foreach ($example as $col => $v) {
+            $sheet->setCellValueByColumnAndRow($col + 1, 2, $v);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $fileName = 'questions_template_' . $type . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $fileName . '"');
+        $writer->save('php://output');
+        exit;
+    }
+
+    // Export all questions for a bank as XLSX (flat list)
+    public function exportQuestions(Bank $bank)
+    {
+        $this->authorize('view', $bank);
+
+        // Load questions (include sub-tests)
+        $subTests = $bank->subTests()->with(['questions'])->get();
+        if ($subTests->count() > 0) {
+            $questions = collect();
+            foreach ($subTests as $st) {
+                $questions = $questions->merge($st->questions);
+            }
+        } else {
+            $questions = $bank->questions()->orderBy('order')->get();
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Daftar Soal');
+
+        $headers = ['type', 'sub_test_title', 'question', 'option_count', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'correct_answer', 'correct_answer_text', 'is_example'];
+        foreach ($headers as $col => $h) {
+            $sheet->setCellValueByColumnAndRow($col + 1, 1, $h);
+        }
+
+        foreach ($questions as $i => $q) {
+            $row = $i + 2;
+            $typeLabel = $q->type;
+            $sheet->setCellValueByColumnAndRow(1, $row, $typeLabel);
+            $sheet->setCellValueByColumnAndRow(2, $row, $q->subTest ? $q->subTest->title : '');
+            $sheet->setCellValueByColumnAndRow(3, $row, $q->question);
+            $sheet->setCellValueByColumnAndRow(4, $row, $q->option_count);
+            $sheet->setCellValueByColumnAndRow(5, $row, $q->option_a);
+            $sheet->setCellValueByColumnAndRow(6, $row, $q->option_b);
+            $sheet->setCellValueByColumnAndRow(7, $row, $q->option_c);
+            $sheet->setCellValueByColumnAndRow(8, $row, $q->option_d);
+            $sheet->setCellValueByColumnAndRow(9, $row, $q->option_e);
+            $sheet->setCellValueByColumnAndRow(10, $row, $q->correct_answer);
+            $sheet->setCellValueByColumnAndRow(11, $row, $q->correct_answer_text);
+            $sheet->setCellValueByColumnAndRow(12, $row, $q->is_example ? 1 : 0);
+        }
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'questions');
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tempFile);
+
+        ActivityLog::log('export', 'question_list', 'Export daftar soal bank: ' . $bank->title);
+
+        $fileName = 'daftar_soal_' . str_replace(' ', '_', $bank->title) . '_' . date('Y-m-d_His') . '.xlsx';
+        return response()->download($tempFile, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ])->deleteFileAfterSend(true);
+    }
+
+    // Import questions from uploaded XLSX/CSV following template headers
+    public function importQuestions(Request $request, Bank $bank)
+    {
+        $this->authorize('update', $bank);
+
+        $validated = $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+
+        $path = $request->file('file')->getPathname();
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($path);
+        $spreadsheet = $reader->load($path);
+        $sheet = $spreadsheet->getActiveSheet();
+        $rows = $sheet->toArray(null, true, true, true);
+
+        if (count($rows) < 2) {
+            return back()->with('error', 'File kosong atau tidak ada baris data.');
+        }
+
+        // Map headers from first row (column letter => header name)
+        $headerRow = $rows[1];
+        $colMap = [];
+        foreach ($headerRow as $colLetter => $colVal) {
+            $key = strtolower(trim($colVal));
+            if ($key !== '') $colMap[$colLetter] = $key;
+        }
+
+        $created = 0;
+        $errors = [];
+
+        for ($r = 2; $r <= count($rows); $r++) {
+            $row = $rows[$r];
+            // Build associative data by header key
+            $data = [];
+            foreach ($colMap as $colLetter => $key) {
+                $data[$key] = isset($row[$colLetter]) ? trim((string)$row[$colLetter]) : '';
+            }
+
+            if (empty($data['type']) || empty($data['question'])) {
+                // skip blank rows
+                continue;
+            }
+
+            $type = strtolower($data['type']);
+
+            // Find or create sub-test if provided
+            $subTestId = null;
+            if (!empty($data['sub_test_title'])) {
+                $title = $data['sub_test_title'];
+                $subTest = SubTest::firstOrCreate(
+                    ['bank_id' => $bank->id, 'title' => $title],
+                    ['description' => null, 'duration_minutes' => null, 'order' => ($bank->subTests()->max('order') ?? -1) + 1]
+                );
+                $subTestId = $subTest->id;
+            }
+
+            // Determine order for this sub_test
+            $maxOrder = Question::where('sub_test_id', $subTestId)->max('order');
+            $order = ($maxOrder === null ? -1 : $maxOrder) + 1;
+
+            try {
+                $payload = [
+                    'bank_id' => $bank->id,
+                    'sub_test_id' => $subTestId,
+                    'question' => $data['question'] ?? '',
+                    'option_a' => $data['option_a'] ?? null,
+                    'option_b' => $data['option_b'] ?? null,
+                    'option_c' => $data['option_c'] ?? null,
+                    'option_d' => $data['option_d'] ?? null,
+                    'option_e' => $data['option_e'] ?? null,
+                    'image' => $data['image'] ?? null,
+                    'option_a_image' => $data['option_a_image'] ?? null,
+                    'option_b_image' => $data['option_b_image'] ?? null,
+                    'option_c_image' => $data['option_c_image'] ?? null,
+                    'option_d_image' => $data['option_d_image'] ?? null,
+                    'option_e_image' => $data['option_e_image'] ?? null,
+                    'option_count' => isset($data['option_count']) ? (int)$data['option_count'] : null,
+                    'correct_answer' => isset($data['correct_answer']) ? strtoupper($data['correct_answer']) : null,
+                    'correct_answer_text' => $data['correct_answer_text'] ?? null,
+                    'order' => $order,
+                    'type' => in_array($type, ['multiple_choice','pilgan','text','survey','narrative']) ? ($type === 'pilgan' ? 'multiple_choice' : $type) : 'multiple_choice',
+                    'is_example' => (!empty($data['is_example']) && in_array($data['is_example'], ['1','true','yes'])) ? 1 : 0,
+                ];
+
+                // Normalize type-specific fields
+                if ($payload['type'] === 'narrative') {
+                    $payload['option_a'] = $payload['option_b'] = $payload['option_c'] = $payload['option_d'] = $payload['option_e'] = null;
+                    $payload['option_count'] = null;
+                    $payload['correct_answer'] = null;
+                    $payload['correct_answer_text'] = null;
+                    // handle question image if provided (data URI)
+                    if (!empty($data['image']) && is_string($data['image'])) {
+                        $imgPath = $this->storeImageFromCell($data['image'], 'questions/images');
+                        if ($imgPath) {
+                            $payload['image'] = $imgPath;
+                            $payload['image_data'] = Storage::disk('public')->get($imgPath);
+                            $payload['image_mime'] = finfo_buffer(finfo_open(FILEINFO_MIME_TYPE), $payload['image_data']);
+                        }
+                    }
+                } elseif ($payload['type'] === 'text') {
+                    $payload['option_a'] = $payload['option_b'] = $payload['option_c'] = $payload['option_d'] = $payload['option_e'] = null;
+                    $payload['option_count'] = null;
+                    // ensure correct_answer_text exists
+                    $payload['correct_answer_text'] = $payload['correct_answer_text'] ?? '';
+                    $payload['correct_answer'] = null;
+                    if (!empty($data['image']) && is_string($data['image'])) {
+                        $imgPath = $this->storeImageFromCell($data['image'], 'questions/images');
+                        if ($imgPath) {
+                            $payload['image'] = $imgPath;
+                            $payload['image_data'] = Storage::disk('public')->get($imgPath);
+                            $payload['image_mime'] = finfo_buffer(finfo_open(FILEINFO_MIME_TYPE), $payload['image_data']);
+                        }
+                    }
+                } elseif ($payload['type'] === 'survey') {
+                    // option_count must be between 2 and 5
+                    $oc = (int)($payload['option_count'] ?? 2);
+                    if ($oc < 2) $oc = 2;
+                    if ($oc > 5) $oc = 5;
+                    $payload['option_count'] = $oc;
+                    // null out unused options
+                    $labels = ['option_a','option_b','option_c','option_d','option_e'];
+                    for ($i = $oc; $i < 5; $i++) {
+                        $payload[$labels[$i]] = null;
+                    }
+                    $payload['correct_answer'] = null;
+                    $payload['correct_answer_text'] = null;
+                    // store question image
+                    if (!empty($data['image']) && is_string($data['image'])) {
+                        $imgPath = $this->storeImageFromCell($data['image'], 'questions/images');
+                        if ($imgPath) $payload['image'] = $imgPath;
+                    }
+                    // option images
+                    foreach (['option_a_image','option_b_image','option_c_image','option_d_image','option_e_image'] as $optImg) {
+                        if (!empty($data[$optImg]) && is_string($data[$optImg])) {
+                            $p = $this->storeImageFromCell($data[$optImg], 'questions/option-images');
+                            if ($p) $payload[$optImg] = $p;
+                        }
+                    }
+                } else {
+                    // multiple_choice
+                    $payload['option_e'] = $payload['option_e'] ?? null;
+                    $payload['option_count'] = null;
+                    // correct_answer should be one of A,B,C,D,E
+                    if (!empty($payload['correct_answer'])) {
+                        $ca = strtoupper(substr($payload['correct_answer'],0,1));
+                        if (!in_array($ca, ['A','B','C','D','E'])) $ca = null;
+                        $payload['correct_answer'] = $ca;
+                    }
+                    // handle question image and option images for MC
+                    if (!empty($data['image']) && is_string($data['image'])) {
+                        $imgPath = $this->storeImageFromCell($data['image'], 'questions/images');
+                        if ($imgPath) {
+                            $payload['image'] = $imgPath;
+                            $payload['image_data'] = Storage::disk('public')->get($imgPath);
+                            $payload['image_mime'] = finfo_buffer(finfo_open(FILEINFO_MIME_TYPE), $payload['image_data']);
+                        }
+                    }
+                    foreach (['option_a_image','option_b_image','option_c_image','option_d_image','option_e_image'] as $optImg) {
+                        if (!empty($data[$optImg]) && is_string($data[$optImg])) {
+                            $p = $this->storeImageFromCell($data[$optImg], 'questions/option-images');
+                            if ($p) $payload[$optImg] = $p;
+                        }
+                    }
+                }
+
+                Question::create($payload);
+                $created++;
+            } catch (\Exception $e) {
+                $errors[] = 'Baris ' . $r . ': ' . $e->getMessage();
+            }
+        }
+
+        return redirect()->route('banks.edit', $bank)->with('success', $created . ' soal berhasil diimport.')->with('import_errors', $errors);
+
+        ActivityLog::log('import', 'question_bulk', 'Import soal ke bank: ' . $bank->title . ' — ' . $created . ' dibuat');
+
+        $msg = $created . ' soal berhasil diimport.';
+        if (!empty($errors)) {
+            $msg .= ' Terdapat ' . count($errors) . ' error.';
+            return redirect()->route('banks.edit', $bank)->with('warning', $msg)->with('import_errors', $errors);
+        }
+
+        return redirect()->route('banks.edit', $bank)->with('success', $msg);
     }
 }

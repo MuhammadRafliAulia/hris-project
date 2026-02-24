@@ -48,6 +48,49 @@
  <div class="success">{{ session('success') }}</div>
  @endif
 
+<!-- Import / Export Soal -->
+<div style="margin-top:12px;padding:12px;border-radius:8px;background:#f8fafc;border:1px dashed #cbd5e1;">
+	<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+		<div>
+			<strong>Import / Export Soal</strong>
+			<div style="font-size:13px;color:#64748b;">Unduh template per tipe soal, export seluruh soal, atau import file dari template.</div>
+		</div>
+		<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+			<a href="{{ route('banks.questions.template', [$bank, 'multiple_choice']) }}" class="btn" style="padding:6px 10px;font-size:13px;">Download Template Pilgan</a>
+			<a href="{{ route('banks.questions.template', [$bank, 'text']) }}" class="btn" style="padding:6px 10px;font-size:13px;">Download Template Isian</a>
+			<a href="{{ route('banks.questions.template', [$bank, 'survey']) }}" class="btn" style="padding:6px 10px;font-size:13px;">Download Template Survei</a>
+			<a href="{{ route('banks.questions.template', [$bank, 'narrative']) }}" class="btn" style="padding:6px 10px;font-size:13px;">Download Template Narasi</a>
+			<a href="{{ route('banks.questions.export', $bank) }}" class="btn" style="background:#0ea5ad;padding:6px 10px;font-size:13px;">Export Semua Soal</a>
+		</div>
+	</div>
+
+	<form method="POST" action="{{ route('banks.questions.import', $bank) }}" enctype="multipart/form-data" style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+		@csrf
+		<label style="display:flex;align-items:center;gap:8px;">
+			<span style="font-size:13px;color:#334155;">Tipe File:</span>
+			<select name="_import_type" style="padding:8px;border:1px solid #cbd5e1;border-radius:6px;">
+				<option value="multiple_choice">Pilihan Ganda</option>
+				<option value="text">Isian (dengan jawaban benar)</option>
+				<option value="survey">Survei</option>
+				<option value="narrative">Narasi</option>
+			</select>
+		</label>
+		<input type="file" name="file" accept=".xlsx,.xls,.csv" style="padding:6px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;">
+		<button type="submit" class="btn">Import Soal</button>
+	</form>
+
+	@if(session('import_errors'))
+	<div style="margin-top:10px;padding:10px;border-radius:6px;background:#fee2e2;color:#9b1c1c;font-size:13px;">
+		<strong>Beberapa baris gagal diimport:</strong>
+		<ul style="margin:8px 0 0 18px;">
+		@foreach(session('import_errors') as $err)
+			<li>{{ $err }}</li>
+		@endforeach
+		</ul>
+	</div>
+	@endif
+</div>
+
  <form method="POST" action="{{ route('banks.update', $bank) }}">
  @csrf @method('PUT')
  <div class="form-group">

@@ -42,6 +42,41 @@
  <h1>{{ $subTest->title }}</h1>
  <p style="font-size:13px;color:#64748b;margin:0;">Sub-test dari: {{ $bank->title }}</p>
 
+<!-- Import / Export Soal (sub-test) -->
+<div style="margin-top:12px;padding:12px;border-radius:8px;background:#f8fafc;border:1px dashed #cbd5e1;">
+	<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+		<div>
+			<strong>Import / Export Soal (Bank)</strong>
+			<div style="font-size:13px;color:#64748b;">Gunakan ini untuk mengunduh template per tipe atau import soal baru. Jika memasukkan kolom <em>sub_test_title</em>, import akan menautkan atau membuat sub-test.</div>
+		</div>
+		<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+			<a href="{{ route('banks.questions.template', [$bank, 'multiple_choice']) }}" class="btn" style="padding:6px 10px;font-size:13px;">Template Pilgan</a>
+			<a href="{{ route('banks.questions.template', [$bank, 'text']) }}" class="btn" style="padding:6px 10px;font-size:13px;">Template Isian</a>
+			<a href="{{ route('banks.questions.template', [$bank, 'survey']) }}" class="btn" style="padding:6px 10px;font-size:13px;">Template Survei</a>
+			<a href="{{ route('banks.questions.template', [$bank, 'narrative']) }}" class="btn" style="padding:6px 10px;font-size:13px;">Template Narasi</a>
+			<a href="{{ route('banks.questions.export', $bank) }}" class="btn" style="background:#0ea5ad;padding:6px 10px;font-size:13px;">Export Semua Soal</a>
+		</div>
+	</div>
+
+	<form method="POST" action="{{ route('banks.questions.import', $bank) }}" enctype="multipart/form-data" style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+		@csrf
+		<input type="hidden" name="sub_test_title" value="{{ $subTest->title }}">
+		<input type="file" name="file" accept=".xlsx,.xls,.csv" style="padding:6px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;">
+		<button type="submit" class="btn">Import ke Sub-Test Ini</button>
+	</form>
+
+	@if(session('import_errors'))
+	<div style="margin-top:10px;padding:10px;border-radius:6px;background:#fee2e2;color:#9b1c1c;font-size:13px;">
+		<strong>Beberapa baris gagal diimport:</strong>
+		<ul style="margin:8px 0 0 18px;">
+		@foreach(session('import_errors') as $err)
+			<li>{{ $err }}</li>
+		@endforeach
+		</ul>
+	</div>
+	@endif
+</div>
+
  @if(session('success'))
  <div class="success" style="margin-top:12px;">{{ session('success') }}</div>
  @endif
@@ -85,7 +120,7 @@
  <div class="question-header">
  <div>
  <span class="badge badge-example">Contoh</span>
- <span class="question-text" style="margin-left:8px;">{{ Str::limit($eq->question, 80) }}</span>
+ <span class="question-text" style="margin-left:8px;">{!! nl2br(e(Str::limit($eq->question, 80))) !!}</span>
  </div>
  <div style="display:flex;gap:8px;">
  <a href="{{ route('questions.edit', $eq) }}" class="btn" style="background:#0ea5ad;padding:6px 10px;font-size:12px;"></a>
@@ -125,7 +160,7 @@
  <div class="question">
  <div class="question-header">
  <div>
- <div class="question-text">{{ $question->order + 1 }}. {{ Str::limit($question->question, 60) }}</div>
+ <div class="question-text">{!! nl2br(e($question->order + 1 . '. ' . Str::limit($question->question, 60))) !!}</div>
  <div style="font-size:12px;color:#64748b;margin-top:4px;">
  @if($question->type === 'narrative') Narasi
  @elseif($question->type === 'text') Isian

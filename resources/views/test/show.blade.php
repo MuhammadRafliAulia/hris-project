@@ -262,15 +262,25 @@
 <img src="{{ route('questions.image', $eq) }}" alt="Gambar contoh" style="max-width:100%; max-height:300px; border-radius:6px;">
 </div>
 @elseif($eq->image)
+@php
+	$img = $eq->image;
+	if (filter_var($img, FILTER_VALIDATE_URL)) {
+		$imgUrl = $img;
+	} elseif (\Illuminate\Support\Str::startsWith($img, 'storage/')) {
+		$imgUrl = asset($img);
+	} else {
+		$imgUrl = asset('storage/' . ltrim($img, '/'));
+	}
+@endphp
 <div style="margin:12px 0; text-align:center;">
-<img src="/hrissdi/storage/{{ $eq->image }}" alt="Gambar contoh" style="max-width:100%; max-height:300px; border-radius:6px;">
+<img src="{{ $imgUrl }}" alt="Gambar contoh" style="max-width:100%; max-height:300px; border-radius:6px;">
 </div>
 @endif
 
  @if($eq->audio)
  <div style="margin:12px 0;">
  <audio controls style="width:100%; max-width:400px;">
- <source src="/hrissdi/storage/{{ $eq->audio }}" type="audio/mpeg">
+ <source src="{{ asset('storage/' . $eq->audio) }}" type="audio/mpeg">
  </audio>
  </div>
  @endif
@@ -331,22 +341,32 @@
  @foreach($subTest->questions as $qIdx => $question)
  <div class="question-block" data-question="{{ $question->id }}" data-subtest="{{ $subTest->id }}">
  <div class="question-counter">Pertanyaan {{ $qIdx + 1 }} dari {{ $subTest->questions->count() }}</div>
- <div class="question-text">{{ $question->question }}</div>
+ <div class="question-text">{!! nl2br(e($question->question)) !!}</div>
 
 @if($question->image_data)
 <div style="margin:12px 0; text-align:center;">
 <img src="{{ route('questions.image', $question) }}" alt="Gambar soal" style="max-width:100%; max-height:400px; border-radius:6px;">
 </div>
 @elseif($question->image)
+@php
+	$img = $question->image;
+	if (filter_var($img, FILTER_VALIDATE_URL)) {
+		$imgUrl = $img;
+	} elseif (\Illuminate\Support\Str::startsWith($img, 'storage/')) {
+		$imgUrl = asset($img);
+	} else {
+		$imgUrl = asset('storage/' . ltrim($img, '/'));
+	}
+@endphp
 <div style="margin:12px 0; text-align:center;">
-<img src="/hrissdi/storage/{{ $question->image }}" alt="Gambar soal" style="max-width:100%; max-height:400px; border-radius:6px;">
+<img src="{{ $imgUrl }}" alt="Gambar soal" style="max-width:100%; max-height:400px; border-radius:6px;">
 </div>
 @endif
 
  @if($question->audio)
  <div style="margin:12px 0;">
  <audio controls style="width:100%; max-width:400px;">
- <source src="/hrissdi/storage/{{ $question->audio }}" type="audio/mpeg">
+ <source src="{{ asset('storage/' . $question->audio) }}" type="audio/mpeg">
  Browser Anda tidak mendukung audio player.
  </audio>
  </div>
@@ -387,9 +407,19 @@
  <input type="radio" name="answers[{{ $question->id }}]" value="{{ $key }}" class="answer-input">
  <span>
  <strong>{{ $key }}.</strong> {{ $option }}
- @if($question->$optImgField)
- <img src="/hrissdi/storage/{{ $question->$optImgField }}" alt="Opsi {{ $key }}" class="option-img">
- @endif
+@if($question->$optImgField)
+	@php
+		$optImg = $question->$optImgField;
+		if (filter_var($optImg, FILTER_VALIDATE_URL)) {
+			$optImgUrl = $optImg;
+		} elseif (\Illuminate\Support\Str::startsWith($optImg, 'storage/')) {
+			$optImgUrl = asset($optImg);
+		} else {
+			$optImgUrl = asset('storage/' . ltrim($optImg, '/'));
+		}
+	@endphp
+	<img src="{{ $optImgUrl }}" alt="Opsi {{ $key }}" class="option-img">
+@endif
  </span>
  </label>
  </div>
@@ -400,7 +430,7 @@
  @endforeach
  </div>
 
- <button type="button" class="btn-finish-subtest" onclick="finishSubTest({{ $subTest->id }})">
+ <button type="button" class="btn-finish-subtest" onclick="askFinishSubTest({{ $subTest->id }})">
  Selesai — Kembali ke Daftar Sub-Test
  </button>
  </div>
@@ -423,7 +453,7 @@
  @foreach($questions as $index => $question)
  <div class="question-block" data-question="{{ $question->id }}">
  <div class="question-counter">Pertanyaan {{ $index + 1 }} dari {{ $questions->count() }}</div>
- <div class="question-text">{{ $question->question }}</div>
+ <div class="question-text">{!! nl2br(e($question->question)) !!}</div>
 
 @if($question->image_data)
 <div style="margin:12px 0; text-align:center;">
@@ -431,14 +461,14 @@
 </div>
 @elseif($question->image)
 <div style="margin:12px 0; text-align:center;">
-<img src="/hrissdi/storage/{{ $question->image }}" alt="Gambar soal" style="max-width:100%; max-height:400px; border-radius:6px;">
+<img src="{{ asset('storage/' . $question->image) }}" alt="Gambar soal" style="max-width:100%; max-height:400px; border-radius:6px;">
 </div>
 @endif
 
  @if($question->audio)
  <div style="margin:12px 0;">
  <audio controls style="width:100%; max-width:400px;">
- <source src="/hrissdi/storage/{{ $question->audio }}" type="audio/mpeg">
+ <source src="{{ asset('storage/' . $question->audio) }}" type="audio/mpeg">
  Browser Anda tidak mendukung audio player.
  </audio>
  </div>
@@ -480,7 +510,7 @@
  <span>
  <strong>{{ $key }}.</strong> {{ $option }}
  @if($question->$optImgField)
- <img src="/hrissdi/storage/{{ $question->$optImgField }}" alt="Opsi {{ $key }}" class="option-img">
+ <img src="{{ asset('storage/' . $question->$optImgField) }}" alt="Opsi {{ $key }}" class="option-img">
  @endif
  </span>
  </label>
@@ -519,15 +549,92 @@
  @if($hasSubTests)
  var subTestIds = @json($subTests->pluck('id'));
  var subTestQuestionCounts = @json($subTests->mapWithKeys(function($st) { return [$st->id => $st->questions->count()]; }));
- var totalQuestions = Object.values(subTestQuestionCounts).reduce(function(a,b){return a+b;},0);
- var completedSubTests = new Set();
- var answeredSet = new Set();
+var totalQuestions = Object.values(subTestQuestionCounts).reduce(function(a,b){return a+b;},0);
+var completedSubTests = new Set();
+var answeredSet = new Set();
+
+// Storage keys namespaced by test token
+function _answersKey() { return 'answers_' + TEST_TOKEN_GLOBAL; }
+function _completedKey() { return 'completed_subtests_' + TEST_TOKEN_GLOBAL; }
+function _violationsKey() { return 'violations_' + TEST_TOKEN_GLOBAL; }
+
+// Load persisted state (answers, completed subtests, violations)
+function loadSavedState() {
+	try {
+		var a = localStorage.getItem(_answersKey());
+		if (a) {
+			var map = JSON.parse(a);
+			Object.keys(map).forEach(function(qid){
+				var val = map[qid];
+				var input = document.querySelector('.question-block[data-question="' + qid + '"] .answer-input');
+				if (input) {
+					if (input.type === 'radio') {
+						var radio = document.querySelector('.question-block[data-question="' + qid + '"] .answer-input[value="' + val + '"]');
+						if (radio) radio.checked = true;
+					} else {
+						input.value = val;
+					}
+					if (val !== null && String(val).trim() !== '') answeredSet.add(qid);
+				}
+			});
+		}
+
+		var comp = localStorage.getItem(_completedKey());
+		if (comp) {
+			var arr = JSON.parse(comp);
+			arr.forEach(function(sid){ completedSubTests.add(sid); var card = document.getElementById('stCard' + sid); if (card) card.classList.add('completed'); var st = document.getElementById('stStatus' + sid); if (st) { st.className='st-status done'; st.textContent=' Selesai'; } });
+		}
+
+		var vio = localStorage.getItem(_violationsKey());
+		if (vio) {
+			var obj = JSON.parse(vio);
+			if (obj) {
+				violationCount = obj.count || 0;
+				violationLog = obj.log || [];
+				var badge = document.getElementById('violationBadge'); if (badge && violationCount>0) { badge.textContent = ' ' + violationCount + '/'+MAX_VIOLATIONS; badge.classList.add('show'); }
+			}
+		}
+	} catch (e) { console.error('loadSavedState error', e); }
+}
+
+function saveAnswersToStorage(qid, val) {
+	try {
+		var a = {};
+		var raw = localStorage.getItem(_answersKey());
+		if (raw) a = JSON.parse(raw);
+		a[qid] = val;
+		localStorage.setItem(_answersKey(), JSON.stringify(a));
+	} catch (e) {}
+}
+
+function saveCompletedSubtests() {
+	try {
+		var arr = Array.from(completedSubTests);
+		localStorage.setItem(_completedKey(), JSON.stringify(arr));
+	} catch (e) {}
+}
+
+function saveViolationsToStorage() {
+	try {
+		var obj = { count: violationCount, log: violationLog };
+		localStorage.setItem(_violationsKey(), JSON.stringify(obj));
+	} catch (e) {}
+}
+
+// Periodic autosave to ensure state persists
+setInterval(function(){ try { /* touch storage to ensure it's present */ localStorage.getItem(_answersKey()); } catch(e){} }, 5000);
+
+// Load persisted answers early
+document.addEventListener('DOMContentLoaded', function(){ loadSavedState(); updateProgress(); });
  @else
  var totalQuestions = {{ $questions->count() }};
  var answeredSet = new Set();
  @endif
 
  var progressFill = document.getElementById('progressFill');
+
+// Global token for this test (used for localStorage keys)
+var TEST_TOKEN_GLOBAL = '{{ $response->token }}';
 
  function updateProgress() {
  if (totalQuestions === 0) return;
@@ -537,16 +644,19 @@
 
  document.querySelectorAll('.answer-input').forEach(function(input) {
  var event = input.type === 'radio' ? 'change' : 'input';
- input.addEventListener(event, function() {
- var questionBlock = this.closest('.question-block');
- var questionId = questionBlock.dataset.question;
- if (this.value.trim()) {
- answeredSet.add(questionId);
- } else {
- answeredSet.delete(questionId);
- }
- updateProgress();
- });
+	input.addEventListener(event, function() {
+	var questionBlock = this.closest('.question-block');
+	var questionId = questionBlock.dataset.question;
+	if (this.value.trim()) {
+		answeredSet.add(questionId);
+		// save per-change
+		saveAnswersToStorage(questionId, this.value);
+	} else {
+		answeredSet.delete(questionId);
+		saveAnswersToStorage(questionId, '');
+	}
+	updateProgress();
+	});
  });
 
  @if($hasSubTests)
@@ -565,50 +675,112 @@
  }
 
  function openSubTest(stId) {
- if (completedSubTests.has(stId)) return; // Don't reopen completed sub-tests
- pauseAllSubTestTimers();
- hideAllScreens();
- // If has example questions screen, show that first; otherwise go straight to test
- var exampleScreen = document.getElementById('exampleScreen' + stId);
- if (exampleScreen) {
- exampleScreen.classList.add('show');
- } else {
- var testScreen = document.getElementById('testScreen' + stId);
- if (testScreen) testScreen.classList.add('show');
- startSubTestTimer(stId);
- }
- window.scrollTo(0, 0);
+	// prevent reopening a subtest that's already completed/submitted
+	if (completedSubTests && completedSubTests.has && (completedSubTests.has(stId) || completedSubTests.has(String(stId)))) {
+		alert('Subtest ini sudah diselesaikan dan tidak dapat dikerjakan ulang.');
+		return;
+	}
+     // If there is an example screen for this subtest, show it first.
+     var exampleScreen = document.getElementById('exampleScreen' + stId);
+     if (exampleScreen) {
+         hideAllScreens();
+         exampleScreen.classList.add('show');
+         window.scrollTo(0, 0);
+         return;
+     }
 
- // Mark card as active
- document.querySelectorAll('.subtest-card').forEach(function(c) { c.classList.remove('active'); });
- var card = document.getElementById('stCard' + stId);
- if (card && !completedSubTests.has(stId)) {
- card.classList.add('active');
- var status = document.getElementById('stStatus' + stId);
- if (status) { status.className = 'st-status in-progress'; status.textContent = 'Sedang Dikerjakan'; }
- }
+     // Otherwise, directly start the questions for the subtest.
+     startSubTestQuestions(stId);
  }
 
- function startSubTestQuestions(stId) {
- hideAllScreens();
- var testScreen = document.getElementById('testScreen' + stId);
- if (testScreen) testScreen.classList.add('show');
- window.scrollTo(0, 0);
- startSubTestTimer(stId);
- }
+// Ensure back buttons are hidden when subtest starts
+function startSubTestQuestions(stId) {
+	hideAllScreens();
+	var testScreen = document.getElementById('testScreen' + stId);
+	if (testScreen) {
+		testScreen.classList.add('show');
+		// hide back buttons to prevent going back while inside subtest
+		var backBtns = testScreen.querySelectorAll('.btn-back-overview');
+		backBtns.forEach(function(b){ b.style.display = 'none'; });
+	}
+	window.scrollTo(0, 0);
+	// start timer and block navigation while inside subtest
+	startSubTestTimer(stId);
+	_blockNavigationDuringSubtest(stId);
+}
+
+// When entering the actual subtest questions, hide any back buttons
+function _hideBackButtonsInSubTest(stId) {
+	var testScreen = document.getElementById('testScreen' + stId);
+	if (!testScreen) return;
+	var backBtns = testScreen.querySelectorAll('.btn-back-overview');
+	backBtns.forEach(function(b){ b.style.display = 'none'; });
+}
+
+// Navigation block helpers (prevent browser back while inside a subtest)
+var _navBlockPopStateHandler = null;
+var _navBeforeUnloadHandler = null;
+function _blockNavigationDuringSubtest(stId) {
+	try {
+		history.pushState({subtest: stId}, '');
+		_navBlockPopStateHandler = function(e) {
+			// Re-push state and warn user
+			history.pushState({subtest: stId}, '');
+			alert('Tidak dapat kembali saat mengerjakan subtest. Silakan selesaikan subtest terlebih dahulu.');
+		};
+		window.addEventListener('popstate', _navBlockPopStateHandler);
+		_navBeforeUnloadHandler = function(e) {
+			e.preventDefault();
+			e.returnValue = '';
+			return '';
+		};
+		window.addEventListener('beforeunload', _navBeforeUnloadHandler);
+	} catch (e) {}
+}
+
+function _unblockNavigationDuringSubtest() {
+	try {
+		if (_navBlockPopStateHandler) { window.removeEventListener('popstate', _navBlockPopStateHandler); _navBlockPopStateHandler = null; }
+		if (_navBeforeUnloadHandler) { window.removeEventListener('beforeunload', _navBeforeUnloadHandler); _navBeforeUnloadHandler = null; }
+		try { history.back(); } catch (e) {}
+	} catch (e) {}
+}
 
  // === SUB-TEST TIMERS ===
  var subTestTimers = {};
  var subTestRemaining = {};
+var TEST_TOKEN_GLOBAL = '{{ $response->token }}';
+
+function _subtestStorageKey(stId) {
+	return 'subtest_end_' + TEST_TOKEN_GLOBAL + '_' + stId;
+}
+
+function _clearAllSubtestKeys() {
+	try {
+		for (var i = localStorage.length - 1; i >= 0; i--) {
+			var k = localStorage.key(i);
+			if (k && k.indexOf('subtest_end_' + TEST_TOKEN_GLOBAL + '_') === 0) {
+				localStorage.removeItem(k);
+			}
+		}
+	} catch (e) {}
+}
 
  function startSubTestTimer(stId) {
  var timerEl = document.getElementById('stTimer' + stId);
  if (!timerEl) return;
- // Only initialize remaining on first open
- if (typeof subTestRemaining[stId] === 'undefined') {
+ // Only initialize remaining/end time on first open
  var durationMin = parseInt(timerEl.getAttribute('data-duration')) || 0;
  if (durationMin <= 0) return;
- subTestRemaining[stId] = durationMin * 60;
+ var key = _subtestStorageKey(stId);
+ var stored = null;
+ try { stored = localStorage.getItem(key); } catch (e) { stored = null; }
+ var endTs = null;
+ if (stored) {
+	 endTs = parseInt(stored, 10);
+ } else {
+	 endTs = Date.now() + (durationMin * 60 * 1000);
+	 try { localStorage.setItem(key, String(endTs)); } catch (e) {}
  }
  // Clear any existing interval for this sub-test
  if (subTestTimers[stId]) clearInterval(subTestTimers[stId]);
@@ -616,18 +788,17 @@
  var headerEl = document.getElementById('stHeader' + stId);
 
  function tickSt() {
- subTestRemaining[stId]--;
- var s = subTestRemaining[stId];
- if (s < 0) s = 0;
+ var s = Math.max(0, Math.round((endTs - Date.now()) / 1000));
  var m = Math.floor(s / 60);
  var sec = s % 60;
  timerEl.textContent = String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
  if (s <= 60 && headerEl) headerEl.classList.add('st-warning');
  if (s <= 0) {
- clearInterval(subTestTimers[stId]);
- subTestTimers[stId] = null;
- timerEl.textContent = 'WAKTU HABIS';
- finishSubTest(stId);
+	 clearInterval(subTestTimers[stId]);
+	 subTestTimers[stId] = null;
+	 timerEl.textContent = 'WAKTU HABIS';
+	 try { localStorage.removeItem(key); } catch (e) {}
+	 finishSubTest(stId);
  }
  }
 
@@ -650,10 +821,41 @@
  }
  }
 
+// Confirmation UI for finishing a subtest
+function askFinishSubTest(stId) {
+	var modal = document.getElementById('confirmModal');
+	var msgEl = document.getElementById('confirmModalMessage');
+	if (!modal || !msgEl) {
+		if (confirm('Yakin selesai subtest ini? Anda tidak dapat mengerjakan ulang setelah dikirim.')) {
+			finishSubTest(stId);
+		}
+		return;
+	}
+	msgEl.textContent = 'Yakin selesai subtest ini? Anda tidak dapat mengerjakan ulang setelah dikirim.';
+	modal.classList.add('show');
+
+	var onCancel = function() {
+		modal.classList.remove('show');
+		cleanup();
+	};
+	var onYes = function() {
+		modal.classList.remove('show');
+		cleanup();
+		finishSubTest(stId);
+	};
+	function cleanup() {
+		document.getElementById('confirmCancelBtn').removeEventListener('click', onCancel);
+		document.getElementById('confirmYesBtn').removeEventListener('click', onYes);
+	}
+	document.getElementById('confirmCancelBtn').addEventListener('click', onCancel);
+	document.getElementById('confirmYesBtn').addEventListener('click', onYes);
+}
+
  function finishSubTest(stId) {
  pauseSubTestTimer(stId);
 	// mark completed locally
 	completedSubTests.add(stId);
+	try { saveCompletedSubtests(); } catch (e) {}
 
 	// collect answers for this subtest (include empty answers) and attach as hidden inputs
 	try {
@@ -714,9 +916,11 @@
  timeoutSpan.textContent = 'Waktu habis';
  metaEl.appendChild(timeoutSpan);
  }
- }
+	 }
 
- backToOverview();
+	 try { localStorage.removeItem(_subtestStorageKey(stId)); } catch (e) {}
+	 _unblockNavigationDuringSubtest();
+	 backToOverview();
  }
  @endif
 
@@ -736,6 +940,8 @@
  time: new Date().toISOString(),
  count: violationCount
  });
+	// persist violations so refresh does not reset them
+	try { saveViolationsToStorage(); } catch (e) {}
  var remaining = MAX_VIOLATIONS - violationCount;
 
  if (violationCount >= MAX_VIOLATIONS) {
@@ -910,9 +1116,21 @@ document.getElementById('testForm').addEventListener('submit', function(e) {
  // === TIMER ===
  @if($remainingSeconds !== null)
  (function() {
- var remaining = {{ (int) $remainingSeconds }};
- var timerClock = document.getElementById('timerClock');
- var timerBar = document.getElementById('timerBar');
+var remaining = {{ (int) $remainingSeconds }};
+var timerClock = document.getElementById('timerClock');
+var timerBar = document.getElementById('timerBar');
+var TEST_TOKEN = '{{ $response->token }}';
+var TEST_END_KEY = 'test_end_' + TEST_TOKEN;
+// use stored end time if present so timer continues across reloads/background
+var _testEnd = null;
+var storedEnd = null;
+try { storedEnd = localStorage.getItem(TEST_END_KEY); } catch (e) { storedEnd = null; }
+if (storedEnd) {
+	_testEnd = parseInt(storedEnd, 10);
+} else {
+	_testEnd = Date.now() + (remaining * 1000);
+	try { localStorage.setItem(TEST_END_KEY, String(_testEnd)); } catch (e) {}
+}
 
  function formatTime(s) {
  if (s < 0) s = 0;
@@ -925,16 +1143,15 @@ document.getElementById('testForm').addEventListener('submit', function(e) {
  }
 
  function tick() {
- remaining--;
+ var remaining = Math.max(0, Math.round((_testEnd - Date.now()) / 1000));
  timerClock.textContent = formatTime(remaining);
- if (remaining <= 300 && !timerBar.classList.contains('warning')) {
- timerBar.classList.add('warning');
- }
+ if (remaining <= 300 && !timerBar.classList.contains('warning')) timerBar.classList.add('warning');
  if (remaining <= 0) {
- clearInterval(timerInterval);
- timerClock.textContent = '00:00';
- autoSubmitForm();
- return;
+	 clearInterval(timerInterval);
+	 timerClock.textContent = '00:00';
+	 try { localStorage.removeItem(TEST_END_KEY); } catch (e) {}
+	 autoSubmitForm();
+	 return;
  }
  }
 
@@ -962,12 +1179,13 @@ document.getElementById('testForm').addEventListener('submit', function(e) {
  }
 
  window.addEventListener('beforeunload', function(e) {
- if (remaining > 0) {
- e.preventDefault();
- e.returnValue = 'Tes sedang berlangsung. Jika Anda keluar, timer akan tetap berjalan!';
+ if (remaining <= 0) {
+ clearInterval(timerInterval);
+ timerClock.textContent = '00:00';
+ try { localStorage.removeItem(TEST_END_KEY); } catch (e) {}
+ autoSubmitForm();
+ return;
  }
- });
- })();
  @endif
 
  // === ANTI-SCREENSHOT SYSTEM ===

@@ -71,6 +71,10 @@ Route::middleware(['auth', 'role:superadmin,recruitmentteam'])->group(function (
     Route::get('/questions/{question}/edit', [BankController::class, 'editQuestion'])->name('questions.edit');
     Route::put('/questions/{question}', [BankController::class, 'updateQuestion'])->name('questions.update');
     Route::delete('/questions/{question}', [BankController::class, 'deleteQuestion'])->name('questions.delete');
+    // Question import/export & templates
+    Route::get('/banks/{bank}/questions/export', [BankController::class, 'exportQuestions'])->name('banks.questions.export');
+    Route::get('/banks/{bank}/questions/template/{type}', [BankController::class, 'downloadQuestionTemplate'])->name('banks.questions.template');
+    Route::post('/banks/{bank}/questions/import', [BankController::class, 'importQuestions'])->name('banks.questions.import');
     Route::get('/banks/{bank}/participant/{response}/pdf', [BankController::class, 'exportParticipantPdf'])->name('banks.export-participant-pdf');
     Route::get('/banks/{bank}/export-excel', [BankController::class, 'exportExcel'])->name('banks.export-excel');
     Route::get('/cheat-log', [BankController::class, 'cheatLog'])->name('banks.cheat-log');

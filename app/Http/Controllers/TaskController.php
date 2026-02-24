@@ -91,7 +91,12 @@ class TaskController extends Controller
         $task = Task::create($validated);
         ActivityLog::log('create', 'task', 'Membuat task: ' . $task->title);
 
-        return response()->json(['success' => true, 'task' => $task->load(['assignee', 'creator', 'checklists', 'comments', 'attachments'])]);
+        $task->load(['assignee', 'creator', 'checklists', 'comments', 'attachments']);
+        foreach ($task->attachments as $att) {
+            $att->url = Storage::url($att->file_path);
+        }
+
+        return response()->json(['success' => true, 'task' => $task]);
     }
 
     /**
@@ -100,6 +105,9 @@ class TaskController extends Controller
     public function show(Task $task)
     {
         $task->load(['assignee', 'creator', 'checklists', 'comments.user', 'attachments.user']);
+        foreach ($task->attachments as $att) {
+            $att->url = Storage::url($att->file_path);
+        }
         return response()->json($task);
     }
 
@@ -126,7 +134,12 @@ class TaskController extends Controller
         $task->update($validated);
         ActivityLog::log('update', 'task', 'Mengupdate task: ' . $task->title);
 
-        return response()->json(['success' => true, 'task' => $task->load(['assignee', 'creator', 'checklists', 'comments', 'attachments'])]);
+        $task->load(['assignee', 'creator', 'checklists', 'comments', 'attachments']);
+        foreach ($task->attachments as $att) {
+            $att->url = Storage::url($att->file_path);
+        }
+
+        return response()->json(['success' => true, 'task' => $task]);
     }
 
     /**
@@ -251,6 +264,7 @@ class TaskController extends Controller
         ]);
 
         $attachment->load('user');
+        $attachment->url = Storage::url($attachment->file_path);
 
         return response()->json(['success' => true, 'attachment' => $attachment]);
     }
