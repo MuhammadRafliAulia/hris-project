@@ -17,6 +17,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WarningLetterController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\SurveyController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -28,6 +29,25 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'role:superadmin,top_level_management,internal_hr'])->name('dashboard');
 Route::get('/recruitment-dashboard', [DashboardController::class, 'recruitmentDashboard'])->middleware(['auth', 'role:recruitmentteam'])->name('recruitment.dashboard');
+
+// ─── Survey Engagement (superadmin, internal_hr) ───
+Route::middleware(['auth', 'role:superadmin,internal_hr'])->group(function () {
+    Route::get('/surveys', [SurveyController::class, 'index'])->name('surveys.index');
+    Route::get('/surveys/create', [SurveyController::class, 'create'])->name('surveys.create');
+    Route::post('/surveys', [SurveyController::class, 'store'])->name('surveys.store');
+    Route::get('/surveys/{survey}/edit', [SurveyController::class, 'edit'])->name('surveys.edit');
+    Route::put('/surveys/{survey}', [SurveyController::class, 'update'])->name('surveys.update');
+    Route::delete('/surveys/{survey}', [SurveyController::class, 'destroy'])->name('surveys.destroy');
+    Route::get('/surveys/{survey}/results', [SurveyController::class, 'results'])->name('surveys.results');
+    Route::post('/surveys/{survey}/toggle-status', [SurveyController::class, 'toggleStatus'])->name('surveys.toggle-status');
+    Route::get('/surveys/{survey}/export', [SurveyController::class, 'exportExcel'])->name('surveys.export');
+    Route::delete('/surveys/{survey}/responses/{response}', [SurveyController::class, 'deleteResponse'])->name('surveys.delete-response');
+    Route::post('/surveys/{survey}/responses/bulk-delete', [SurveyController::class, 'bulkDeleteResponses'])->name('surveys.bulk-delete-responses');
+});
+
+// ─── Public survey fill (no auth needed) ───
+Route::get('/survey/{token}/fill', [SurveyController::class, 'fill'])->name('surveys.fill');
+Route::post('/survey/{token}/submit', [SurveyController::class, 'submit'])->name('surveys.submit');
 
 // Task Management (top_level_management & recruitmentteam)
 Route::middleware(['auth', 'role:superadmin,top_level_management,recruitmentteam,internal_hr'])->group(function () {
@@ -107,6 +127,23 @@ Route::middleware(['auth', 'role:superadmin,admin_prod,internal_hr'])->group(fun
     Route::get('/warning-letters/{warning_letter}/sign', [WarningLetterController::class, 'showSign'])->name('warning-letters.sign-form');
     Route::post('/warning-letters/{warning_letter}/sign', [WarningLetterController::class, 'sign'])->name('warning-letters.sign');
 });
+
+// Admin Prod: SP Progress overview
+Route::middleware(['auth', 'role:admin_prod'])->group(function () {
+    Route::get('/sp-progress', [WarningLetterController::class, 'progress'])->name('warning-letters.progress');
+    // Bulk delete selected (allowed for admin_prod from progress page when not all 4 layers signed)
+    Route::post('/warning-letters/bulk-delete', [WarningLetterController::class, 'bulkDelete'])->name('warning-letters.bulk-delete');
+});
+
+// Public signed routes for approval links (used by generate link feature)
+Route::get('/warning-letters/{warning_letter}/approval/{layer}', [WarningLetterController::class, 'showApprovalForm'])
+    ->name('warning-letters.approval');
+Route::post('/warning-letters/{warning_letter}/approval/{layer}', [WarningLetterController::class, 'handleApproval'])
+    ->name('warning-letters.approval.post');
+
+// Public signed preview PDF for embedding inside approval page
+Route::get('/warning-letters/{warning_letter}/preview-pdf', [WarningLetterController::class, 'showPreviewPdf'])
+    ->name('warning-letters.preview-pdf');
 
 // Public test routes
 Route::get('/test/take/{token}', [TestController::class, 'show'])->name('test.show');

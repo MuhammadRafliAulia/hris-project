@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use App\Models\WarningLetter;
 use App\Models\Bank;
+use App\Models\Survey;
+use App\Models\SurveyResponse;
+use App\Models\SurveyQuestion;
 use App\Models\ParticipantResponse;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -121,13 +124,99 @@ class DashboardController extends Controller
         // ===== PSIKOTEST STATS =====
         $totalPsikotest = Bank::count();
 
+        // ===== ENGAGEMENT / SURVEY STATS =====
+        $totalSurveys = Survey::count();
+        $activeSurveys = Survey::where('status', 'active')->count();
+        $closedSurveys = Survey::where('status', 'closed')->count();
+        $draftSurveys = Survey::where('status', 'draft')->count();
+        $totalResponses = SurveyResponse::count();
+
+        // Average responses per survey
+        $avgResponsesPerSurvey = $totalSurveys > 0 ? round($totalResponses / $totalSurveys, 1) : 0;
+
+        // Overall average scale score across all scale questions
+        $overallScaleAvg = DB::table('survey_answers')
+            ->whereNotNull('scale_value')
+            ->avg('scale_value');
+        $overallScaleAvg = $overallScaleAvg ? round($overallScaleAvg, 2) : 0;
+
+        // Scale distribution (1-5) across all surveys
+        $scaleDistribution = [];
+        for ($v = 1; $v <= 5; $v++) {
+            $scaleDistribution[$v] = DB::table('survey_answers')
+                ->where('scale_value', $v)
+                ->count();
+        }
+
+        // Responses per survey (for bar chart)
+        $responsesPerSurvey = Survey::withCount('responses')
+            ->orderByDesc('created_at')
+            ->limit(10)
+            ->get();
+        $surveyLabels = $responsesPerSurvey->pluck('title')->map(fn($t) => \Illuminate\Support\Str::limit($t, 20));
+        $surveyResponseCounts = $responsesPerSurvey->pluck('responses_count');
+
+        // Monthly response trend (last 6 months)
+        $engagementMonthLabels = [];
+        $engagementMonthData = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $engagementMonthLabels[] = $date->translatedFormat('M Y');
+            $engagementMonthData[] = SurveyResponse::whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->count();
+        }
+
+        // Top 5 surveys by responses
+        $topSurveys = Survey::withCount('responses')
+            ->orderByDesc('responses_count')
+            ->limit(5)
+            ->get();
+
+        // Average score per survey (scale questions only)
+        $surveyScaleAvgs = Survey::with(['questions' => function($q) {
+                $q->where('type', 'scale');
+            }, 'questions.answers'])
+            ->whereHas('questions', fn($q) => $q->where('type', 'scale'))
+            ->withCount('responses')
+            ->having('responses_count', '>', 0)
+            ->orderByDesc('created_at')
+            ->limit(10)
+            ->get()
+            ->map(function ($s) {
+                $allScales = $s->questions->flatMap(fn($q) => $q->answers->pluck('scale_value'))->filter();
+                return [
+                    'title' => \Illuminate\Support\Str::limit($s->title, 25),
+                    'avg' => $allScales->count() ? round($allScales->avg(), 2) : 0,
+                ];
+            });
+        $scaleAvgLabels = $surveyScaleAvgs->pluck('title');
+        $scaleAvgValues = $surveyScaleAvgs->pluck('avg');
+
+        // Question type distribution
+        $questionTypeDistribution = SurveyQuestion::selectRaw("type, COUNT(*) as count")
+            ->groupBy('type')
+            ->pluck('count', 'type');
+
+        // Recent survey responses (last 5)
+        $recentResponses = SurveyResponse::with('survey')
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
+
         return view('dashboard', compact(
             'totalEmployees',
             'employeesByDept', 'employeesByStatus', 'employeesByPendidikan', 'employeesByStatusKaryawan',
             'totalSP', 'spPending', 'spPendingHR', 'spApproved',
             'monthLabels', 'sp1Monthly', 'sp2Monthly', 'sp3Monthly',
             'spByDept', 'spByLevel', 'spByStatus', 'recentSP',
-            'totalPsikotest'
+            'totalPsikotest',
+            'totalSurveys', 'activeSurveys', 'closedSurveys', 'draftSurveys',
+            'totalResponses', 'avgResponsesPerSurvey', 'overallScaleAvg',
+            'scaleDistribution', 'surveyLabels', 'surveyResponseCounts',
+            'engagementMonthLabels', 'engagementMonthData',
+            'topSurveys', 'scaleAvgLabels', 'scaleAvgValues',
+            'questionTypeDistribution', 'recentResponses'
         ));
     }
 

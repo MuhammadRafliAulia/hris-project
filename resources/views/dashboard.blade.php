@@ -139,6 +139,7 @@
             <div id="dashboardToggle" style="display:inline-flex;gap:8px;">
             <button type="button" id="btnEmp" class="quick-link" style="background:#003e6f;color:#fff;">Data Karyawan</button>
             <button type="button" id="btnSP" class="quick-link" style="background:#fff;color:#475569;border:1px solid #e2e8f0;">Data Surat Peringatan</button>
+            <button type="button" id="btnEng" class="quick-link" style="background:#fff;color:#475569;border:1px solid #e2e8f0;">Dashboard Engagement</button>
           </div>
         </div>
       </div>
@@ -403,7 +404,181 @@
 
       </div> {{-- end spDashboard --}}
 
-      {{-- ===== EMPLOYEE DETAIL CHARTS ===== (moved into empDashboard) --}}
+      {{-- ===== ENGAGEMENT DASHBOARD ===== --}}
+      <div id="engDashboard" style="display:none;">
+
+      {{-- Summary Cards --}}
+      <div class="summary-grid" style="grid-template-columns:repeat(5,1fr);margin-bottom:12px;">
+        <div class="summary-card">
+          <div class="sc-icon-wrap blue">📋</div>
+          <div class="sc-info">
+            <div class="sc-value">{{ $totalSurveys }}</div>
+            <div class="sc-label">Total Survey</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-icon-wrap green">✅</div>
+          <div class="sc-info">
+            <div class="sc-value">{{ $activeSurveys }}</div>
+            <div class="sc-label">Aktif</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-icon-wrap amber">📝</div>
+          <div class="sc-info">
+            <div class="sc-value">{{ $draftSurveys }}</div>
+            <div class="sc-label">Draft</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-icon-wrap purple">📊</div>
+          <div class="sc-info">
+            <div class="sc-value">{{ $totalResponses }}</div>
+            <div class="sc-label">Total Responden</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-icon-wrap red">⭐</div>
+          <div class="sc-info">
+            <div class="sc-value">{{ $overallScaleAvg }}<small style="font-size:11px;color:#94a3b8;">/5</small></div>
+            <div class="sc-label">Rata-rata Skor</div>
+          </div>
+        </div>
+      </div>
+
+      {{-- Quick Links --}}
+      <div class="quick-links">
+        <a href="{{ route('surveys.index') }}" class="quick-link"><span class="ql-icon">📋</span> Kelola Survey</a>
+        <a href="{{ route('surveys.create') }}" class="quick-link"><span class="ql-icon">➕</span> Buat Survey</a>
+      </div>
+
+      {{-- Monthly Response Trend --}}
+      <div class="row-full">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon">📈</span> Tren Responden per Bulan</h3>
+            <span class="card-badge">6 Bulan</span>
+          </div>
+          <div class="chart-wrap lg">
+            <canvas id="engMonthlyChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      {{-- Charts Row --}}
+      <div class="row-3">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon">📊</span> Distribusi Skala (1-5)</h3>
+          </div>
+          <div class="chart-wrap sm">
+            <canvas id="engScaleDistChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon">📝</span> Tipe Pertanyaan</h3>
+          </div>
+          <div class="chart-wrap sm">
+            <canvas id="engQuestionTypeChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon">📋</span> Responden per Survey</h3>
+          </div>
+          <div class="chart-wrap sm">
+            <canvas id="engPerSurveyChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      {{-- Scale Avg per Survey + Recent Responses --}}
+      <div class="row-2">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon">⭐</span> Rata-rata Skor per Survey</h3>
+          </div>
+          <div class="chart-wrap" style="height:220px;">
+            <canvas id="engScaleAvgChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon">🕐</span> Responden Terbaru</h3>
+            <span class="card-badge">5 Terakhir</span>
+          </div>
+          @if($recentResponses->count() > 0)
+          <div style="overflow-x:auto;">
+          <table class="recent-table">
+            <thead>
+              <tr>
+                <th>Waktu</th>
+                <th>Survey</th>
+                <th>Nama</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($recentResponses as $resp)
+              <tr>
+                <td>{{ $resp->created_at->format('d/m/Y H:i') }}</td>
+                <td style="font-weight:500;color:#0f172a;">{{ Str::limit($resp->survey->title ?? '-', 30) }}</td>
+                <td>{{ $resp->respondent_name ?: '(Anonim)' }}</td>
+              </tr>
+              @endforeach
+            </tbody>
+          </table>
+          </div>
+          @else
+          <div class="empty-state">Belum ada responden.</div>
+          @endif
+        </div>
+      </div>
+
+      {{-- Top Surveys --}}
+      <div class="row-2">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon">🏆</span> Top 5 Survey (Responden Terbanyak)</h3>
+          </div>
+          <div style="padding:10px;">
+            @if($topSurveys->count() > 0)
+              <ol style="margin:0 0 0 16px;padding:0;font-size:13px;color:#374151;">
+                @foreach($topSurveys as $ts)
+                  <li style="margin-bottom:6px;">
+                    <strong style="color:#0f172a">{{ Str::limit($ts->title, 40) }}</strong>
+                    — {{ $ts->responses_count }} responden
+                    <span class="sp-badge" style="background:{{ $ts->status === 'active' ? '#d1fae5' : ($ts->status === 'draft' ? '#fef3c7' : '#fecaca') }};color:{{ $ts->status === 'active' ? '#059669' : ($ts->status === 'draft' ? '#d97706' : '#dc2626') }};margin-left:4px;">{{ ucfirst($ts->status) }}</span>
+                  </li>
+                @endforeach
+              </ol>
+            @else
+              <div class="empty-state">Belum ada survey.</div>
+            @endif
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon">📐</span> Ringkasan Engagement</h3>
+          </div>
+          <div style="padding:14px;font-size:13px;color:#334155;line-height:2;">
+            <div><strong>Total Survey:</strong> {{ $totalSurveys }} ({{ $activeSurveys }} aktif, {{ $draftSurveys }} draft, {{ $closedSurveys }} ditutup)</div>
+            <div><strong>Total Responden:</strong> {{ $totalResponses }}</div>
+            <div><strong>Rata-rata Responden/Survey:</strong> {{ $avgResponsesPerSurvey }}</div>
+            <div><strong>Skor Rata-rata Keseluruhan:</strong> {{ $overallScaleAvg }} / 5.0</div>
+            @php
+              $typeLabels = ['scale' => 'Skala 1-5', 'multiple_choice' => 'Pilihan Ganda', 'text' => 'Isian Teks'];
+            @endphp
+            <div><strong>Distribusi Pertanyaan:</strong>
+              @foreach($questionTypeDistribution as $type => $cnt)
+                {{ $typeLabels[$type] ?? $type }}: {{ $cnt }}{{ !$loop->last ? ' • ' : '' }}
+              @endforeach
+            </div>
+          </div>
+        </div>
+      </div>
+
+      </div> {{-- end engDashboard --}}
 
       <div class="copyright">
         &copy; 2026 Shindengen HR Internal Team
@@ -552,37 +727,35 @@
     document.addEventListener('DOMContentLoaded', function() {
       var btnEmp = document.getElementById('btnEmp');
       var btnSP = document.getElementById('btnSP');
+      var btnEng = document.getElementById('btnEng');
       var emp = document.getElementById('empDashboard');
       var sp = document.getElementById('spDashboard');
-      function setActiveButton(activeBtn, inactiveBtn) {
+      var eng = document.getElementById('engDashboard');
+      var allBtns = [btnEmp, btnSP, btnEng];
+      var allPanels = [emp, sp, eng];
+
+      function setActive(activeBtn, activePanel) {
+        allBtns.forEach(function(b) {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+          b.style.background = '#fff';
+          b.style.color = '#475569';
+          b.style.border = '1px solid #e2e8f0';
+        });
+        allPanels.forEach(function(p) { p.style.display = 'none'; });
         activeBtn.classList.add('active');
         activeBtn.setAttribute('aria-pressed', 'true');
         activeBtn.style.background = '#003e6f';
         activeBtn.style.color = '#fff';
         activeBtn.style.border = '1px solid #003e6f';
-
-        inactiveBtn.classList.remove('active');
-        inactiveBtn.setAttribute('aria-pressed', 'false');
-        inactiveBtn.style.background = '#fff';
-        inactiveBtn.style.color = '#475569';
-        inactiveBtn.style.border = '1px solid #e2e8f0';
+        activePanel.style.display = '';
       }
 
-      function showEmp() {
-        emp.style.display = '';
-        sp.style.display = 'none';
-        setActiveButton(btnEmp, btnSP);
-      }
-      function showSP() {
-        emp.style.display = 'none';
-        sp.style.display = '';
-        setActiveButton(btnSP, btnEmp);
-      }
-
-      btnEmp.addEventListener('click', showEmp);
-      btnSP.addEventListener('click', showSP);
+      btnEmp.addEventListener('click', function() { setActive(btnEmp, emp); });
+      btnSP.addEventListener('click', function() { setActive(btnSP, sp); });
+      btnEng.addEventListener('click', function() { setActive(btnEng, eng); });
       // default
-      showEmp();
+      setActive(btnEmp, emp);
     });
 
     // ===== 6. KARYAWAN PER PENDIDIKAN =====
@@ -616,6 +789,115 @@
       options: {
         responsive: true, maintainAspectRatio: false, cutout: '55%',
         plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8 } } }
+      }
+    });
+
+    // ===== ENGAGEMENT CHARTS =====
+
+    // E1. Monthly Response Trend
+    new Chart(document.getElementById('engMonthlyChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: {!! json_encode($engagementMonthLabels) !!},
+        datasets: [{
+          label: 'Responden',
+          data: {!! json_encode($engagementMonthData) !!},
+          backgroundColor: 'rgba(0,62,111,0.75)',
+          borderRadius: 4, barPercentage: 0.5
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+          y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } }, grid: { color: '#f1f5f9', drawBorder: false } }
+        }
+      }
+    });
+
+    // E2. Scale Distribution (1-5)
+    new Chart(document.getElementById('engScaleDistChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ['1 - Sangat Tidak Setuju','2 - Tidak Setuju','3 - Netral','4 - Setuju','5 - Sangat Setuju'],
+        datasets: [{
+          data: {!! json_encode(array_values($scaleDistribution)) !!},
+          backgroundColor: ['#ef4444','#f97316','#f59e0b','#3b82f6','#10b981'],
+          borderRadius: 4, barPercentage: 0.6
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 8 } } },
+          y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } }, grid: { color: '#f1f5f9', drawBorder: false } }
+        }
+      }
+    });
+
+    // E3. Question Type Distribution
+    @php
+      $typeMap = ['scale' => 'Skala 1-5', 'multiple_choice' => 'Pilihan Ganda', 'text' => 'Isian Teks'];
+      $typeLabelsChart = $questionTypeDistribution->keys()->map(fn($k) => $typeMap[$k] ?? $k);
+    @endphp
+    new Chart(document.getElementById('engQuestionTypeChart').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: {!! json_encode($typeLabelsChart->values()) !!},
+        datasets: [{
+          data: {!! json_encode($questionTypeDistribution->values()) !!},
+          backgroundColor: ['#003e6f','#0891b2','#10b981'],
+          borderWidth: 2, borderColor: '#fff', hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '55%',
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 8 } } }
+      }
+    });
+
+    // E4. Responses per Survey
+    new Chart(document.getElementById('engPerSurveyChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: {!! json_encode($surveyLabels->values()) !!},
+        datasets: [{
+          data: {!! json_encode($surveyResponseCounts->values()) !!},
+          backgroundColor: palette.slice(0, {!! $surveyLabels->count() !!}),
+          borderRadius: 3, barPercentage: 0.6
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } }, grid: { color: '#f1f5f9', drawBorder: false } },
+          y: { grid: { display: false }, ticks: { font: { size: 9 } } }
+        }
+      }
+    });
+
+    // E5. Average Scale Score per Survey
+    new Chart(document.getElementById('engScaleAvgChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: {!! json_encode($scaleAvgLabels->values()) !!},
+        datasets: [{
+          label: 'Rata-rata Skor',
+          data: {!! json_encode($scaleAvgValues->values()) !!},
+          backgroundColor: 'rgba(16,185,129,0.7)',
+          borderRadius: 4, barPercentage: 0.5
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { min: 0, max: 5, ticks: { stepSize: 1, font: { size: 9 } }, grid: { color: '#f1f5f9', drawBorder: false } },
+          y: { grid: { display: false }, ticks: { font: { size: 9 } } }
+        }
       }
     });
   </script>

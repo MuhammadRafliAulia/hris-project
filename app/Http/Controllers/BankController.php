@@ -362,19 +362,39 @@ class BankController extends Controller
 
         $generated = [];
         $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+        // If user checked to use a single password for all imported emails,
+        // create one random password and reuse it for every row.
+        $useSingle = $request->boolean('single_password');
+        $singlePassword = null;
+        if ($useSingle) {
+            $p = '';
+            for ($k = 0; $k < 6; $k++) { $p .= $chars[random_int(0, strlen($chars)-1)]; }
+            $singlePassword = $p;
+            $singleEncrypted = Crypt::encryptString($singlePassword);
+        }
+
         for ($i = 2; $i <= count($rows); $i++) {
             $email = trim($rows[$i]['A'] ?? '');
             if (!$email) continue;
             $username = $email;
-            $password = '';
-            for ($k = 0; $k < 6; $k++) { $password .= $chars[random_int(0, strlen($chars)-1)]; }
-            $encrypted = Crypt::encryptString($password);
+
+            if ($useSingle) {
+                $encrypted = $singleEncrypted;
+                $password = $singlePassword;
+            } else {
+                $password = '';
+                for ($k = 0; $k < 6; $k++) { $password .= $chars[random_int(0, strlen($chars)-1)]; }
+                $encrypted = Crypt::encryptString($password);
+            }
+
             ApplicantCredential::create([
                 'bank_id' => $bank->id,
                 'username' => $username,
                 'password_encrypted' => $encrypted,
                 'used' => false,
             ]);
+
             $generated[] = ['username' => $username, 'password' => $password];
         }
 

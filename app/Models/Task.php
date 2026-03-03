@@ -44,6 +44,30 @@ class Task extends Model
 
     public function isOverdue()
     {
-        return $this->deadline && $this->deadline->isPast() && $this->status !== 'done';
+        if ($this->status === 'done') return false;
+        if (!$this->task_date) return false;
+
+        // If end_time is set, compare precisely against task_date + end_time
+        if ($this->end_time) {
+            try {
+                $endDatetime = $this->task_date->copy()->setTimeFromTimeString($this->end_time);
+                return $endDatetime->isPast();
+            } catch (\Exception $e) {
+                // fallback
+            }
+        }
+
+        // Fallback: date-only check
+        return $this->task_date->endOfDay()->isPast();
+    }
+
+    /**
+     * Computed status label considering overdue
+     */
+    public function getComputedStatusAttribute()
+    {
+        if ($this->status === 'done') return 'done';
+        if ($this->isOverdue()) return 'overdue';
+        return $this->status;
     }
 }

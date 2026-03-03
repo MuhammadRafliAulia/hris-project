@@ -430,7 +430,7 @@
  @endforeach
  </div>
 
- <button type="button" class="btn-finish-subtest" onclick="askFinishSubTest({{ $subTest->id }})">
+ <button type="button" class="btn-finish-subtest" onclick="finishSubTest({{ $subTest->id }})">
  Selesai — Kembali ke Daftar Sub-Test
  </button>
  </div>
@@ -675,11 +675,6 @@ var TEST_TOKEN_GLOBAL = '{{ $response->token }}';
  }
 
  function openSubTest(stId) {
-	// prevent reopening a subtest that's already completed/submitted
-	if (completedSubTests && completedSubTests.has && (completedSubTests.has(stId) || completedSubTests.has(String(stId)))) {
-		alert('Subtest ini sudah diselesaikan dan tidak dapat dikerjakan ulang.');
-		return;
-	}
      // If there is an example screen for this subtest, show it first.
      var exampleScreen = document.getElementById('exampleScreen' + stId);
      if (exampleScreen) {
@@ -820,36 +815,6 @@ function _clearAllSubtestKeys() {
  }
  }
  }
-
-// Confirmation UI for finishing a subtest
-function askFinishSubTest(stId) {
-	var modal = document.getElementById('confirmModal');
-	var msgEl = document.getElementById('confirmModalMessage');
-	if (!modal || !msgEl) {
-		if (confirm('Yakin selesai subtest ini? Anda tidak dapat mengerjakan ulang setelah dikirim.')) {
-			finishSubTest(stId);
-		}
-		return;
-	}
-	msgEl.textContent = 'Yakin selesai subtest ini? Anda tidak dapat mengerjakan ulang setelah dikirim.';
-	modal.classList.add('show');
-
-	var onCancel = function() {
-		modal.classList.remove('show');
-		cleanup();
-	};
-	var onYes = function() {
-		modal.classList.remove('show');
-		cleanup();
-		finishSubTest(stId);
-	};
-	function cleanup() {
-		document.getElementById('confirmCancelBtn').removeEventListener('click', onCancel);
-		document.getElementById('confirmYesBtn').removeEventListener('click', onYes);
-	}
-	document.getElementById('confirmCancelBtn').addEventListener('click', onCancel);
-	document.getElementById('confirmYesBtn').addEventListener('click', onYes);
-}
 
  function finishSubTest(stId) {
  pauseSubTestTimer(stId);

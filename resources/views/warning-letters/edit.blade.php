@@ -99,6 +99,14 @@
           <input id="tanggal_surat" type="date" name="tanggal_surat" value="{{ old('tanggal_surat', $warningLetter->tanggal_surat ? $warningLetter->tanggal_surat->format('Y-m-d') : '') }}">
           @error('tanggal_surat')<div class="error">{{ $message }}</div>@enderror
 
+          <label for="tempat">Tempat</label>
+          <input id="tempat" type="text" name="tempat" value="{{ old('tempat', $warningLetter->tempat) }}" placeholder="Contoh:Produksi Assy Regulator">
+          @error('tempat')<div class="error">{{ $message }}</div>@enderror
+
+          <label for="proses">Proses</label>
+          <input id="proses" type="text" name="proses" value="{{ old('proses', $warningLetter->proses) }}" placeholder="Contoh: Produksi / Pengemasan">
+          @error('proses')<div class="error">{{ $message }}</div>@enderror
+
           <div style="margin-top:24px;">
             <button type="submit" class="btn">💾 Update</button>
             <a href="{{ route('warning-letters.index') }}" class="btn btn-cancel">Batal</a>

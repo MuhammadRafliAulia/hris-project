@@ -9,6 +9,7 @@ use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -37,6 +38,19 @@ class WarningLetterController extends Controller
 
         // superadmin sees ALL warning letters from all users
         $query = WarningLetter::query();
+
+        // If current user is HR/internal or superadmin, allow filtering between ready/archive/all
+        $user = $this->authUser();
+        $viewMode = $request->get('view', 'all');
+        if ($user->isInternalHR() || $user->isSuperAdmin()) {
+            if ($viewMode === 'ready') {
+                $query->where('status', 'pending_hr');
+            } elseif ($viewMode === 'archive') {
+                $query->where('status', 'approved');
+            } else {
+                $query->whereIn('status', ['pending_hr', 'approved']);
+            }
+        }
 
         if ($request->filled('q')) {
             $q = $request->q;
@@ -72,6 +86,8 @@ class WarningLetterController extends Controller
             'departemen' => 'required|string|max:255',
             'alasan' => 'required|string',
             'paragraf_kedua' => 'nullable|string',
+            'tempat' => 'nullable|string|max:255',
+            'proses' => 'nullable|string|max:255',
             'sp_level' => 'required|in:1,2,3',
             'tanggal_surat' => 'nullable|date',
             'nomor_surat' => 'nullable|string|max:255',
@@ -120,6 +136,8 @@ class WarningLetterController extends Controller
             'departemen' => 'required|string|max:255',
             'alasan' => 'required|string',
             'paragraf_kedua' => 'nullable|string',
+            'tempat' => 'nullable|string|max:255',
+            'proses' => 'nullable|string|max:255',
             'sp_level' => 'required|in:1,2,3',
             'tanggal_surat' => 'nullable|date',
             'nomor_surat' => 'nullable|string|max:255',
@@ -147,18 +165,40 @@ class WarningLetterController extends Controller
 
     public function showPdf(WarningLetter $warningLetter)
     {
-        if ($this->authUser()->isAdminProd()) {
-            abort(403);
+        // PDF viewing for authenticated roles is allowed; preview/embed uses a separate signed route.
+
+        // Generate and save the PDF into storage (storage/app/public/pdfsp/)
+        $relative = $this->generateAndSavePdf($warningLetter);
+        $fullPath = storage_path('app/public/' . $relative);
+
+        if (!file_exists($fullPath)) {
+            abort(404);
         }
 
+        return response()->file($fullPath);
+    }
+
+    /**
+     * Generate PDF and save to storage/app/public/pdfsp/sp_{id}.pdf
+     * Returns relative path under storage/app/public (e.g. 'pdfsp/sp_1.pdf')
+     */
+    private function generateAndSavePdf(WarningLetter $warningLetter)
+    {
         $warningLetter->load('approver');
         $pdf = PDF::loadView('warning-letters.pdf', ['letter' => $warningLetter]);
         $pdf->setPaper('A4', 'portrait');
 
-        $spLabel = $warningLetter->sp_label;
-        $filename = "Surat_Peringatan_{$spLabel}_{$warningLetter->nama}.pdf";
+        $dir = storage_path('app/public/pdfsp');
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
 
-        return $pdf->stream($filename);
+        $filename = "sp_{$warningLetter->id}.pdf";
+        $full = $dir . DIRECTORY_SEPARATOR . $filename;
+        // save output
+        file_put_contents($full, $pdf->output());
+
+        return 'pdfsp/' . $filename;
     }
 
     public function downloadPdf(WarningLetter $warningLetter)
@@ -195,12 +235,13 @@ class WarningLetterController extends Controller
             }
             $signMode = 'admin_prod';
         } else {
-            // superadmin: can sign layer 5 (HR) when status is pending_hr
-            // superadmin can also sign all 5 at once if status is pending
+            // Only allow HR / superadmin to sign HR layer when the 4 layers are already approved
             if ($warningLetter->isPendingHr()) {
                 $signMode = 'hr_only';
             } else {
-                $signMode = 'all';
+                // do not allow superadmin/internal_hr to sign all 5 at once anymore
+                return redirect()->route('warning-letters.index')
+                    ->with('error', 'Tanda tangan HR hanya muncul setelah 4 layer pertama disetujui.');
             }
         }
 
@@ -256,7 +297,7 @@ class WarningLetterController extends Controller
                 ->with('success', 'Surat Peringatan berhasil ditandatangani (4 layer). Menunggu tanda tangan HR.');
         }
 
-        // Phase 2: superadmin signs HR layer 5 only (when status is pending_hr)
+        // Phase 2: superadmin/internal_hr signs HR layer 5 only (when status is pending_hr)
         if ($signMode === 'hr_only') {
             $request->validate([
                 'signer_name_5' => 'required|string|max:255',
@@ -277,8 +318,8 @@ class WarningLetterController extends Controller
             return redirect()->route('warning-letters.show-pdf', $warningLetter->id)
                 ->with('success', 'Surat Peringatan berhasil ditandatangani oleh HR. Surat sudah approved.');
         }
-
-        // Phase ALL: superadmin signs all 5 layers at once (when status is pending)
+        // Phase ALL: signing all 5 layers at once is no longer permitted for HR/superadmin
+        // Keep legacy path only for non-HR (should not reach here normally)
         $request->validate([
             'signer_name_1' => 'required|string|max:255',
             'signer_jabatan_1' => 'required|string|max:255',
@@ -481,5 +522,244 @@ class WarningLetterController extends Controller
         return response()->download($tempFile, 'Template_Surat_Peringatan.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ])->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Progress view for admin_dept: shows SP submissions and layer statuses
+     */
+    public function progress(Request $request)
+    {
+        $user = $this->authUser();
+        if (! $user->isAdminProd()) {
+            abort(403);
+        }
+
+        // Admin_dept should see SPs for their department if user's department info exists.
+        // Fallback: show all if department not defined on user.
+        $query = WarningLetter::query();
+        if (method_exists($user, 'department') || isset($user->department)) {
+            // attempt to filter by department name if user has department attribute
+            if (! empty($user->department)) {
+                $query->where('departemen', $user->department);
+            }
+        }
+
+        $letters = $query->orderBy('created_at', 'desc')->get();
+
+        return view('warning-letters.progress', compact('letters'));
+    }
+
+    /**
+     * Bulk delete selected warning letters from progress view.
+     * Admin Prod can delete letters only when not all 4 layers are signed.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $user = $this->authUser();
+        if (! $user->isAdminProd()) {
+            abort(403);
+        }
+
+        $ids = $request->input('ids', []);
+        if (empty($ids) || !is_array($ids)) {
+            return redirect()->route('warning-letters.progress')->with('error', 'Tidak ada data yang dipilih.');
+        }
+
+        $letters = WarningLetter::whereIn('id', $ids)->get();
+        $deleted = 0;
+        $skipped = [];
+
+        foreach ($letters as $letter) {
+            $all4 = true;
+            for ($i = 1; $i <= 4; $i++) {
+                $s = $letter->{'signature_' . $i};
+                if (empty($s) || (is_string($s) && strpos($s, 'rejected') !== false)) {
+                    $all4 = false;
+                    break;
+                }
+            }
+
+            if ($all4) {
+                $skipped[] = $letter->id;
+                continue;
+            }
+
+            $letter->delete();
+            ActivityLog::log('delete', 'warning_letter', 'Menghapus Surat Peringatan (bulk) : ' . $letter->nama);
+            $deleted++;
+        }
+
+        $msg = '';
+        if ($deleted) {
+            $msg .= "Berhasil menghapus {$deleted} data. ";
+        }
+        if (!empty($skipped)) {
+            $msg .= 'Beberapa data tidak dihapus karena sudah lengkap 4 tanda tangan.';
+        }
+
+        return redirect()->route('warning-letters.progress')->with('success', trim($msg));
+    }
+
+    /**
+     * Show approval form via signed public link for a specific layer (1-4)
+     */
+    public function showApprovalForm(Request $request, WarningLetter $warningLetter, $layer)
+    {
+        $layer = (int) $layer;
+        if ($layer < 1 || $layer > 4) {
+            abort(404);
+        }
+        // Manually validate signature to provide diagnostics when invalid
+        $isValid = \Illuminate\Support\Facades\URL::hasValidSignature($request);
+
+        // If already approved fully, show simple message
+        if ($warningLetter->isApproved()) {
+            return view('warning-letters.approval_result', [
+                'warningLetter' => $warningLetter,
+                'layer' => $layer,
+                'action' => 'already_approved',
+            ]);
+        }
+
+        if (! $isValid) {
+            // Build the originally-generated link for comparison
+            $generated = \Illuminate\Support\Facades\URL::temporarySignedRoute('warning-letters.approval', now()->addDays(14), ['warning_letter' => $warningLetter->id, 'layer' => $layer]);
+
+            // Collect request / environment info
+            $info = [
+                'request_full_url' => $request->fullUrl(),
+                'request_scheme_host' => $request->getSchemeAndHttpHost(),
+                'generated_link' => $generated,
+                'app_url' => config('app.url'),
+                'headers' => [
+                    'host' => $request->header('host'),
+                    'x_forwarded_proto' => $request->header('x-forwarded-proto'),
+                    'x_forwarded_host' => $request->header('x-forwarded-host'),
+                ],
+                'is_valid_signature' => $isValid,
+            ];
+
+            // Log for server-side inspection
+            ActivityLog::log('debug', 'warning_letter', 'Invalid signature detected for approval link: ' . $warningLetter->id);
+
+            return view('warning-letters.approval_debug', compact('warningLetter', 'layer', 'info'));
+        }
+
+        // Ensure PDF saved to storage and provide its storage URL for preview iframe
+        $relative = $this->generateAndSavePdf($warningLetter);
+        $previewLink = asset('storage/' . $relative);
+
+        return view('warning-letters.approval', compact('warningLetter', 'layer', 'previewLink'));
+    }
+
+    /**
+     * Public signed preview for embedding the PDF in approval page.
+     */
+    public function showPreviewPdf(Request $request, WarningLetter $warningLetter)
+    {
+        // must be accessed via a valid signed URL
+        if (!\Illuminate\Support\Facades\URL::hasValidSignature($request)) {
+            abort(403);
+        }
+
+        $warningLetter->load('approver');
+        $pdf = PDF::loadView('warning-letters.pdf', ['letter' => $warningLetter]);
+        $pdf->setPaper('A4', 'portrait');
+
+        $spLabel = $warningLetter->sp_label;
+        $filename = "Surat_Peringatan_{$spLabel}_{$warningLetter->nama}.pdf";
+
+        $response = $pdf->stream($filename);
+        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+        $response->headers->set('Content-Security-Policy', "frame-ancestors 'self'");
+        return $response;
+    }
+
+    /**
+     * Handle approval/rejection submitted from signed link
+     */
+    public function handleApproval(Request $request, WarningLetter $warningLetter, $layer)
+    {
+        $layer = (int) $layer;
+        if ($layer < 1 || $layer > 4) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'nama' => 'required_if:action,approve|string|max:255',
+            'jabatan' => 'required_if:action,approve|string|max:255',
+            'nik' => 'nullable|string|max:255',
+            'action' => 'required|in:approve,reject',
+        ]);
+
+        $action = $validated['action'];
+
+        if ($action === 'approve') {
+            $request->validate([
+                'signature' => 'required|string',
+            ]);
+
+            $signatureValue = $request->input('signature');
+
+            $warningLetter->update([
+                'nik' => $validated['nik'] ?: $warningLetter->nik,
+                'signer_name_' . $layer => $validated['nama'],
+                'signer_jabatan_' . $layer => $validated['jabatan'],
+                'signature_' . $layer => $signatureValue,
+            ]);
+
+            // If all 4 layers now have signer_name set, move to pending_hr
+            $warningLetter->refresh();
+            $allFilled = true;
+            for ($i = 1; $i <= 4; $i++) {
+                if (empty($warningLetter->{'signer_name_' . $i})) {
+                    $allFilled = false;
+                    break;
+                }
+            }
+            if ($allFilled) {
+                $warningLetter->status = 'pending_hr';
+                $warningLetter->save();
+            }
+
+            ActivityLog::log('approve_link', 'warning_letter', "Approve via link layer {$layer} untuk {$warningLetter->nama}");
+
+            return view('warning-letters.approval_result', [
+                'warningLetter' => $warningLetter,
+                'layer' => $layer,
+                'action' => 'approved',
+            ]);
+        }
+
+        // reject
+        $request->validate([
+            'reason' => 'nullable|string|max:1000',
+        ]);
+        $reason = trim($request->input('reason', ''));
+        $ts = now();
+        $nameForSig = $request->input('nama') ?: 'Via Link';
+        $jabForSig = $request->input('jabatan') ?: 'Via Link';
+        $sigValue = 'rejected_via_link:' . $nameForSig;
+        if ($reason !== '') {
+            // store as: rejected_via_link:NAME|REASON @ TIMESTAMP
+            $sigValue .= '|' . str_replace(["\r", "\n"], [' ', ' '], $reason) . ' @ ' . $ts;
+        } else {
+            $sigValue .= ' @ ' . $ts;
+        }
+
+        $warningLetter->update([
+            'signature_' . $layer => $sigValue,
+            'signer_name_' . $layer => $nameForSig,
+            'signer_jabatan_' . $layer => $jabForSig,
+            'status' => 'rejected',
+        ]);
+
+        ActivityLog::log('reject_link', 'warning_letter', "Rejected via link layer {$layer} untuk {$warningLetter->nama}");
+
+        return view('warning-letters.approval_result', [
+            'warningLetter' => $warningLetter,
+            'layer' => $layer,
+            'action' => 'rejected',
+        ]);
     }
 }

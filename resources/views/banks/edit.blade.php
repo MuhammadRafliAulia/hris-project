@@ -205,6 +205,9 @@
 			<a href="{{ route('banks.credentials.export', $bank) }}" class="btn" style="padding:6px 10px;font-size:13px;">Export Kredensial</a>
 			<form method="POST" action="{{ route('banks.credentials.import', $bank) }}" enctype="multipart/form-data" style="display:inline-flex;gap:8px;align-items:center;">
 				@csrf
+				<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#334155;">
+					<input type="checkbox" name="single_password" value="1" style="width:16px;height:16px;"> Gunakan 1 password untuk semua
+				</label>
 				<input type="file" name="file" accept=".xlsx,.xls,.csv" style="padding:6px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;">
 				<button type="submit" class="btn" style="padding:6px 10px;font-size:13px;">Import</button>
 			</form>

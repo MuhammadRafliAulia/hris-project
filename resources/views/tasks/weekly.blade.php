@@ -8,172 +8,263 @@
 <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --primary:#003e6f;--primary-light:#0a5a9e;--primary-dark:#002a4f;
+  --accent:#6366f1;--accent-light:#818cf8;
+  --bg:#f0f4f8;--card:#fff;--border:#e2e8f0;--border-light:#f1f5f9;
+  --text:#0f172a;--text-secondary:#64748b;--text-muted:#94a3b8;
+  --success:#10b981;--warning:#f59e0b;--danger:#ef4444;--info:#3b82f6;
+  --radius:12px;--shadow:0 4px 24px rgba(0,0,0,.06);
+  --transition:all .2s cubic-bezier(.4,0,.2,1);
+}
 
-/* Compact Header */
-.wp-header{background:#fff;border-bottom:1px solid #e2e8f0;padding:8px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.wp-title{font-size:16px;font-weight:600;color:#0f172a;}
-.wp-nav{display:flex;align-items:center;gap:4px;margin-left:auto;}
-.wp-nav-btn{padding:5px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:5px;font-size:11px;cursor:pointer;color:#475569;font-weight:500;font-family:inherit;transition:all .15s;}
-.wp-nav-btn:hover{background:#f1f5f9;border-color:#cbd5e1;}
-.wp-nav-btn.today{background:#003e6f;color:#fff;border-color:#003e6f;}
-.wp-nav-btn.today:hover{background:#002a4f;}
-.wp-week-label{font-size:12px;font-weight:500;color:#334155;min-width:120px;text-align:center;}
-.wp-add-btn{padding:6px 12px;background:#003e6f;color:#fff;border:none;border-radius:5px;font-size:12px;cursor:pointer;font-weight:500;font-family:inherit;}
-.wp-add-btn:hover{background:#002a4f;}
-.wp-filter{padding:5px 8px;border:1px solid #cbd5e1;border-radius:5px;font-size:11px;background:#fff;font-family:inherit;cursor:pointer;}
+/* ─── Header ─── */
+.wp-header{
+  background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);
+  padding:16px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  border-radius:var(--radius) var(--radius) 0 0;color:#fff;position:relative;overflow:hidden;
+}
+.wp-header::before{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.06);}
+.wp-header::after{content:'';position:absolute;bottom:-50px;left:30%;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.04);}
+.wp-title{font-size:18px;font-weight:700;color:#fff;letter-spacing:-.3px;display:flex;align-items:center;gap:8px;z-index:1;}
 
-/* Compact Calendar Grid */
+/* View Switcher */
+.view-switch{display:flex;gap:2px;background:rgba(255,255,255,.15);border-radius:8px;padding:3px;margin-left:8px;z-index:1;}
+.view-switch a{padding:6px 16px;border-radius:6px;font-size:12px;color:rgba(255,255,255,.7);text-decoration:none;font-weight:500;transition:var(--transition);}
+.view-switch a:hover{color:#fff;background:rgba(255,255,255,.1);}
+.view-switch a.active{background:#fff;color:var(--primary);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+
+.wp-nav{display:flex;align-items:center;gap:4px;margin-left:auto;z-index:1;}
+.wp-nav-btn{padding:6px 14px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);border-radius:6px;font-size:11px;cursor:pointer;color:#fff;font-weight:500;font-family:inherit;transition:var(--transition);backdrop-filter:blur(4px);}
+.wp-nav-btn:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.4);}
+.wp-nav-btn.today{background:#fff;color:var(--primary);border-color:#fff;font-weight:600;}
+.wp-nav-btn.today:hover{background:#f8fafc;}
+.wp-week-label{font-size:13px;font-weight:600;color:#fff;min-width:140px;text-align:center;z-index:1;}
+.wp-add-btn{padding:7px 16px;background:#fff;color:var(--primary);border:none;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600;font-family:inherit;transition:var(--transition);z-index:1;box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.wp-add-btn:hover{background:#f0f4ff;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.15);}
+.wp-filter{padding:6px 10px;border:1px solid rgba(255,255,255,.25);border-radius:6px;font-size:11px;background:rgba(255,255,255,.1);font-family:inherit;cursor:pointer;color:#fff;z-index:1;backdrop-filter:blur(4px);}
+.wp-filter option{color:#0f172a;background:#fff;}
+
+/* ─── Stats Row ─── */
+.stats-row{display:flex;gap:10px;padding:14px 20px;background:var(--card);border-bottom:1px solid var(--border);}
+.stat-card{flex:1;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:var(--bg);transition:var(--transition);cursor:default;}
+.stat-card:hover{transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.stat-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.stat-icon.total{background:linear-gradient(135deg,#dbeafe,#bfdbfe);color:#1d4ed8;}
+.stat-icon.done{background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#059669;}
+.stat-icon.overdue{background:linear-gradient(135deg,#fecaca,#fca5a5);color:#dc2626;}
+.stat-icon.progress{background:linear-gradient(135deg,#fef3c7,#fde68a);color:#d97706;}
+.stat-icon.today{background:linear-gradient(135deg,#e0e7ff,#c7d2fe);color:#4f46e5;}
+.stat-icon.todo{background:linear-gradient(135deg,#f1f5f9,#e2e8f0);color:#475569;}
+.stat-info{min-width:0;}
+.stat-label{font-size:10px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px;}
+.stat-value{font-size:18px;font-weight:700;color:var(--text);line-height:1.2;}
+
+/* ─── Calendar Grid ─── */
 .wp-calendar{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.wp-days-header{display:grid;grid-template-columns:40px repeat(7,1fr);background:#fff;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:10;}
-.wp-day-label{padding:6px 4px;text-align:center;border-left:1px solid #e2e8f0;font-size:10px;color:#64748b;font-weight:500;text-transform:uppercase;}
-.wp-day-label .day-num{font-size:14px;font-weight:700;color:#0f172a;display:block;line-height:1.2;}
-.wp-day-label.today{background:#eff6ff;}
-.wp-day-label.today .day-num{color:#003e6f;background:#dbeafe;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin:2px auto;}
-.wp-corner{padding:6px 4px;background:#fff;display:flex;align-items:flex-end;justify-content:center;font-size:8px;color:#94a3b8;text-transform:uppercase;}
+.wp-days-header{display:grid;grid-template-columns:48px repeat(7,1fr);background:var(--card);border-bottom:2px solid var(--border);position:sticky;top:0;z-index:10;}
+.wp-day-label{padding:10px 4px;text-align:center;border-left:1px solid var(--border-light);font-size:10px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;transition:var(--transition);}
+.wp-day-label .day-num{font-size:18px;font-weight:800;color:var(--text);display:block;line-height:1.2;margin:2px 0;}
+.wp-day-label .day-month{font-size:9px;color:var(--text-muted);font-weight:400;}
+.wp-day-label.today{background:linear-gradient(180deg,#eff6ff,#fff);}
+.wp-day-label.today .day-num{color:#fff;background:var(--primary);width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,62,111,.3);}
+.wp-corner{padding:8px 4px;background:var(--card);display:flex;align-items:flex-end;justify-content:center;font-size:9px;color:var(--text-muted);text-transform:uppercase;font-weight:600;}
 
 .wp-grid-scroll{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;}
-.wp-grid{display:grid;grid-template-columns:40px repeat(7,1fr);position:relative;}
-.wp-time-label{padding:0 4px;height:32px;display:flex;align-items:flex-start;justify-content:flex-end;font-size:9px;color:#94a3b8;font-weight:400;padding-top:1px;border-right:1px solid #e2e8f0;background:#fff;position:sticky;left:0;z-index:2;}
-.wp-cell{height:32px;border-bottom:1px solid #f1f5f9;border-left:1px solid #e2e8f0;position:relative;cursor:pointer;transition:background .1s;}
-.wp-cell:hover{background:#f8fafc;}
-.wp-cell.today{background:#fafbff;}
+.wp-grid{display:grid;grid-template-columns:48px repeat(7,1fr);position:relative;}
+.wp-time-label{padding:0 6px;height:40px;display:flex;align-items:flex-start;justify-content:flex-end;font-size:10px;color:var(--text-muted);font-weight:500;padding-top:2px;border-right:1px solid var(--border);background:var(--card);position:sticky;left:0;z-index:2;}
+.wp-cell{height:40px;border-bottom:1px solid var(--border-light);border-left:1px solid var(--border-light);position:relative;cursor:pointer;transition:background .15s;}
+.wp-cell:hover{background:#f0f4ff;}
+.wp-cell.today{background:rgba(0,62,111,.02);}
 
 /* Current time indicator */
-.wp-now-line{position:absolute;left:40px;right:0;height:2px;background:#dc2626;z-index:5;pointer-events:none;}
-.wp-now-line::before{content:'';position:absolute;left:-5px;top:-4px;width:8px;height:8px;border-radius:50%;background:#dc2626;}
+.wp-now-line{position:absolute;left:48px;right:0;height:2px;background:var(--danger);z-index:5;pointer-events:none;box-shadow:0 0 8px rgba(239,68,68,.4);}
+.wp-now-line::before{content:'';position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--danger);box-shadow:0 0 6px rgba(239,68,68,.5);}
 
-/* Task Block */
-.wp-task{position:absolute;left:2px;right:2px;border-radius:4px;padding:3px 6px;font-size:10px;cursor:pointer;z-index:3;overflow:hidden;border-left:3px solid;transition:box-shadow .15s,transform .15s;min-height:16px;}
-.wp-task:hover{box-shadow:0 1px 4px rgba(0,0,0,.10);transform:scale(1.01);z-index:6;}
-.wp-task-title{font-weight:500;color:#fff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.wp-task-time{font-size:8px;color:rgba(255,255,255,.8);margin-top:1px;}
-.wp-task-assignee{position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;}
-.wp-task.done{opacity:.5;}
+/* ─── Task Block ─── */
+.wp-task{position:absolute;left:3px;right:3px;border-radius:6px;padding:4px 8px;font-size:10px;cursor:pointer;z-index:3;overflow:hidden;border-left:3px solid;transition:box-shadow .2s,transform .2s;min-height:20px;backdrop-filter:blur(2px);}
+.wp-task:hover{box-shadow:0 4px 12px rgba(0,0,0,.15);transform:scale(1.02);z-index:6;}
+.wp-task-title{font-weight:600;color:#fff;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wp-task-time{font-size:8px;color:rgba(255,255,255,.8);margin-top:1px;font-weight:500;}
+.wp-task-assignee{position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;backdrop-filter:blur(2px);}
+.wp-task.done{opacity:.45;filter:grayscale(.3);}
 .wp-task.done .wp-task-title{text-decoration:line-through;}
+.wp-task.overdue{animation:overdueGlow 2s ease-in-out infinite;}
+@keyframes overdueGlow{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.2);}50%{box-shadow:0 0 8px 2px rgba(239,68,68,.35);}}
+.wp-task-badge{position:absolute;right:3px;bottom:3px;font-size:7px;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,.2);color:#fff;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
 
 /* Priority colors */
-.wp-task.priority-urgent{background:#dc2626;border-left-color:#991b1b;}
-.wp-task.priority-high{background:#f59e0b;border-left-color:#b45309;}
-.wp-task.priority-medium{background:#3b82f6;border-left-color:#1d4ed8;}
-.wp-task.priority-low{background:#6b7280;border-left-color:#374151;}
+.wp-task.priority-urgent{background:linear-gradient(135deg,#dc2626,#ef4444);border-left-color:#991b1b;}
+.wp-task.priority-high{background:linear-gradient(135deg,#d97706,#f59e0b);border-left-color:#92400e;}
+.wp-task.priority-medium{background:linear-gradient(135deg,#2563eb,#3b82f6);border-left-color:#1e40af;}
+.wp-task.priority-low{background:linear-gradient(135deg,#475569,#64748b);border-left-color:#1e293b;}
 
-/* Detail Panel */
-.detail-overlay{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:1000;display:none;justify-content:flex-end;}
+/* ─── Detail Panel ─── */
+.detail-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(4px);z-index:1000;display:none;justify-content:flex-end;}
 .detail-overlay.open{display:flex;}
-.detail-panel{width:520px;max-width:100%;background:#fff;height:100%;overflow-y:auto;box-shadow:-4px 0 20px rgba(0,0,0,.1);display:flex;flex-direction:column;}
-.detail-header{padding:20px 24px;border-bottom:1px solid #e2e8f0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
-.detail-close{background:none;border:none;cursor:pointer;color:#94a3b8;font-size:20px;padding:4px;}
-.detail-close:hover{color:#475569;}
+.detail-panel{width:540px;max-width:100%;background:#fff;height:100%;overflow-y:auto;box-shadow:-8px 0 30px rgba(0,0,0,.12);display:flex;flex-direction:column;animation:slideIn .25s ease-out;}
+@keyframes slideIn{from{transform:translateX(100%);}to{transform:translateX(0);}}
+.detail-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:linear-gradient(180deg,#f8fafc,#fff);}
+.detail-close{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:20px;padding:4px;border-radius:6px;transition:var(--transition);}
+.detail-close:hover{color:var(--text);background:var(--border-light);}
 .detail-body{flex:1;padding:20px 24px;overflow-y:auto;}
 .detail-section{margin-bottom:24px;}
-.detail-section-title{font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.detail-section-title{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
 .detail-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
-.detail-meta-item label{font-size:11px;color:#94a3b8;display:block;margin-bottom:3px;}
-.detail-meta-item select,.detail-meta-item input{padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;width:100%;font-family:inherit;font-size:12px;background:#fff;color:#0f172a;}
-.d-btn{padding:6px 12px;border:none;border-radius:5px;font-size:12px;cursor:pointer;font-weight:500;font-family:inherit;transition:all .15s;}
-.d-btn-primary{background:#003e6f;color:#fff;}
-.d-btn-primary:hover{background:#002a4f;}
-.d-btn-danger{background:#dc2626;color:#fff;}
-.d-btn-danger:hover{background:#b91c1c;}
-.d-btn-ghost{background:transparent;color:#64748b;border:1px solid #e2e8f0;}
-.d-btn-ghost:hover{background:#f1f5f9;}
-.d-btn-sm{padding:4px 8px;font-size:11px;}
+.detail-meta-item{background:var(--bg);border-radius:8px;padding:10px 12px;}
+.detail-meta-item label{font-size:10px;color:var(--text-muted);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+.detail-meta-item select,.detail-meta-item input{padding:6px 8px;border:1px solid var(--border);border-radius:6px;width:100%;font-family:inherit;font-size:12px;background:#fff;color:var(--text);transition:var(--transition);}
+.detail-meta-item select:focus,.detail-meta-item input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,62,111,.1);}
+.d-btn{padding:7px 14px;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600;font-family:inherit;transition:var(--transition);}
+.d-btn-primary{background:var(--primary);color:#fff;}
+.d-btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);}
+.d-btn-danger{background:var(--danger);color:#fff;}
+.d-btn-danger:hover{background:#dc2626;transform:translateY(-1px);}
+.d-btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border);}
+.d-btn-ghost:hover{background:var(--border-light);}
+.d-btn-sm{padding:5px 10px;font-size:11px;}
 
 /* Checklist */
-.ck-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9;}
-.ck-item input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:#003e6f;}
-.ck-item span{flex:1;font-size:12px;color:#334155;}
-.ck-item span.done{text-decoration:line-through;color:#94a3b8;}
-.ck-item .del{background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:13px;}.ck-item .del:hover{color:#dc2626;}
-.ck-add{display:flex;gap:5px;margin-top:6px;}
-.ck-add input{flex:1;padding:5px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:12px;font-family:inherit;}
+.ck-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);transition:var(--transition);}
+.ck-item:hover{background:var(--bg);margin:0 -8px;padding:6px 8px;border-radius:6px;}
+.ck-item input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--primary);}
+.ck-item span{flex:1;font-size:12px;color:var(--text);}
+.ck-item span.done{text-decoration:line-through;color:var(--text-muted);}
+.ck-item .del{background:none;border:none;color:var(--border);cursor:pointer;font-size:13px;transition:var(--transition);}.ck-item .del:hover{color:var(--danger);}
+.ck-add{display:flex;gap:5px;margin-top:8px;}
+.ck-add input{flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;transition:var(--transition);}
+.ck-add input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,62,111,.1);}
 
 /* Comments */
-.cm-item{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #f1f5f9;}
-.cm-avatar{width:26px;height:26px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#475569;flex-shrink:0;}
+.cm-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);}
+.cm-avatar{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;}
 .cm-body{flex:1;min-width:0;}
-.cm-name{font-size:11px;font-weight:600;color:#0f172a;}
-.cm-time{font-size:9px;color:#94a3b8;margin-left:4px;}
-.cm-text{font-size:12px;color:#334155;margin-top:2px;line-height:1.4;}
-.cm-add{display:flex;gap:5px;margin-top:8px;}
-.cm-add textarea{flex:1;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;font-family:inherit;resize:vertical;min-height:34px;}
+.cm-name{font-size:11px;font-weight:700;color:var(--text);}
+.cm-time{font-size:9px;color:var(--text-muted);margin-left:6px;}
+.cm-text{font-size:12px;color:var(--text-secondary);margin-top:3px;line-height:1.5;}
+.cm-add{display:flex;gap:6px;margin-top:10px;}
+.cm-add textarea{flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;resize:vertical;min-height:38px;transition:var(--transition);}
+.cm-add textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,62,111,.1);}
 
 /* Attachments */
-.at-item{display:flex;align-items:center;gap:6px;padding:6px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;margin-bottom:4px;font-size:11px;}
-.at-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#334155;font-weight:500;}
+.at-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border-light);border-radius:8px;margin-bottom:6px;font-size:11px;transition:var(--transition);}
+.at-item:hover{border-color:var(--border);box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.at-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);font-weight:500;}
 
-/* Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:1100;display:none;align-items:center;justify-content:center;}
+/* ─── Modal ─── */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(4px);z-index:1100;display:none;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
-.modal-box{background:#fff;border-radius:10px;padding:24px;width:460px;max-width:95%;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.15);}
-.modal-title{font-size:17px;font-weight:700;color:#0f172a;margin-bottom:18px;}
-.fg{margin-bottom:12px;}
-.fg label{display:block;font-size:11px;color:#475569;margin-bottom:4px;font-weight:500;}
-.fg input,.fg select,.fg textarea{width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;color:#0f172a;background:#fff;}
-.fg textarea{resize:vertical;min-height:60px;}
-.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-box{background:#fff;border-radius:16px;padding:28px;width:480px;max-width:95%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:modalIn .2s ease-out;}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.modal-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.fg{margin-bottom:14px;}
+.fg label{display:block;font-size:11px;color:var(--text-secondary);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+.fg input,.fg select,.fg textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;color:var(--text);background:#fff;transition:var(--transition);}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,62,111,.1);}
+.fg textarea{resize:vertical;min-height:70px;}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .fg-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
 
-/* Footer */
-.wp-footer{background:#fff;border-top:1px solid #e2e8f0;padding:10px 24px;display:flex;align-items:center;gap:20px;font-size:12px;color:#64748b;}
-.wp-stat{display:flex;align-items:center;gap:4px;}
-.wp-stat b{color:#0f172a;}
-.wp-stat.done b{color:#16a34a;}
-.wp-stat.overdue b{color:#dc2626;}
+/* ─── Footer ─── */
+.wp-footer{background:var(--card);border-top:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:16px;font-size:12px;color:var(--text-secondary);border-radius:0 0 var(--radius) var(--radius);}
+.wp-stat{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;background:var(--bg);transition:var(--transition);}
+.wp-stat:hover{background:var(--border);}
+.wp-stat b{color:var(--text);font-weight:700;}
+.wp-stat.done b{color:var(--success);}
+.wp-stat.overdue b{color:var(--danger);}
+.wp-stat.progress b{color:var(--warning);}
 
 /* Status badge */
 .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;}
-.status-dot.todo{background:#94a3b8;}
-.status-dot.in_progress{background:#f59e0b;}
-.status-dot.done{background:#22c55e;}
+.status-dot.todo{background:var(--text-muted);}
+.status-dot.in_progress{background:var(--warning);}
+.status-dot.done{background:var(--success);}
+
+/* Overdue label inside detail */
+.overdue-badge{display:inline-block;padding:2px 8px;background:#fef2f2;color:#dc2626;border-radius:4px;font-size:10px;font-weight:600;margin-left:8px;border:1px solid #fecaca;}
 
 @media(max-width:768px){
-  .wp-header{flex-direction:column;align-items:stretch;gap:8px;}
+  .wp-header{flex-direction:column;align-items:stretch;gap:10px;border-radius:0;}
   .wp-nav{margin-left:0;flex-wrap:wrap;}
+  .stats-row{flex-wrap:wrap;}
+  .stat-card{min-width:calc(50% - 6px);}
   .wp-calendar{overflow-x:auto;}
-  .wp-days-header,.wp-grid{grid-template-columns:50px repeat(7,minmax(120px,1fr));}
+  .wp-days-header,.wp-grid{grid-template-columns:50px repeat(7,minmax(100px,1fr));}
   .detail-panel{width:100%;}
-  .modal-box{width:95%;padding:18px;}
+  .modal-box{width:95%;padding:20px;}
+  .view-switch{margin-left:0;}
 }
 </style>
 </head>
 <body style="margin:0;">
-<div style="display:flex;min-height:100vh;background:#f7fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial;">
+<div style="display:flex;min-height:100vh;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
 @include('layouts.sidebar')
 <div class="main" style="flex:1;display:flex;flex-direction:column;min-width:0;">
-  <div style="display:flex;justify-content:center;align-items:flex-start;padding:32px 0 0 0;width:100%;min-height:0;">
-    <div class="wp-card-calendar" style="background:#fff;border-radius:18px;box-shadow:0 4px 24px rgba(0,0,0,0.08);padding:18px 18px 12px 18px;max-width:1100px;width:100%;">
+  <div style="display:flex;justify-content:center;align-items:flex-start;padding:24px 20px 0;width:100%;min-height:0;flex:1;">
+    <div style="max-width:1200px;width:100%;display:flex;flex-direction:column;height:calc(100vh - 48px);">
+
       {{-- HEADER --}}
       <div class="wp-header">
-        <span class="wp-title">Weekly Planner</span>
+        <span class="wp-title">📅 Weekly Planner</span>
+        <div class="view-switch">
+          <a href="{{ url('hrissdi/tasks') }}" class="active">Weekly</a>
+          <a href="{{ url('hrissdi/tasks?view=kanban') }}">Kanban</a>
+        </div>
         <select class="wp-filter" id="filterPriority" onchange="applyFilters()">
-          <option value="">Semua Prioritas</option>
+          <option value="">All Priority</option>
           <option value="low">Low</option>
           <option value="medium">Medium</option>
           <option value="high">High</option>
           <option value="urgent">Urgent</option>
         </select>
         <select class="wp-filter" id="filterAssignee" onchange="applyFilters()">
-          <option value="">Semua Assignee</option>
+          <option value="">All Assignee</option>
           @foreach($users as $u)
             <option value="{{ $u->id }}">{{ $u->name }}</option>
           @endforeach
         </select>
         <div class="wp-nav">
-          <button class="wp-nav-btn" onclick="navWeek(-1)">← Sebelumnya</button>
-          <button class="wp-nav-btn today" onclick="navWeek(0)">Hari Ini</button>
-          <button class="wp-nav-btn" onclick="navWeek(1)">Selanjutnya →</button>
+          <button class="wp-nav-btn" onclick="navWeek(-1)">‹ Prev</button>
+          <button class="wp-nav-btn today" onclick="navWeek(0)">Today</button>
+          <button class="wp-nav-btn" onclick="navWeek(1)">Next ›</button>
         </div>
         <span class="wp-week-label" id="weekLabel">{{ $weekStart->translatedFormat('d M') }} – {{ $weekEnd->translatedFormat('d M Y') }}</span>
-        <button class="wp-add-btn" onclick="openAddModal()">＋ Tambah Task</button>
+        <button class="wp-add-btn" onclick="openAddModal()">＋ Add Task</button>
+      </div>
+
+      {{-- STATS ROW --}}
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon total">📊</div>
+          <div class="stat-info"><div class="stat-label">Total</div><div class="stat-value">{{ $totalWeek }}</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon todo">📝</div>
+          <div class="stat-info"><div class="stat-label">To Do</div><div class="stat-value">{{ $totalTodo }}</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon progress">🔄</div>
+          <div class="stat-info"><div class="stat-label">In Progress</div><div class="stat-value">{{ $totalInProgress }}</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon done">✅</div>
+          <div class="stat-info"><div class="stat-label">Done</div><div class="stat-value">{{ $totalDone }}</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon overdue">⚠️</div>
+          <div class="stat-info"><div class="stat-label">Overdue</div><div class="stat-value" style="{{ $totalOverdue > 0 ? 'color:var(--danger)' : '' }}">{{ $totalOverdue }}</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon today">📌</div>
+          <div class="stat-info"><div class="stat-label">Today</div><div class="stat-value">{{ $totalToday }}</div></div>
+        </div>
       </div>
 
       {{-- CALENDAR --}}
-      <div class="wp-calendar">
-        {{-- Day headers --}}
+      <div class="wp-calendar" style="background:var(--card);border-left:1px solid var(--border);border-right:1px solid var(--border);">
         <div class="wp-days-header">
-          <div class="wp-corner">Waktu</div>
+          <div class="wp-corner">Time</div>
           @php
             $days = ['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
             $todayStr = now()->format('Y-m-d');
@@ -183,12 +274,11 @@
             <div class="wp-day-label {{ $isToday ? 'today' : '' }}" data-date="{{ $d->format('Y-m-d') }}">
               {{ $days[$i] }}
               <span class="day-num">{{ $d->format('d') }}</span>
-              {{ $d->translatedFormat('M') }}
+              <span class="day-month">{{ $d->translatedFormat('M') }}</span>
             </div>
           @endfor
         </div>
 
-        {{-- Time grid --}}
         <div class="wp-grid-scroll" id="gridScroll">
           <div class="wp-grid" id="calendarGrid">
             @for($h = 6; $h <= 23; $h++)
@@ -199,44 +289,42 @@
               @endfor
             @endfor
           </div>
-          {{-- Now line --}}
           <div class="wp-now-line" id="nowLine" style="display:none;"></div>
-
-          {{-- Task blocks will be rendered by JS --}}
-          <div id="taskBlocksContainer" style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;">
-          </div>
+          <div id="taskBlocksContainer" style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;"></div>
         </div>
       </div>
 
       {{-- FOOTER --}}
       <div class="wp-footer">
-        <div class="wp-stat">📊 Minggu Ini: <b>{{ $totalWeek }}</b></div>
-        <div class="wp-stat done">✅ Selesai: <b>{{ $totalDone }}</b></div>
+        <div class="wp-stat">📊 This Week: <b>{{ $totalWeek }}</b></div>
+        <div class="wp-stat done">✅ Done: <b>{{ $totalDone }}</b></div>
+        <div class="wp-stat progress">🔄 In Progress: <b>{{ $totalInProgress }}</b></div>
         <div class="wp-stat overdue">⚠️ Overdue: <b>{{ $totalOverdue }}</b></div>
-        <div class="wp-stat">📌 Hari Ini: <b>{{ $totalToday }}</b></div>
+        <div class="wp-stat">📌 Today: <b>{{ $totalToday }}</b></div>
       </div>
+
     </div>
   </div>
 </div>
 </div>
 
-{{-- ADD MODAL --}}
+{{-- ADD/EDIT MODAL --}}
 <div class="modal-overlay" id="addModal">
   <div class="modal-box">
-    <div class="modal-title" id="modalTitle">Tambah Task</div>
+    <div class="modal-title">📝 <span id="modalTitle">Add Task</span></div>
     <form id="taskForm" onsubmit="submitTask(event)">
       <input type="hidden" id="editTaskId" value="">
       <div class="fg">
-        <label>Judul Task *</label>
-        <input type="text" id="fTitle" required placeholder="Judul task...">
+        <label>Task Title *</label>
+        <input type="text" id="fTitle" required placeholder="Enter task title...">
       </div>
       <div class="fg-row">
         <div class="fg">
-          <label>Tanggal *</label>
+          <label>Date *</label>
           <input type="date" id="fDate" required>
         </div>
         <div class="fg">
-          <label>Prioritas *</label>
+          <label>Priority *</label>
           <select id="fPriority" required>
             <option value="low">Low</option>
             <option value="medium" selected>Medium</option>
@@ -247,11 +335,11 @@
       </div>
       <div class="fg-row">
         <div class="fg">
-          <label>Jam Mulai *</label>
+          <label>Start Time *</label>
           <input type="time" id="fStartTime" required value="09:00">
         </div>
         <div class="fg">
-          <label>Jam Selesai *</label>
+          <label>End Time *</label>
           <input type="time" id="fEndTime" required value="10:00">
         </div>
       </div>
@@ -259,7 +347,7 @@
         <div class="fg">
           <label>Assignee</label>
           <select id="fAssignee">
-            <option value="">-- Belum ditentukan --</option>
+            <option value="">-- Not assigned --</option>
             @foreach($users as $u)
               <option value="{{ $u->id }}">{{ $u->name }}</option>
             @endforeach
@@ -275,12 +363,12 @@
         </div>
       </div>
       <div class="fg">
-        <label>Deskripsi</label>
-        <textarea id="fDesc" placeholder="Deskripsi opsional..."></textarea>
+        <label>Description</label>
+        <textarea id="fDesc" placeholder="Optional description..."></textarea>
       </div>
       <div class="form-actions">
-        <button type="button" class="d-btn d-btn-ghost" onclick="closeAddModal()">Batal</button>
-        <button type="submit" class="d-btn d-btn-primary" id="modalSubmitBtn">Simpan</button>
+        <button type="button" class="d-btn d-btn-ghost" onclick="closeAddModal()">Cancel</button>
+        <button type="submit" class="d-btn d-btn-primary" id="modalSubmitBtn">Save</button>
       </div>
     </form>
   </div>
@@ -291,12 +379,13 @@
   <div class="detail-panel">
     <div class="detail-header">
       <div style="flex:1;min-width:0;">
-        <h2 style="margin:0;font-size:17px;color:#0f172a;" id="detailTitle"></h2>
-        <div style="font-size:11px;color:#94a3b8;margin-top:3px;" id="detailCreator"></div>
+        <h2 style="margin:0;font-size:18px;color:var(--text);font-weight:700;" id="detailTitle"></h2>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;" id="detailCreator"></div>
+        <span id="detailOverdueBadge" class="overdue-badge" style="display:none;">⏰ OVERDUE</span>
       </div>
       <div style="display:flex;gap:5px;align-items:center;">
-        <button class="d-btn d-btn-sm d-btn-ghost" onclick="editFromDetail()">✏️</button>
-        <button class="d-btn d-btn-sm d-btn-danger" onclick="deleteFromDetail()">🗑️</button>
+        <button class="d-btn d-btn-sm d-btn-ghost" onclick="editFromDetail()" title="Edit">✏️</button>
+        <button class="d-btn d-btn-sm d-btn-danger" onclick="deleteFromDetail()" title="Delete">🗑️</button>
         <button class="detail-close" onclick="closeDetail()">✕</button>
       </div>
     </div>
@@ -311,7 +400,7 @@
           </select>
         </div>
         <div class="detail-meta-item">
-          <label>Prioritas</label>
+          <label>Priority</label>
           <select id="detailPriority" onchange="updateField('priority',this.value)">
             <option value="low">Low</option>
             <option value="medium">Medium</option>
@@ -320,57 +409,57 @@
           </select>
         </div>
         <div class="detail-meta-item">
-          <label>Tanggal</label>
+          <label>Date</label>
           <input type="date" id="detailDate" onchange="updateField('task_date',this.value)">
         </div>
         <div class="detail-meta-item">
           <label>Assignee</label>
           <select id="detailAssignee" onchange="updateField('assigned_to',this.value)">
-            <option value="">Belum ditentukan</option>
+            <option value="">Not assigned</option>
             @foreach($users as $u)
               <option value="{{ $u->id }}">{{ $u->name }}</option>
             @endforeach
           </select>
         </div>
         <div class="detail-meta-item">
-          <label>Jam Mulai</label>
+          <label>Start Time</label>
           <input type="time" id="detailStart" onchange="updateField('start_time',this.value)">
         </div>
         <div class="detail-meta-item">
-          <label>Jam Selesai</label>
+          <label>End Time</label>
           <input type="time" id="detailEnd" onchange="updateField('end_time',this.value)">
         </div>
       </div>
 
       <div class="detail-section">
-        <div class="detail-section-title">📄 Deskripsi</div>
-        <div id="detailDesc" style="font-size:12px;color:#475569;line-height:1.5;white-space:pre-wrap;"></div>
+        <div class="detail-section-title">📄 Description</div>
+        <div id="detailDesc" style="font-size:13px;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;padding:10px;background:var(--bg);border-radius:8px;"></div>
       </div>
 
       <div class="detail-section">
-        <div class="detail-section-title">☑️ Subtask <span id="ckProgress" style="font-size:11px;color:#64748b;font-weight:400;"></span></div>
+        <div class="detail-section-title">☑️ Subtask <span id="ckProgress" style="font-size:11px;color:var(--text-secondary);font-weight:400;"></span></div>
         <div id="ckContainer"></div>
         <div class="ck-add">
-          <input type="text" id="ckInput" placeholder="Tambah subtask..." onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklist();}">
+          <input type="text" id="ckInput" placeholder="Add subtask..." onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklist();}">
           <button class="d-btn d-btn-sm d-btn-primary" onclick="addChecklist()">＋</button>
         </div>
       </div>
 
       <div class="detail-section">
-        <div class="detail-section-title">📎 Lampiran</div>
+        <div class="detail-section-title">📎 Attachments</div>
         <div id="atContainer"></div>
-        <div style="margin-top:6px;">
+        <div style="margin-top:8px;">
           <input type="file" id="atInput" style="display:none;" onchange="uploadAttachment()">
-          <button class="d-btn d-btn-sm d-btn-ghost" onclick="document.getElementById('atInput').click()">📁 Upload</button>
+          <button class="d-btn d-btn-sm d-btn-ghost" onclick="document.getElementById('atInput').click()">📁 Upload File</button>
         </div>
       </div>
 
       <div class="detail-section">
-        <div class="detail-section-title">💬 Komentar</div>
+        <div class="detail-section-title">💬 Comments</div>
         <div id="cmContainer"></div>
         <div class="cm-add">
-          <textarea id="cmInput" placeholder="Tulis komentar..." rows="2"></textarea>
-          <button class="d-btn d-btn-sm d-btn-primary" style="align-self:flex-end;" onclick="addComment()">Kirim</button>
+          <textarea id="cmInput" placeholder="Write a comment..." rows="2"></textarea>
+          <button class="d-btn d-btn-sm d-btn-primary" style="align-self:flex-end;" onclick="addComment()">Send</button>
         </div>
       </div>
     </div>
@@ -383,11 +472,8 @@ const STORAGE = '{{ asset("storage") }}';
 const CSRF = document.querySelector('meta[name=csrf-token]').content;
 let currentTaskId = null;
 
-// Week data
 const weekStartStr = '{{ $weekStart->format("Y-m-d") }}';
 const weekStart = new Date(weekStartStr + 'T00:00:00');
-
-// All tasks from server
 let tasksData = @json($tasksByDate);
 
 // ============ RENDER TASKS ON CALENDAR ============
@@ -396,12 +482,10 @@ function renderTasks() {
   container.innerHTML = '';
   const grid = document.getElementById('calendarGrid');
   const gridRect = grid.getBoundingClientRect();
-  const scrollEl = document.getElementById('gridScroll');
 
   const filterP = document.getElementById('filterPriority').value;
   const filterA = document.getElementById('filterAssignee').value;
 
-  // Get column positions from cells
   const firstRow = grid.querySelectorAll('.wp-cell');
   const colPositions = [];
   for (let i = 0; i < 7; i++) {
@@ -412,7 +496,7 @@ function renderTasks() {
     }
   }
 
-  const hourHeight = 32; // each hour = 32px (match .wp-time-label and .wp-cell)
+  const hourHeight = 40;
   const startHour = 6;
 
   Object.keys(tasksData).forEach(date => {
@@ -420,34 +504,37 @@ function renderTasks() {
     if (dayIndex < 0 || dayIndex > 6 || !colPositions[dayIndex]) return;
 
     tasksData[date].forEach(task => {
-      // Apply filters
       if (filterP && task.priority !== filterP) return;
       if (filterA && String(task.assigned_to) !== filterA) return;
-
       if (!task.start_time || !task.end_time) return;
 
       const [sh, sm] = task.start_time.split(':').map(Number);
       const [eh, em] = task.end_time.split(':').map(Number);
 
       const topOffset = (sh - startHour + sm / 60) * hourHeight;
-      const height = Math.max(((eh - sh) + (em - sm) / 60) * hourHeight, 16);
+      const height = Math.max(((eh - sh) + (em - sm) / 60) * hourHeight, 20);
 
       const col = colPositions[dayIndex];
+      const isOverdue = task.is_overdue && task.status !== 'done';
 
       const el = document.createElement('div');
-      el.className = `wp-task priority-${task.priority} ${task.status === 'done' ? 'done' : ''}`;
+      el.className = `wp-task priority-${task.priority} ${task.status === 'done' ? 'done' : ''} ${isOverdue ? 'overdue' : ''}`;
       el.style.cssText = `position:absolute;top:${topOffset}px;left:${col.left + 3}px;width:${col.width - 6}px;height:${height}px;pointer-events:auto;`;
       el.onclick = () => openDetail(task.id);
 
       let inner = `<div class="wp-task-title">${esc(task.title)}</div>`;
-      if (height > 30) {
-        inner += `<div class="wp-task-time">${task.start_time.substring(0,5)} - ${task.end_time.substring(0,5)}</div>`;
+      if (height > 35) {
+        inner += `<div class="wp-task-time">${task.start_time.substring(0,5)} – ${task.end_time.substring(0,5)}</div>`;
       }
       if (task.assignee_initial) {
         inner += `<div class="wp-task-assignee">${task.assignee_initial}</div>`;
       }
+      if (isOverdue) {
+        inner += `<div class="wp-task-badge">overdue</div>`;
+      } else if (task.status === 'in_progress') {
+        inner += `<div class="wp-task-badge">in progress</div>`;
+      }
       el.innerHTML = inner;
-
       container.appendChild(el);
     });
   });
@@ -458,28 +545,22 @@ function updateNowLine() {
   const now = new Date();
   const todayStr = now.toISOString().substring(0, 10);
   const dayIndex = Math.round((new Date(todayStr + 'T00:00:00') - weekStart) / 86400000);
-
   const line = document.getElementById('nowLine');
-  if (dayIndex < 0 || dayIndex > 6) { line.style.display = 'none'; return; }
 
+  if (dayIndex < 0 || dayIndex > 6) { line.style.display = 'none'; return; }
   const hour = now.getHours();
   const min = now.getMinutes();
   if (hour < 6 || hour > 23) { line.style.display = 'none'; return; }
 
-  const topOffset = (hour - 6 + min / 60) * 60;
-    // Cell height is 32px per hour
-    const cellHeight = 32;
-    const offset = (hour - 6 + min / 60) * cellHeight;
-    line.style.display = 'block';
-    line.style.top = offset + 'px';
+  const cellHeight = 40;
+  const offset = (hour - 6 + min / 60) * cellHeight;
+  line.style.display = 'block';
+  line.style.top = offset + 'px';
 }
 
 // ============ NAVIGATION ============
 function localDateStr(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return y + '-' + m + '-' + day;
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
 function navWeek(dir) {
@@ -496,20 +577,19 @@ function navWeek(dir) {
   }
 }
 
-// ============ FILTERS ============
 function applyFilters() { renderTasks(); }
 
 // ============ CLICK CELL ============
 function clickCell(date, hour) {
   document.getElementById('editTaskId').value = '';
-  document.getElementById('modalTitle').textContent = 'Tambah Task';
-  document.getElementById('modalSubmitBtn').textContent = 'Simpan';
+  document.getElementById('modalTitle').textContent = 'Add Task';
+  document.getElementById('modalSubmitBtn').textContent = 'Save';
   document.getElementById('fTitle').value = '';
   document.getElementById('fDesc').value = '';
   document.getElementById('fPriority').value = 'medium';
   document.getElementById('fDate').value = date;
   document.getElementById('fStartTime').value = String(hour).padStart(2, '0') + ':00';
-  document.getElementById('fEndTime').value = String(hour + 1).padStart(2, '0') + ':00';
+  document.getElementById('fEndTime').value = String(Math.min(hour + 1, 23)).padStart(2, '0') + ':00';
   document.getElementById('fAssignee').value = '';
   document.getElementById('fStatus').value = 'todo';
   document.getElementById('addModal').classList.add('open');
@@ -518,8 +598,8 @@ function clickCell(date, hour) {
 // ============ ADD/EDIT MODAL ============
 function openAddModal() {
   document.getElementById('editTaskId').value = '';
-  document.getElementById('modalTitle').textContent = 'Tambah Task';
-  document.getElementById('modalSubmitBtn').textContent = 'Simpan';
+  document.getElementById('modalTitle').textContent = 'Add Task';
+  document.getElementById('modalSubmitBtn').textContent = 'Save';
   document.getElementById('fTitle').value = '';
   document.getElementById('fDesc').value = '';
   document.getElementById('fPriority').value = 'medium';
@@ -573,9 +653,9 @@ function submitTask(e) {
   .then(r => r.json())
   .then(res => {
     if (res.success) { closeAddModal(); location.reload(); }
-    else { alert('Gagal menyimpan. Periksa input.'); }
+    else { alert('Failed to save. Check your input.'); }
   })
-  .catch(() => alert('Terjadi kesalahan.'));
+  .catch(() => alert('An error occurred.'));
 }
 
 // ============ DETAIL ============
@@ -585,14 +665,19 @@ function openDetail(taskId) {
     .then(r => r.json())
     .then(task => {
       document.getElementById('detailTitle').textContent = task.title;
-      document.getElementById('detailCreator').textContent = 'Dibuat oleh ' + (task.creator ? task.creator.name : '-') + ' • ' + fmtDate(task.created_at);
+      document.getElementById('detailCreator').textContent = 'Created by ' + (task.creator ? task.creator.name : '-') + ' • ' + fmtDate(task.created_at);
       document.getElementById('detailStatus').value = task.status;
       document.getElementById('detailPriority').value = task.priority;
       document.getElementById('detailAssignee').value = task.assigned_to || '';
       document.getElementById('detailDate').value = task.task_date ? task.task_date.substring(0, 10) : '';
       document.getElementById('detailStart').value = task.start_time ? task.start_time.substring(0, 5) : '';
       document.getElementById('detailEnd').value = task.end_time ? task.end_time.substring(0, 5) : '';
-      document.getElementById('detailDesc').textContent = task.description || 'Tidak ada deskripsi.';
+      document.getElementById('detailDesc').textContent = task.description || 'No description.';
+
+      // Show overdue badge - check if task is overdue based on end_time
+      const overdueBadge = document.getElementById('detailOverdueBadge');
+      const isOverdue = checkOverdue(task);
+      overdueBadge.style.display = isOverdue ? 'inline-block' : 'none';
 
       renderChecklists(task.checklists || []);
       renderComments(task.comments || []);
@@ -600,6 +685,15 @@ function openDetail(taskId) {
 
       document.getElementById('detailOverlay').classList.add('open');
     });
+}
+
+function checkOverdue(task) {
+  if (task.status === 'done') return false;
+  if (!task.task_date || !task.end_time) return false;
+  const dateStr = task.task_date.substring(0, 10);
+  const timeStr = task.end_time.substring(0, 5);
+  const endDt = new Date(dateStr + 'T' + timeStr + ':00');
+  return endDt < new Date();
 }
 
 function closeDetail() { document.getElementById('detailOverlay').classList.remove('open'); currentTaskId = null; }
@@ -619,7 +713,7 @@ function editFromDetail() {
 }
 
 function deleteFromDetail() {
-  if (!confirm('Yakin hapus task ini?')) return;
+  if (!confirm('Are you sure you want to delete this task?')) return;
   fetch(BASE + '/tasks/' + currentTaskId, {
     method: 'DELETE', headers: { 'X-CSRF-TOKEN': CSRF }
   }).then(r => r.json()).then(res => { if (res.success) { closeDetail(); location.reload(); } });
@@ -667,7 +761,7 @@ function renderComments(items) {
         <div class="cm-text">${esc(i.content)}</div>
       </div>
     </div>
-  `).join('') || '<div style="font-size:11px;color:#94a3b8;">Belum ada komentar.</div>';
+  `).join('') || '<div style="font-size:12px;color:var(--text-muted);padding:8px 0;">No comments yet.</div>';
 }
 function addComment() {
   const inp = document.getElementById('cmInput');
@@ -686,9 +780,9 @@ function renderAttachments(items) {
       <span>${fileIcon(a.file_type)}</span>
       <span class="at-name">${esc(a.file_name)}</span>
       <a href="${STORAGE}/${a.file_path}" target="_blank" class="d-btn d-btn-sm d-btn-ghost">📥</a>
-      <button class="d-btn d-btn-sm d-btn-danger" style="padding:2px 5px;" onclick="delAt(${a.id})">✕</button>
+      <button class="d-btn d-btn-sm d-btn-danger" style="padding:2px 6px;" onclick="delAt(${a.id})">✕</button>
     </div>
-  `).join('') || '<div style="font-size:11px;color:#94a3b8;">Belum ada lampiran.</div>';
+  `).join('') || '<div style="font-size:12px;color:var(--text-muted);padding:8px 0;">No attachments yet.</div>';
 }
 function uploadAttachment() {
   const inp = document.getElementById('atInput');
@@ -699,7 +793,7 @@ function uploadAttachment() {
   }).then(r => r.json()).then(res => { if (res.success) { inp.value = ''; openDetail(currentTaskId); } });
 }
 function delAt(id) {
-  if (!confirm('Hapus lampiran?')) return;
+  if (!confirm('Delete this attachment?')) return;
   fetch(BASE + '/attachments/' + id, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': CSRF } })
     .then(r => r.json()).then(res => { if (res.success) openDetail(currentTaskId); });
 }
@@ -710,10 +804,10 @@ function fmtDate(d) { if (!d) return '-'; return new Date(d).toLocaleDateString(
 function timeAgo(d) {
   if (!d) return '';
   const diff = (Date.now() - new Date(d).getTime()) / 1000;
-  if (diff < 60) return 'baru saja';
-  if (diff < 3600) return Math.floor(diff / 60) + 'm lalu';
-  if (diff < 86400) return Math.floor(diff / 3600) + 'j lalu';
-  return Math.floor(diff / 86400) + 'h lalu';
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  return Math.floor(diff / 86400) + 'd ago';
 }
 function fileIcon(t) {
   if (!t) return '📄';
@@ -728,13 +822,15 @@ function fileIcon(t) {
 document.addEventListener('DOMContentLoaded', function() {
   renderTasks();
   updateNowLine();
-  setInterval(updateNowLine, 10000); // update every 10 seconds
+  setInterval(updateNowLine, 10000);
 
-  // Scroll to 8am by default
+  // Scroll to current hour or 8am
   const scroll = document.getElementById('gridScroll');
-  scroll.scrollTop = (8 - 6) * 32; // adjust for new cell height
+  const now = new Date();
+  const currentHour = now.getHours();
+  const scrollToHour = (currentHour >= 6 && currentHour <= 23) ? Math.max(currentHour - 1, 6) : 8;
+  scroll.scrollTop = (scrollToHour - 6) * 40;
 
-  // Re-render on resize and scroll
   window.addEventListener('resize', () => { renderTasks(); updateNowLine(); });
   scroll.addEventListener('scroll', updateNowLine);
 });

@@ -119,11 +119,14 @@
             <tr><td class="lbl">Departemen</td><td>: {{ $warningLetter->departemen }}</td></tr>
             <tr><td class="lbl">SP Level</td><td>: <span class="sp-badge sp-{{ $warningLetter->sp_level }}">{{ $warningLetter->sp_label }}</span></td></tr>
             <tr><td class="lbl">Tanggal Surat</td><td>: {{ $warningLetter->tanggal_surat ? $warningLetter->tanggal_surat->format('d/m/Y') : '-' }}</td></tr>
+            @if(optional(auth()->user())->isInternalHR() || optional(auth()->user())->isSuperAdmin())
+              <tr><td class="lbl">Alasan</td><td>: {{ $warningLetter->alasan }}</td></tr>
+            @endif
           </table>
           </div>
         </div>
 
-        <form method="POST" action="{{ route('warning-letters.sign', $warningLetter) }}" id="signForm">
+        <form method="POST" action="{{ route('warning-letters.sign', $warningLetter) }}" id="signForm" @if($signMode === 'hr_only') target="_blank" @endif>
           @csrf
           <input type="hidden" name="sign_mode" value="{{ $signMode }}">
 
@@ -144,17 +147,35 @@
             } else {
               $editableSigners = [1, 2, 3, 4, 5];
             }
+            // Only allow inline signing for HR and SuperAdmin — others must use generated links
+            $allowInline = optional(auth()->user())->isInternalHR() || optional(auth()->user())->isSuperAdmin();
+            if ($allowInline) {
+              // even for HR or superadmin, only allow inline on HR box
+              $editableSigners = [5];
+            } else {
+              $editableSigners = []; // force no inline editable signers for others
+            }
           @endphp
 
-          {{-- Show already-signed layers as read-only previews (for hr_only mode) --}}
-          @if($signMode === 'hr_only')
-            <h3 style="font-size:14px;color:#065f46;margin-bottom:12px;">✅ Tanda Tangan Yang Sudah Terisi</h3>
-            <div class="sig-grid" style="margin-top:8px;margin-bottom:20px;">
-              @foreach([1,2,3,4] as $num)
-                <div class="signed-preview">
+          {{-- Show signer cards: if already signed show inactive preview, otherwise show inputs --}}
+
+          <div class="sig-grid">
+            @foreach(array_keys($allSigners) as $num)
+              {{-- If current user is HR or SuperAdmin, only render HR signer (5) and skip others --}}
+              @if((optional(auth()->user())->isInternalHR() || optional(auth()->user())->isSuperAdmin()) && $num != 5)
+                @continue
+              @endif
+              @if(optional(auth()->user())->isAdminProd() && $num == 5)
+                @continue
+              @endif
+              @php $s = $allSigners[$num];
+                     $isEditable = in_array($num, $editableSigners) && empty($warningLetter->{'signature_'.$num});
+              @endphp
+              @if(!empty($warningLetter->{'signature_'.$num}))
+                <div class="sig-section signed-preview" style="opacity:0.7;pointer-events:none;">
                   <h3>
-                    ✅ {{ $allSigners[$num]['label'] }}
-                    <span class="role-tag">{{ $allSigners[$num]['role'] }}</span>
+                    ✅ {{ $s['label'] }}
+                    <span class="role-tag">{{ $s['role'] }}</span>
                   </h3>
                   <div class="sig-info"><strong>Nama:</strong> {{ $warningLetter->{'signer_name_'.$num} }}</div>
                   <div class="sig-info"><strong>Jabatan:</strong> {{ $warningLetter->{'signer_jabatan_'.$num} }}</div>
@@ -162,21 +183,26 @@
                     <img src="{{ $warningLetter->{'signature_'.$num} }}" class="sig-img" alt="TTD {{ $num }}">
                   @endif
                 </div>
-              @endforeach
-            </div>
-            <hr style="border:none;border-top:2px solid #e2e8f0;margin:20px 0;">
-            <h3 style="font-size:14px;color:#003e6f;margin-bottom:8px;">📝 Tanda Tangan HR (Belum Diisi)</h3>
-          @endif
-
-          <div class="sig-grid">
-            @foreach($editableSigners as $num)
-              @php $s = $allSigners[$num]; @endphp
-              <div class="sig-section {{ $s['class'] }} {{ $num <= 2 ? 'main-sig' : '' }}">
+              @else
+                <div class="sig-section {{ $s['class'] }} {{ $num <= 2 ? 'main-sig' : '' }}">
                 <h3>
                   📝 {{ $s['label'] }}
                   <span class="role-tag {{ $s['role'] === 'HR' ? 'role-tag-hr' : '' }}">{{ $s['role'] }}</span>
                 </h3>
 
+                @if($num <= 4)
+                  @php
+                    $link = \Illuminate\Support\Facades\URL::temporarySignedRoute('warning-letters.approval', now()->addDays(14), ['warning_letter' => $warningLetter->id, 'layer' => $num]);
+                  @endphp
+                  <label>Generate Link (Layer {{ $num }}) — berlaku 14 hari</label>
+                  <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+                    <input type="text" id="linkInput{{ $num }}" value="{{ $link }}" readonly style="flex:1;padding:8px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;">
+                    <button type="button" class="btn" onclick="copyLink({{ $num }})">Salin</button>
+                    <a href="{{ $link }}" target="_blank" rel="noopener" class="btn" style="background:#10b981;">Buka</a>
+                  </div>
+                @endif
+
+                @if($allowInline)
                 <label>Nama</label>
                 <input type="text" name="signer_name_{{ $num }}" value="{{ old('signer_name_'.$num) }}" required placeholder="{{ $s['placeholder_name'] }}">
                 @error('signer_name_'.$num)<div class="error">{{ $message }}</div>@enderror
@@ -221,18 +247,27 @@
                 <input type="hidden" name="signature_{{ $num }}" id="sigData{{ $num }}">
                 <input type="hidden" id="sigMode{{ $num }}" value="draw">
                 @error('signature_'.$num)<div class="error">{{ $message }}</div>@enderror
+                @else
+                  <div style="font-size:13px;color:#64748b;margin-top:8px;">Tanda tangan hanya dapat dilakukan melalui link yang digenerate.</div>
+                @endif
               </div>
+              @endif
             @endforeach
           </div>
 
           <div style="margin-top:24px;">
-            @if($signMode === 'admin_prod')
-              <button type="submit" class="btn" onclick="return prepareSubmit()">📤 Tandatangani & Kirim ke HR</button>
-            @elseif($signMode === 'hr_only')
-              <button type="submit" class="btn" style="background:#065f46;" onclick="return prepareSubmit()">✅ Tandatangani HR & Approve</button>
+            @if($allowInline)
+              @if($signMode === 'admin_prod')
+                <button type="submit" class="btn" onclick="return prepareSubmit()">📤 Tandatangani & Kirim ke HR</button>
+              @elseif($signMode === 'hr_only')
+                <button type="submit" class="btn" style="background:#065f46;" onclick="return prepareSubmit()">✅ Tandatangani HR & Approve</button>
+              @else
+                <button type="submit" class="btn" onclick="return prepareSubmit()">✅ Tandatangani & Approve</button>
+              @endif
             @else
-              <button type="submit" class="btn" onclick="return prepareSubmit()">✅ Tandatangani & Approve</button>
+              <div style="font-size:13px;color:#64748b;">Tanda tangan hanya dapat dilakukan melalui link yang digenerate. Gunakan tombol 'Buka' pada link untuk membuka form tanda tangan.</div>
             @endif
+
             @if($signMode === 'admin_prod')
               <a href="{{ route('warning-letters.create') }}" class="btn btn-cancel">Batal</a>
             @else
@@ -370,6 +405,19 @@
         }
       }
       return true;
+    }
+
+    function copyLink(num) {
+      var el = document.getElementById('linkInput' + num);
+      if (!el) return;
+      el.select();
+      el.setSelectionRange(0, 99999);
+      try {
+        document.execCommand('copy');
+        alert('Link layer ' + num + ' disalin ke clipboard.');
+      } catch (e) {
+        prompt('Salin link berikut:', el.value);
+      }
     }
   </script>
 </body>

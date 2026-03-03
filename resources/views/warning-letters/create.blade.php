@@ -113,6 +113,14 @@
           <input id="tanggal_surat" type="date" name="tanggal_surat" value="{{ old('tanggal_surat', date('Y-m-d')) }}">
           @error('tanggal_surat')<div class="error">{{ $message }}</div>@enderror
 
+          <label for="tempat">Tempat</label>
+          <input id="tempat" type="text" name="tempat" value="{{ old('tempat') }}" placeholder="Contoh:Produksi Assy Regulator">
+          @error('tempat')<div class="error">{{ $message }}</div>@enderror
+
+          <label for="proses">Proses</label>
+          <input id="proses" type="text" name="proses" value="{{ old('proses') }}" placeholder="Contoh: Produksi / Pengemasan">
+          @error('proses')<div class="error">{{ $message }}</div>@enderror
+
           <div style="margin-top:24px;">
             @if(isset($isAdminProd) && $isAdminProd)
               <button type="submit" class="btn">📤 Kirim Surat Peringatan</button>

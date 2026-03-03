@@ -8,52 +8,73 @@
 <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
 <style>
 *{box-sizing:border-box;}
-.tm-header{background:#fff;border-bottom:1px solid #e2e8f0;padding:14px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.tm-search{padding:8px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;width:220px;font-family:inherit;}
-.tm-filter{padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;background:#fff;font-family:inherit;cursor:pointer;}
-.tm-btn{padding:8px 16px;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;font-family:inherit;transition:all .15s;}
-.tm-btn-primary{background:#003e6f;color:#fff;}
-.tm-btn-primary:hover{background:#002a4f;}
+:root{
+  --primary:#003e6f;--primary-light:#0a5a9e;--primary-dark:#002a4f;
+  --bg:#f0f4f8;--card:#fff;--border:#e2e8f0;--border-light:#f1f5f9;
+  --text:#0f172a;--text-secondary:#64748b;--text-muted:#94a3b8;
+  --success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+  --radius:12px;--transition:all .2s cubic-bezier(.4,0,.2,1);
+}
+.tm-header{
+  background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);
+  padding:16px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  color:#fff;position:relative;overflow:hidden;
+}
+.tm-header::before{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.06);}
+.tm-header::after{content:'';position:absolute;bottom:-50px;left:30%;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.04);}
+.tm-search{padding:8px 12px;border:1px solid rgba(255,255,255,.25);border-radius:8px;font-size:13px;width:220px;font-family:inherit;background:rgba(255,255,255,.1);color:#fff;backdrop-filter:blur(4px);z-index:1;}
+.tm-search::placeholder{color:rgba(255,255,255,.6);}
+.tm-filter{padding:8px 10px;border:1px solid rgba(255,255,255,.25);border-radius:8px;font-size:13px;background:rgba(255,255,255,.1);font-family:inherit;cursor:pointer;color:#fff;z-index:1;backdrop-filter:blur(4px);}
+.tm-filter option{color:#0f172a;background:#fff;}
+.tm-btn{padding:8px 16px;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;font-family:inherit;transition:var(--transition);}
+.tm-btn-primary{background:#fff;color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,.1);z-index:1;}
+.tm-btn-primary:hover{background:#f0f4ff;transform:translateY(-1px);}
 .tm-btn-sm{padding:5px 10px;font-size:12px;}
-.tm-btn-danger{background:#dc2626;color:#fff;}
-.tm-btn-danger:hover{background:#b91c1c;}
-.tm-btn-ghost{background:transparent;color:#64748b;border:1px solid #e2e8f0;}
-.tm-btn-ghost:hover{background:#f1f5f9;}
+.tm-btn-danger{background:var(--danger);color:#fff;}
+.tm-btn-danger:hover{background:#dc2626;}
+.tm-btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border);}
+.tm-btn-ghost:hover{background:var(--border-light);}
 
 /* View Switcher */
-.view-switcher{display:flex;gap:2px;background:#f1f5f9;border-radius:6px;padding:2px;margin-left:auto;}
-.view-btn{padding:6px 14px;border:none;background:transparent;border-radius:4px;font-size:12px;cursor:pointer;color:#64748b;font-weight:500;font-family:inherit;}
-.view-btn.active{background:#fff;color:#0f172a;box-shadow:0 1px 2px rgba(0,0,0,.06);}
+.view-switch{display:flex;gap:2px;background:rgba(255,255,255,.15);border-radius:8px;padding:3px;z-index:1;}
+.view-switch a{padding:6px 16px;border-radius:6px;font-size:12px;color:rgba(255,255,255,.7);text-decoration:none;font-weight:500;transition:var(--transition);}
+.view-switch a:hover{color:#fff;background:rgba(255,255,255,.1);}
+.view-switch a.active{background:#fff;color:var(--primary);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+.view-switcher{display:flex;gap:2px;background:rgba(255,255,255,.12);border-radius:8px;padding:3px;z-index:1;}
+.view-btn{padding:6px 14px;border:none;background:transparent;border-radius:6px;font-size:12px;cursor:pointer;color:rgba(255,255,255,.7);font-weight:500;font-family:inherit;transition:var(--transition);}
+.view-btn.active{background:rgba(255,255,255,.2);color:#fff;font-weight:600;}
 
 /* Board */
 .tm-body{flex:1;padding:20px;overflow:auto;display:flex;gap:16px;}
 .tm-body.list-view{flex-direction:column;gap:8px;}
 .tm-body.list-view .kanban-col{flex:none;width:100%;}
 .tm-body.list-view .kanban-col-body{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;max-height:none;}
-.kanban-col{flex:1;min-width:280px;max-width:400px;display:flex;flex-direction:column;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;}
-.kanban-col-header{padding:14px 16px;font-size:14px;font-weight:700;color:#334155;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e2e8f0;}
-.kanban-col-header .count{background:#e2e8f0;color:#475569;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;margin-left:8px;}
+.kanban-col{flex:1;min-width:280px;max-width:400px;display:flex;flex-direction:column;background:var(--bg);border-radius:12px;border:1px solid var(--border);}
+.kanban-col-header{padding:14px 16px;font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.kanban-col-header .count{background:var(--border);color:var(--text-secondary);font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;margin-left:8px;}
 .kanban-col-body{padding:10px;flex:1;overflow-y:auto;max-height:calc(100vh - 280px);min-height:80px;}
-.kanban-col-body.drag-over{background:#dbeafe;border-radius:0 0 10px 10px;}
+.kanban-col-body.drag-over{background:#dbeafe;border-radius:0 0 12px 12px;}
 
 /* Task Card */
-.task-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:14px;margin-bottom:8px;cursor:grab;transition:all .15s;position:relative;}
-.task-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);border-color:#cbd5e1;}
+.task-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px;cursor:grab;transition:var(--transition);position:relative;}
+.task-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08);border-color:#cbd5e1;transform:translateY(-1px);}
 .task-card.dragging{opacity:.5;transform:rotate(2deg);}
-.task-card-title{font-size:14px;font-weight:600;color:#0f172a;margin-bottom:8px;line-height:1.4;}
+.task-card.overdue{border-left:3px solid var(--danger);}
+.task-card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.4;}
 .task-card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;}
 .task-badge{padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
 .priority-low{background:#d1fae5;color:#065f46;}
 .priority-medium{background:#fef3c7;color:#92400e;}
 .priority-high{background:#fed7aa;color:#9a3412;}
 .priority-urgent{background:#fecaca;color:#991b1b;}
-.task-assignee{display:flex;align-items:center;gap:4px;color:#64748b;}
-.task-assignee-avatar{width:20px;height:20px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#475569;}
-.task-deadline{color:#64748b;display:flex;align-items:center;gap:3px;}
-.task-deadline.overdue{color:#dc2626;font-weight:600;}
-.task-checklist-progress{display:flex;align-items:center;gap:4px;color:#64748b;}
-.task-checklist-bar{width:40px;height:4px;background:#e2e8f0;border-radius:999px;overflow:hidden;}
-.task-checklist-bar-fill{height:100%;background:#22c55e;border-radius:999px;transition:width .3s;}
+.task-assignee{display:flex;align-items:center;gap:4px;color:var(--text-secondary);}
+.task-assignee-avatar{width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,#003e6f,#6366f1);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;}
+.task-deadline{color:var(--text-secondary);display:flex;align-items:center;gap:3px;}
+.task-deadline.overdue{color:var(--danger);font-weight:600;}
+.task-checklist-progress{display:flex;align-items:center;gap:4px;color:var(--text-secondary);}
+.task-checklist-bar{width:40px;height:4px;background:var(--border);border-radius:999px;overflow:hidden;}
+.task-checklist-bar-fill{height:100%;background:var(--success);border-radius:999px;transition:width .3s;}
+.overdue-tag{font-size:9px;padding:1px 6px;background:#fef2f2;color:#dc2626;border-radius:4px;font-weight:600;border:1px solid #fecaca;}
 
 /* Detail Panel */
 .detail-overlay{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:1000;display:none;justify-content:flex-end;}
@@ -109,11 +130,12 @@
 .form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
 
 /* Footer Stats */
-.tm-footer{background:#fff;border-top:1px solid #e2e8f0;padding:10px 24px;display:flex;align-items:center;gap:24px;font-size:12px;color:#64748b;}
-.tm-footer .stat{display:flex;align-items:center;gap:4px;}
-.tm-footer .stat-val{font-weight:700;color:#0f172a;}
-.stat-done .stat-val{color:#16a34a;}
-.stat-overdue .stat-val{color:#dc2626;}
+.tm-footer{background:var(--card);border-top:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px;font-size:12px;color:var(--text-secondary);}
+.tm-footer .stat{display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:6px;background:var(--bg);transition:var(--transition);}
+.tm-footer .stat:hover{background:var(--border);}
+.tm-footer .stat-val{font-weight:700;color:var(--text);}
+.stat-done .stat-val{color:var(--success);}
+.stat-overdue .stat-val{color:var(--danger);}
 .stat-active .stat-val{color:#2563eb;}
 
 /* Timeline view */
@@ -140,23 +162,27 @@
 </style>
 </head>
 <body style="margin:0;">
-<div style="display:flex;min-height:100vh;background:#f7fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial;">
+<div style="display:flex;min-height:100vh;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
 @include('layouts.sidebar')
 <div class="main" style="flex:1;display:flex;flex-direction:column;min-width:0;">
 
   {{-- HEADER --}}
   <div class="tm-header">
-    <h1 style="margin:0;font-size:20px;color:#0f172a;">📋 Task Management</h1>
-    <input type="text" class="tm-search" id="searchInput" placeholder="🔍 Cari task..." oninput="filterTasks()">
+    <h1 style="margin:0;font-size:18px;color:#fff;font-weight:700;z-index:1;">📋 Kanban Board</h1>
+    <div class="view-switch">
+      <a href="{{ url('hrissdi/tasks') }}">Weekly</a>
+      <a href="{{ url('hrissdi/tasks?view=kanban') }}" class="active">Kanban</a>
+    </div>
+    <input type="text" class="tm-search" id="searchInput" placeholder="Search tasks..." oninput="filterTasks()">
     <select class="tm-filter" id="filterPriority" onchange="filterTasks()">
-      <option value="">Semua Prioritas</option>
+      <option value="">All Priority</option>
       <option value="low">Low</option>
       <option value="medium">Medium</option>
       <option value="high">High</option>
       <option value="urgent">Urgent</option>
     </select>
     <select class="tm-filter" id="filterAssignee" onchange="filterTasks()">
-      <option value="">Semua Assignee</option>
+      <option value="">All Assignee</option>
       @foreach($users as $u)
         <option value="{{ $u->id }}">{{ $u->name }}</option>
       @endforeach
@@ -205,8 +231,8 @@
 
   {{-- FOOTER --}}
   <div class="tm-footer">
-    <div class="stat stat-active">📊 Aktif: <span class="stat-val" id="stat-active">{{ $totalActive }}</span></div>
-    <div class="stat stat-done">✅ Selesai: <span class="stat-val" id="stat-done">{{ $totalDone }}</span></div>
+    <div class="stat stat-active">📊 Active: <span class="stat-val" id="stat-active">{{ $totalActive }}</span></div>
+    <div class="stat stat-done">✅ Done: <span class="stat-val" id="stat-done">{{ $totalDone }}</span></div>
     <div class="stat stat-overdue">⚠️ Overdue: <span class="stat-val" id="stat-overdue">{{ $totalOverdue }}</span></div>
     <div class="stat">📈 Total: <span class="stat-val" id="stat-total">{{ $totalActive + $totalDone }}</span></div>
   </div>
@@ -216,20 +242,20 @@
 {{-- ADD/EDIT MODAL --}}
 <div class="modal-overlay" id="addModal">
   <div class="modal-box">
-    <div class="modal-title" id="modalTitle">Tambah Task Baru</div>
+    <div class="modal-title" id="modalTitle">Add New Task</div>
     <form id="taskForm" onsubmit="submitTask(event)">
       <input type="hidden" id="editTaskId" value="">
       <div class="form-group">
-        <label>Judul Task *</label>
-        <input type="text" id="fTitle" required placeholder="Masukkan judul task">
+        <label>Task Title *</label>
+        <input type="text" id="fTitle" required placeholder="Enter task title">
       </div>
       <div class="form-group">
-        <label>Deskripsi</label>
-        <textarea id="fDesc" placeholder="Deskripsi task (opsional)"></textarea>
+        <label>Description</label>
+        <textarea id="fDesc" placeholder="Task description (optional)"></textarea>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="form-group">
-          <label>Prioritas *</label>
+          <label>Priority *</label>
           <select id="fPriority" required>
             <option value="low">Low</option>
             <option value="medium" selected>Medium</option>
@@ -246,7 +272,7 @@
         <div class="form-group">
           <label>Assignee</label>
           <select id="fAssignee">
-            <option value="">-- Belum ditentukan --</option>
+            <option value="">-- Not assigned --</option>
             @foreach($users as $u)
               <option value="{{ $u->id }}">{{ $u->name }}</option>
             @endforeach
@@ -262,8 +288,8 @@
         </div>
       </div>
       <div class="form-actions">
-        <button type="button" class="tm-btn tm-btn-ghost" onclick="closeAddModal()">Batal</button>
-        <button type="submit" class="tm-btn tm-btn-primary" id="modalSubmitBtn">Simpan</button>
+        <button type="button" class="tm-btn tm-btn-ghost" onclick="closeAddModal()">Cancel</button>
+        <button type="submit" class="tm-btn tm-btn-primary" id="modalSubmitBtn">Save</button>
       </div>
     </form>
   </div>
@@ -295,7 +321,7 @@
           </select>
         </div>
         <div class="detail-meta-item">
-          <label>Prioritas</label>
+          <label>Priority</label>
           <select id="detailPriority" onchange="updateDetailField('priority',this.value)">
             <option value="low">Low</option>
             <option value="medium">Medium</option>
@@ -306,7 +332,7 @@
         <div class="detail-meta-item">
           <label>Assignee</label>
           <select id="detailAssignee" onchange="updateDetailField('assigned_to',this.value)">
-            <option value="">Belum ditentukan</option>
+            <option value="">Not assigned</option>
             @foreach($users as $u)
               <option value="{{ $u->id }}">{{ $u->name }}</option>
             @endforeach
@@ -320,7 +346,7 @@
 
       {{-- Description --}}
       <div class="detail-section">
-        <div class="detail-section-title">📄 Deskripsi</div>
+        <div class="detail-section-title">📄 Description</div>
         <div id="detailDesc" style="font-size:13px;color:#475569;line-height:1.6;white-space:pre-wrap;"></div>
       </div>
 
@@ -329,14 +355,14 @@
         <div class="detail-section-title">☑️ Subtask / Checklist <span id="checklistProgress" style="font-size:11px;color:#64748b;font-weight:400;"></span></div>
         <div id="checklistContainer"></div>
         <div class="checklist-add">
-          <input type="text" id="newChecklistInput" placeholder="Tambah subtask..." onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklist();}">
+          <input type="text" id="newChecklistInput" placeholder="Add subtask..." onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklist();}">
           <button class="tm-btn tm-btn-sm tm-btn-primary" onclick="addChecklist()">＋</button>
         </div>
       </div>
 
       {{-- Attachments --}}
       <div class="detail-section">
-        <div class="detail-section-title">📎 Lampiran</div>
+        <div class="detail-section-title">📎 Attachments</div>
         <div id="attachmentContainer"></div>
         <div style="margin-top:8px;">
           <input type="file" id="attachmentInput" style="display:none;" onchange="uploadAttachment()">
@@ -346,11 +372,11 @@
 
       {{-- Comments --}}
       <div class="detail-section">
-        <div class="detail-section-title">💬 Komentar Tim</div>
+        <div class="detail-section-title">💬 Comments</div>
         <div id="commentContainer"></div>
         <div class="comment-add">
-          <textarea id="newCommentInput" placeholder="Tulis komentar..." rows="2"></textarea>
-          <button class="tm-btn tm-btn-sm tm-btn-primary" style="align-self:flex-end;" onclick="addComment()">Kirim</button>
+          <textarea id="newCommentInput" placeholder="Write a comment..." rows="2"></textarea>
+          <button class="tm-btn tm-btn-sm tm-btn-primary" style="align-self:flex-end;" onclick="addComment()">Send</button>
         </div>
       </div>
     </div>
@@ -425,14 +451,14 @@ function buildTimeline() {
   const byDate = {};
   cards.forEach(c => {
     if (c.style.display === 'none') return;
-    const dl = c.dataset.deadline || 'Tanpa Deadline';
+    const dl = c.dataset.deadline || 'No Deadline';
     if (!byDate[dl]) byDate[dl] = [];
     byDate[dl].push(c);
   });
 
   const sorted = Object.keys(byDate).sort((a, b) => {
-    if (a === 'Tanpa Deadline') return 1;
-    if (b === 'Tanpa Deadline') return -1;
+    if (a === 'No Deadline') return 1;
+    if (b === 'No Deadline') return -1;
     return a.localeCompare(b);
   });
 
@@ -452,7 +478,7 @@ function buildTimeline() {
     html += '</div>';
   });
 
-  document.getElementById('timelineView').innerHTML = html || '<div style="padding:40px;text-align:center;color:#94a3b8;">Tidak ada task.</div>';
+  document.getElementById('timelineView').innerHTML = html || '<div style="padding:40px;text-align:center;color:#94a3b8;">No tasks found.</div>';
 }
 
 // ============ FILTER ============
@@ -484,8 +510,8 @@ function updateCounts() {
 // ============ ADD/EDIT MODAL ============
 function openAddModal() {
   document.getElementById('editTaskId').value = '';
-  document.getElementById('modalTitle').textContent = 'Tambah Task Baru';
-  document.getElementById('modalSubmitBtn').textContent = 'Simpan';
+  document.getElementById('modalTitle').textContent = 'Add New Task';
+  document.getElementById('modalSubmitBtn').textContent = 'Save';
   document.getElementById('fTitle').value = '';
   document.getElementById('fDesc').value = '';
   document.getElementById('fPriority').value = 'medium';
@@ -542,12 +568,12 @@ function openDetail(taskId) {
     .then(r => r.json())
     .then(task => {
       document.getElementById('detailTitle').textContent = task.title;
-      document.getElementById('detailCreator').textContent = 'Dibuat oleh ' + (task.creator ? task.creator.name : '-') + ' • ' + formatDate(task.created_at);
+      document.getElementById('detailCreator').textContent = 'Created by ' + (task.creator ? task.creator.name : '-') + ' • ' + formatDate(task.created_at);
       document.getElementById('detailStatus').value = task.status;
       document.getElementById('detailPriority').value = task.priority;
       document.getElementById('detailAssignee').value = task.assigned_to || '';
       document.getElementById('detailDeadline').value = task.deadline ? task.deadline.substring(0, 10) : '';
-      document.getElementById('detailDesc').textContent = task.description || 'Tidak ada deskripsi.';
+      document.getElementById('detailDesc').textContent = task.description || 'No description.';
 
       renderChecklists(task.checklists || []);
       renderComments(task.comments || []);
@@ -596,7 +622,7 @@ function editFromDetail() {
 }
 
 function deleteFromDetail() {
-  if (!confirm('Yakin hapus task ini?')) return;
+  if (!confirm('Are you sure you want to delete this task?')) return;
   fetch(BASE + '/tasks/' + currentTaskId, {
     method: 'DELETE',
     headers: { 'X-CSRF-TOKEN': CSRF }
@@ -658,7 +684,7 @@ function renderComments(items) {
         <div class="comment-text">${escHtml(c.content)}</div>
       </div>
     </div>
-  `).join('') || '<div style="font-size:12px;color:#94a3b8;">Belum ada komentar.</div>';
+  `).join('') || '<div style="font-size:12px;color:#94a3b8;">No comments yet.</div>';
 }
 
 function addComment() {
@@ -681,12 +707,12 @@ function renderAttachments(items) {
       <div class="att-icon">${getFileIcon(a.file_type)}</div>
       <div class="att-info">
         <div class="att-name">${escHtml(a.file_name)}</div>
-        <div class="att-uploader">oleh ${a.user ? a.user.name : '-'} • ${timeAgo(a.created_at)}</div>
+        <div class="att-uploader">by ${a.user ? a.user.name : '-'} • ${timeAgo(a.created_at)}</div>
       </div>
       <a href="${STORAGE}/${a.file_path}" target="_blank" class="tm-btn tm-btn-sm tm-btn-ghost" style="font-size:11px;">📥</a>
       <button class="tm-btn tm-btn-sm tm-btn-danger" style="font-size:11px;padding:3px 6px;" onclick="deleteAttachment(${a.id})">✕</button>
     </div>
-  `).join('') || '<div style="font-size:12px;color:#94a3b8;">Belum ada lampiran.</div>';
+  `).join('') || '<div style="font-size:12px;color:#94a3b8;">No attachments yet.</div>';
 }
 
 function uploadAttachment() {
@@ -704,7 +730,7 @@ function uploadAttachment() {
 }
 
 function deleteAttachment(id) {
-  if (!confirm('Hapus lampiran ini?')) return;
+  if (!confirm('Delete this attachment?')) return;
   fetch(BASE + '/attachments/' + id, {
     method: 'DELETE',
     headers: { 'X-CSRF-TOKEN': CSRF }
@@ -717,10 +743,10 @@ function formatDate(d) { if (!d) return '-'; return new Date(d).toLocaleDateStri
 function timeAgo(d) {
   if (!d) return '';
   const diff = (Date.now() - new Date(d).getTime()) / 1000;
-  if (diff < 60) return 'baru saja';
-  if (diff < 3600) return Math.floor(diff / 60) + ' menit lalu';
-  if (diff < 86400) return Math.floor(diff / 3600) + ' jam lalu';
-  return Math.floor(diff / 86400) + ' hari lalu';
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  return Math.floor(diff / 86400) + 'd ago';
 }
 function getFileIcon(type) {
   if (!type) return '📄';

@@ -38,6 +38,8 @@ class WarningLetter extends Model
         'signer_name_5',
         'signer_jabatan_5',
         'signature_5',
+        'tempat',
+        'proses',
     ];
 
     protected $casts = [

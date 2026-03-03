@@ -55,6 +55,15 @@
         <a href="{{ route('warning-letters.template') }}" class="btn" style="background:#f59e0b;color:#fff;">📄 Download Template</a>
       </div>
 
+      @if(optional(auth()->user())->isInternalHR() || optional(auth()->user())->isSuperAdmin())
+        <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;">
+          @php $baseParams = request()->except(['page']); @endphp
+          <a href="{{ route('warning-letters.index', array_merge($baseParams, ['view' => 'ready'])) }}" class="btn" style="background:{{ request('view')=='ready' ? '#065f46' : '#003e6f' }};">Ready for HR</a>
+          <a href="{{ route('warning-letters.index', array_merge($baseParams, ['view' => 'archive'])) }}" class="btn" style="background:{{ request('view')=='archive' ? '#065f46' : '#003e6f' }};">Archive</a>
+          <a href="{{ route('warning-letters.index', array_merge($baseParams, ['view' => 'all'])) }}" class="btn" style="background:{{ request('view')=='all' || !request('view') ? '#065f46' : '#003e6f' }};">All</a>
+        </div>
+      @endif
+
       @if(session('success'))
         <div class="success">{{ session('success') }}</div>
       @endif
