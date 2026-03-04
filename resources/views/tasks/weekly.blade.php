@@ -208,8 +208,8 @@
       <div class="wp-header">
         <span class="wp-title">📅 Weekly Planner</span>
         <div class="view-switch">
-          <a href="{{ url('hrissdi/tasks') }}" class="active">Weekly</a>
-          <a href="{{ url('hrissdi/tasks?view=kanban') }}">Kanban</a>
+          <a href="{{ url('tasks') }}" class="active">Weekly</a>
+          <a href="{{ url('tasks?view=kanban') }}">Kanban</a>
         </div>
         <select class="wp-filter" id="filterPriority" onchange="applyFilters()">
           <option value="">All Priority</option>
@@ -467,7 +467,7 @@
 </div>
 
 <script>
-const BASE = '{{ url("hrissdi") }}';
+const BASE = '{{ url("") }}';
 const STORAGE = '{{ asset("storage") }}';
 const CSRF = document.querySelector('meta[name=csrf-token]').content;
 let currentTaskId = null;

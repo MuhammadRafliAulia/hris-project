@@ -56,6 +56,6 @@ class Survey extends Model
 
     public function getPublicUrlAttribute(): string
     {
-        return url('hrissdi/survey/' . $this->token . '/fill');
+        return url('survey/' . $this->token . '/fill');
     }
 }

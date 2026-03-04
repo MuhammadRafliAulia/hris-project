@@ -170,8 +170,8 @@
   <div class="tm-header">
     <h1 style="margin:0;font-size:18px;color:#fff;font-weight:700;z-index:1;">📋 Kanban Board</h1>
     <div class="view-switch">
-      <a href="{{ url('hrissdi/tasks') }}">Weekly</a>
-      <a href="{{ url('hrissdi/tasks?view=kanban') }}" class="active">Kanban</a>
+      <a href="{{ url('tasks') }}">Weekly</a>
+      <a href="{{ url('tasks?view=kanban') }}" class="active">Kanban</a>
     </div>
     <input type="text" class="tm-search" id="searchInput" placeholder="Search tasks..." oninput="filterTasks()">
     <select class="tm-filter" id="filterPriority" onchange="filterTasks()">
@@ -384,7 +384,7 @@
 </div>
 
 <script>
-const BASE = '{{ url("hrissdi") }}';
+const BASE = '{{ url("") }}';
 const STORAGE = '{{ asset("storage") }}';
 const CSRF = document.querySelector('meta[name=csrf-token]').content;
 let currentTaskId = null;

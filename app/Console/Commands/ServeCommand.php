@@ -12,7 +12,7 @@ class ServeCommand extends BaseServeCommand
         $port = $this->input->getOption('port') ?: '8000';
 
         $this->newLine();
-        $this->info('  HRIS SDI: http://' . $host . ':' . $port . '/hrissdi/login');
+        $this->info('  HRIS SDI: http://' . $host . ':' . $port . '/login');
         $this->newLine();
 
         return parent::handle();

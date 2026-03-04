@@ -72,7 +72,7 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-s
   </div>
   @endif
 
-  <form method="POST" action="{{ url('hrissdi/survey/' . $survey->token . '/submit') }}">
+  <form method="POST" action="{{ url('survey/' . $survey->token . '/submit') }}">
     @csrf
     <div class="survey-header">
       <div class="survey-title">{{ $survey->title }}</div>
