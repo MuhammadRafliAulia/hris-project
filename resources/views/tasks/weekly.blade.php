@@ -345,13 +345,14 @@
       </div>
       <div class="fg-row">
         <div class="fg">
-          <label>Assignee</label>
-          <select id="fAssignee">
-            <option value="">-- Not assigned --</option>
+          <label>Assignees (multiple)</label>
+          <div id="fAssigneeContainer" style="min-height:80px;max-height:200px;overflow:auto;border:1px solid var(--border);padding:8px;border-radius:8px;">
             @foreach($users as $u)
-              <option value="{{ $u->id }}">{{ $u->name }}</option>
+              <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <input type="checkbox" class="f-assignee-checkbox" value="{{ $u->id }}"> {{ $u->name }}
+              </label>
             @endforeach
-          </select>
+          </div>
         </div>
         <div class="fg">
           <label>Status</label>
@@ -413,13 +414,14 @@
           <input type="date" id="detailDate" onchange="updateField('task_date',this.value)">
         </div>
         <div class="detail-meta-item">
-          <label>Assignee</label>
-          <select id="detailAssignee" onchange="updateField('assigned_to',this.value)">
-            <option value="">Not assigned</option>
+          <label>Assignees</label>
+          <div id="detailAssigneeContainer" style="max-height:120px;overflow:auto;border:1px solid var(--border);padding:8px;border-radius:6px;">
             @foreach($users as $u)
-              <option value="{{ $u->id }}">{{ $u->name }}</option>
+              <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <input type="checkbox" class="detail-assignee-checkbox" value="{{ $u->id }}" onchange="updateDetailAssignees()"> {{ $u->name }}
+              </label>
             @endforeach
-          </select>
+          </div>
         </div>
         <div class="detail-meta-item">
           <label>Start Time</label>
@@ -505,7 +507,10 @@ function renderTasks() {
 
     tasksData[date].forEach(task => {
       if (filterP && task.priority !== filterP) return;
-      if (filterA && String(task.assigned_to) !== filterA) return;
+      if (filterA) {
+        const assigneesList = (task.assignees || []).map(a => String(a.id));
+        if (String(task.assigned_to) !== filterA && !assigneesList.includes(filterA)) return;
+      }
       if (!task.start_time || !task.end_time) return;
 
       const [sh, sm] = task.start_time.split(':').map(Number);
@@ -526,7 +531,15 @@ function renderTasks() {
       if (height > 35) {
         inner += `<div class="wp-task-time">${task.start_time.substring(0,5)} – ${task.end_time.substring(0,5)}</div>`;
       }
-      if (task.assignee_initial) {
+      if (task.assignees && task.assignees.length) {
+        if (task.assignees.length === 1) {
+          inner += `<div class="wp-task-assignee">${task.assignees[0].initial}</div>`;
+        } else {
+          const initials = task.assignees.slice(0,2).map(a => a.initial).join('');
+          const more = task.assignees.length > 2 ? '+' + (task.assignees.length - 2) : '';
+          inner += `<div class="wp-task-assignee">${initials}${more}</div>`;
+        }
+      } else if (task.assignee_initial) {
         inner += `<div class="wp-task-assignee">${task.assignee_initial}</div>`;
       }
       if (isOverdue) {
@@ -590,7 +603,7 @@ function clickCell(date, hour) {
   document.getElementById('fDate').value = date;
   document.getElementById('fStartTime').value = String(hour).padStart(2, '0') + ':00';
   document.getElementById('fEndTime').value = String(Math.min(hour + 1, 23)).padStart(2, '0') + ':00';
-  document.getElementById('fAssignee').value = '';
+  document.querySelectorAll('.f-assignee-checkbox').forEach(cb => cb.checked = false);
   document.getElementById('fStatus').value = 'todo';
   document.getElementById('addModal').classList.add('open');
 }
@@ -606,7 +619,7 @@ function openAddModal() {
   document.getElementById('fDate').value = new Date().toISOString().substring(0, 10);
   document.getElementById('fStartTime').value = '09:00';
   document.getElementById('fEndTime').value = '10:00';
-  document.getElementById('fAssignee').value = '';
+  document.querySelectorAll('.f-assignee-checkbox').forEach(cb => cb.checked = false);
   document.getElementById('fStatus').value = 'todo';
   document.getElementById('addModal').classList.add('open');
 }
@@ -621,7 +634,14 @@ function openEditModal(task) {
   document.getElementById('fDate').value = task.task_date ? task.task_date.substring(0, 10) : '';
   document.getElementById('fStartTime').value = task.start_time ? task.start_time.substring(0, 5) : '09:00';
   document.getElementById('fEndTime').value = task.end_time ? task.end_time.substring(0, 5) : '10:00';
-  document.getElementById('fAssignee').value = task.assigned_to || '';
+  document.querySelectorAll('.f-assignee-checkbox').forEach(cb => cb.checked = false);
+  if (task.assignees && task.assignees.length) {
+    task.assignees.forEach(a => {
+      const cb = document.querySelector('.f-assignee-checkbox[value="' + a.id + '"]'); if (cb) cb.checked = true;
+    });
+  } else if (task.assigned_to) {
+    const cb = document.querySelector('.f-assignee-checkbox[value="' + task.assigned_to + '"]'); if (cb) cb.checked = true;
+  }
   document.getElementById('fStatus').value = task.status;
   document.getElementById('addModal').classList.add('open');
 }
@@ -638,7 +658,8 @@ function submitTask(e) {
     task_date: document.getElementById('fDate').value,
     start_time: document.getElementById('fStartTime').value,
     end_time: document.getElementById('fEndTime').value,
-    assigned_to: document.getElementById('fAssignee').value || null,
+    assigned_to: (Array.from(document.querySelectorAll('.f-assignee-checkbox:checked')).length ? Array.from(document.querySelectorAll('.f-assignee-checkbox:checked'))[0].value : null),
+    assignees: Array.from(document.querySelectorAll('.f-assignee-checkbox:checked')).map(o => o.value),
     status: document.getElementById('fStatus').value,
   };
 
@@ -668,7 +689,12 @@ function openDetail(taskId) {
       document.getElementById('detailCreator').textContent = 'Created by ' + (task.creator ? task.creator.name : '-') + ' • ' + fmtDate(task.created_at);
       document.getElementById('detailStatus').value = task.status;
       document.getElementById('detailPriority').value = task.priority;
-      document.getElementById('detailAssignee').value = task.assigned_to || '';
+      document.querySelectorAll('.detail-assignee-checkbox').forEach(cb => cb.checked = false);
+      if (task.assignees && task.assignees.length) {
+        task.assignees.forEach(a => { const cb = document.querySelector('.detail-assignee-checkbox[value="' + a.id + '"]'); if (cb) cb.checked = true; });
+      } else if (task.assigned_to) {
+        const cb = document.querySelector('.detail-assignee-checkbox[value="' + task.assigned_to + '"]'); if (cb) cb.checked = true;
+      }
       document.getElementById('detailDate').value = task.task_date ? task.task_date.substring(0, 10) : '';
       document.getElementById('detailStart').value = task.start_time ? task.start_time.substring(0, 5) : '';
       document.getElementById('detailEnd').value = task.end_time ? task.end_time.substring(0, 5) : '';
@@ -717,6 +743,15 @@ function deleteFromDetail() {
   fetch(BASE + '/tasks/' + currentTaskId, {
     method: 'DELETE', headers: { 'X-CSRF-TOKEN': CSRF }
   }).then(r => r.json()).then(res => { if (res.success) { closeDetail(); location.reload(); } });
+}
+
+function updateDetailAssignees() {
+  if (!currentTaskId) return;
+  const assignees = Array.from(document.querySelectorAll('.detail-assignee-checkbox:checked')).map(cb => cb.value);
+  fetch(BASE + '/tasks/' + currentTaskId, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+    body: JSON.stringify({ assignees })
+  }).then(r => r.json()).then(res => { if (res.success) openDetail(currentTaskId); });
 }
 
 // ============ CHECKLISTS ============

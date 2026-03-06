@@ -1,15 +1,26 @@
-<div class="task-card {{ $task->isOverdue() ? 'overdue' : '' }}" data-id="{{ $task->id }}" data-status="{{ $task->status }}" data-priority="{{ $task->priority }}" data-assignee="{{ $task->assigned_to }}" data-deadline="{{ $task->deadline ? $task->deadline->format('Y-m-d') : '' }}" draggable="true" ondragstart="onDragStart(event,{{ $task->id }})" ondragend="onDragEnd(event)" onclick="openDetail({{ $task->id }})">
+@php $assigneeIds = $task->assignees ? $task->assignees->pluck('id')->join(',') : ($task->assigned_to ? (string)$task->assigned_to : ''); @endphp
+<div class="task-card {{ $task->isOverdue() ? 'overdue' : '' }}" data-id="{{ $task->id }}" data-status="{{ $task->status }}" data-priority="{{ $task->priority }}" data-assignee="{{ $task->assigned_to }}" data-assignees="{{ $assigneeIds }}" data-deadline="{{ $task->deadline ? $task->deadline->format('Y-m-d') : '' }}" draggable="true" ondragstart="onDragStart(event,{{ $task->id }})" ondragend="onDragEnd(event)" onclick="openDetail({{ $task->id }})">
   <div class="task-card-title">{{ $task->title }}</div>
   <div class="task-card-meta">
     <span class="task-badge priority-{{ $task->priority }}">{{ $task->priority }}</span>
     @if($task->isOverdue())
     <span class="overdue-tag">⏰ Overdue</span>
     @endif
-    @if($task->assignee)
-    <span class="task-assignee">
-      <span class="task-assignee-avatar">{{ strtoupper(substr($task->assignee->name, 0, 1)) }}</span>
-      {{ $task->assignee->name }}
-    </span>
+    @php $assignees = $task->assignees ?? collect(); @endphp
+    @if($assignees->count() > 0)
+      <span class="task-assignee">
+        @foreach($assignees->take(3) as $u)
+          <span class="task-assignee-avatar" title="{{ $u->name }}">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
+        @endforeach
+        @if($assignees->count() > 3)
+          <span style="font-size:11px;color:var(--text-muted);">+{{ $assignees->count() - 3 }}</span>
+        @endif
+      </span>
+    @elseif($task->assignee)
+      <span class="task-assignee">
+        <span class="task-assignee-avatar">{{ strtoupper(substr($task->assignee->name, 0, 1)) }}</span>
+        {{ $task->assignee->name }}
+      </span>
     @endif
     @if($task->task_date)
     <span class="task-deadline {{ $task->isOverdue() ? 'overdue' : '' }}">

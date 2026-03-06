@@ -37,13 +37,16 @@ class TaskController extends Controller
             : \Carbon\Carbon::now()->startOfWeek(\Carbon\Carbon::MONDAY);
         $weekEnd = $weekStart->copy()->endOfWeek(\Carbon\Carbon::SUNDAY);
 
-        $query = Task::with(['assignee', 'creator', 'checklists', 'comments', 'attachments'])
+        $query = Task::with(['assignee', 'assignees', 'creator', 'checklists', 'comments', 'attachments'])
             ->whereBetween('task_date', [$weekStart->toDateString(), $weekEnd->toDateString()]);
 
         // Non-admin users only see their own assigned tasks
         $authRole = auth()->user()->role;
         if (!in_array($authRole, ['superadmin', 'top_level_management'])) {
-            $query->where('assigned_to', auth()->id());
+            $query->where(function($q){
+                $q->where('assigned_to', auth()->id())
+                  ->orWhereHas('assignees', function($q2){ $q2->where('id', auth()->id()); });
+            });
         }
 
         $tasks = $query->orderBy('start_time')->get();
@@ -73,6 +76,7 @@ class TaskController extends Controller
                 'assigned_to' => $task->assigned_to,
                 'assignee_name' => $task->assignee ? $task->assignee->name : null,
                 'assignee_initial' => $task->assignee ? strtoupper(substr($task->assignee->name, 0, 1)) : null,
+                'assignees' => $task->assignees->map(function($u){ return ['id'=>$u->id,'name'=>$u->name,'initial'=>strtoupper(substr($u->name,0,1))]; })->toArray(),
                 'created_by' => $task->created_by,
                 'creator_name' => $task->creator ? $task->creator->name : null,
                 'checklists_count' => $task->checklists->count(),
@@ -91,12 +95,15 @@ class TaskController extends Controller
 
     private function kanbanView(Request $request, $users)
     {
-        $query = Task::with(['assignee', 'creator', 'checklists', 'comments', 'attachments']);
+        $query = Task::with(['assignee', 'assignees', 'creator', 'checklists', 'comments', 'attachments']);
 
         // Non-admin users only see their own assigned tasks
         $authRole = auth()->user()->role;
         if (!in_array($authRole, ['superadmin', 'top_level_management'])) {
-            $query->where('assigned_to', auth()->id());
+            $query->where(function($q){
+                $q->where('assigned_to', auth()->id())
+                  ->orWhereHas('assignees', function($q2){ $q2->where('id', auth()->id()); });
+            });
         }
 
         $tasks = $query->orderBy('position')
@@ -127,14 +134,28 @@ class TaskController extends Controller
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'assigned_to' => 'nullable|exists:users,id',
+            'assignees' => 'nullable|array',
+            'assignees.*' => 'exists:users,id',
             'status' => 'nullable|in:todo,in_progress,done',
         ]);
 
-        // Ensure assigned user has allowed role
+        // Ensure assigned user(s) have allowed role
         if (!empty($validated['assigned_to'])) {
             $assignee = User::find($validated['assigned_to']);
             if (!$assignee || !in_array($assignee->role, ['internal_hr', 'recruitmentteam'])) {
                 return response()->json(['success' => false, 'message' => 'Invalid assignee role.'], 422);
+            }
+        }
+        if (!empty($validated['assignees'])) {
+            foreach ($validated['assignees'] as $aid) {
+                $u = User::find($aid);
+                if (!$u || !in_array($u->role, ['internal_hr', 'recruitmentteam'])) {
+                    return response()->json(['success' => false, 'message' => 'Invalid assignee role for user id ' . $aid], 422);
+                }
+            }
+            // set legacy assigned_to to first assignee for compatibility
+            if (empty($validated['assigned_to'])) {
+                $validated['assigned_to'] = $validated['assignees'][0] ?? null;
             }
         }
 
@@ -145,7 +166,14 @@ class TaskController extends Controller
         $task = Task::create($validated);
         ActivityLog::log('create', 'task', 'Membuat task: ' . $task->title);
 
-        $task->load(['assignee', 'creator', 'checklists', 'comments', 'attachments']);
+        // Sync assignees pivot if provided
+        if (!empty($validated['assignees'])) {
+            $task->assignees()->sync($validated['assignees']);
+        } elseif (!empty($validated['assigned_to'])) {
+            $task->assignees()->sync([$validated['assigned_to']]);
+        }
+
+        $task->load(['assignee', 'assignees', 'creator', 'checklists', 'comments', 'attachments']);
         foreach ($task->attachments as $att) {
             $att->url = Storage::url($att->file_path);
         }
@@ -158,7 +186,7 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        $task->load(['assignee', 'creator', 'checklists', 'comments.user', 'attachments.user']);
+        $task->load(['assignee', 'assignees', 'creator', 'checklists', 'comments.user', 'attachments.user']);
         foreach ($task->attachments as $att) {
             $att->url = Storage::url($att->file_path);
         }
@@ -183,14 +211,27 @@ class TaskController extends Controller
             'start_time' => 'sometimes|date_format:H:i',
             'end_time' => 'sometimes|date_format:H:i',
             'assigned_to' => 'nullable|exists:users,id',
+            'assignees' => 'nullable|array',
+            'assignees.*' => 'exists:users,id',
             'status' => 'sometimes|in:todo,in_progress,done',
         ]);
 
-        // Ensure assigned user has allowed role
+        // Ensure assigned user(s) have allowed role
         if (!empty($validated['assigned_to'])) {
             $assignee = User::find($validated['assigned_to']);
             if (!$assignee || !in_array($assignee->role, ['internal_hr', 'recruitmentteam'])) {
                 return response()->json(['success' => false, 'message' => 'Invalid assignee role.'], 422);
+            }
+        }
+        if (!empty($validated['assignees'])) {
+            foreach ($validated['assignees'] as $aid) {
+                $u = User::find($aid);
+                if (!$u || !in_array($u->role, ['internal_hr', 'recruitmentteam'])) {
+                    return response()->json(['success' => false, 'message' => 'Invalid assignee role for user id ' . $aid], 422);
+                }
+            }
+            if (empty($validated['assigned_to'])) {
+                $validated['assigned_to'] = $validated['assignees'][0] ?? null;
             }
         }
 
@@ -200,8 +241,14 @@ class TaskController extends Controller
 
         $task->update($validated);
         ActivityLog::log('update', 'task', 'Mengupdate task: ' . $task->title);
+        // Sync pivot assignees
+        if (array_key_exists('assignees', $validated)) {
+            $task->assignees()->sync($validated['assignees'] ?? []);
+        } elseif (!empty($validated['assigned_to'])) {
+            $task->assignees()->sync([$validated['assigned_to']]);
+        }
 
-        $task->load(['assignee', 'creator', 'checklists', 'comments', 'attachments']);
+        $task->load(['assignee', 'assignees', 'creator', 'checklists', 'comments', 'attachments']);
         foreach ($task->attachments as $att) {
             $att->url = Storage::url($att->file_path);
         }

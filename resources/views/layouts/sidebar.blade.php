@@ -53,6 +53,17 @@
 </style>
 
 <div class="sidebar sb">
+  @php
+    $taskUpdatesCount = 0;
+    $pendingSpCount = 0;
+    if (auth()->check()) {
+        $uid = auth()->id();
+        $taskUpdatesCount = \App\Models\Task::where(function($q) use ($uid) {
+            $q->where('assigned_to', $uid)->orWhereHas('assignees', function($q2) use ($uid) { $q2->where('id', $uid); });
+        })->whereIn('status', ['todo','in_progress'])->count();
+    }
+    $pendingSpCount = \App\Models\WarningLetter::whereIn('status', ['pending','pending_hr'])->count();
+  @endphp
   <button id="sidebar-close" onclick="document.querySelector('.sidebar').classList.remove('sidebar-open')">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
   </button>
@@ -104,7 +115,11 @@
         <ul class="sb-sub" id="menu-karyawan">
           @if(optional(auth()->user())->isSuperAdmin() || optional(auth()->user())->isInternalHR())
           <li><a href="{{ route('employees.index') }}" class="{{ request()->routeIs('employees.*') ? 'active' : '' }}"><span class="sb-dot"></span>Database Karyawan</a></li>
-          <li><a href="{{ route('warning-letters.index') }}" class="{{ request()->routeIs('warning-letters.index','warning-letters.create','warning-letters.edit') ? 'active' : '' }}"><span class="sb-dot"></span>Surat Peringatan</a></li>
+          <li><a href="{{ route('warning-letters.index') }}" class="{{ request()->routeIs('warning-letters.index','warning-letters.create','warning-letters.edit') ? 'active' : '' }}"><span class="sb-dot"></span>Surat Peringatan
+              @if($pendingSpCount > 0)
+                <span style="background:#f59e0b;color:#fff;padding:2px 8px;border-radius:999px;font-size:11px;margin-left:8px;font-weight:700;">{{ $pendingSpCount }}</span>
+              @endif
+            </a></li>
           <li><a href="{{ route('surveys.index') }}" class="{{ request()->routeIs('surveys.*') ? 'active' : '' }}"><span class="sb-dot"></span>Engagement</a></li>
           @endif
           @if(optional(auth()->user())->isAdminProd())
@@ -159,6 +174,9 @@
       <li class="sb-item">
         <a href="{{ route('tasks.index') }}" class="sb-link {{ request()->routeIs('tasks.*') ? 'active' : '' }}">
           <span class="sb-icon">✅</span><span class="sb-text">Task Management</span>
+          @if($taskUpdatesCount > 0)
+            <span style="background:#dc2626;color:#fff;padding:2px 8px;border-radius:999px;font-size:11px;margin-left:8px;font-weight:700;">{{ $taskUpdatesCount }}</span>
+          @endif
         </a>
       </li>
       @endif

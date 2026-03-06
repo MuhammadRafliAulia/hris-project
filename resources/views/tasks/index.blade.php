@@ -270,9 +270,8 @@
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="form-group">
-          <label>Assignee</label>
-          <select id="fAssignee">
-            <option value="">-- Not assigned --</option>
+          <label>Assignees (multiple)</label>
+          <select id="fAssignee" multiple style="min-height:80px;">
             @foreach($users as $u)
               <option value="{{ $u->id }}">{{ $u->name }}</option>
             @endforeach
@@ -330,13 +329,14 @@
           </select>
         </div>
         <div class="detail-meta-item">
-          <label>Assignee</label>
-          <select id="detailAssignee" onchange="updateDetailField('assigned_to',this.value)">
-            <option value="">Not assigned</option>
+          <label>Assignees</label>
+          <div id="detailAssigneeContainer" style="max-height:120px;overflow:auto;border:1px solid var(--border);padding:8px;border-radius:6px;">
             @foreach($users as $u)
-              <option value="{{ $u->id }}">{{ $u->name }}</option>
+              <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <input type="checkbox" class="detail-assignee-checkbox" value="{{ $u->id }}" onchange="updateDetailAssignees()"> {{ $u->name }}
+              </label>
             @endforeach
-          </select>
+          </div>
         </div>
         <div class="detail-meta-item">
           <label>Deadline</label>
@@ -491,8 +491,14 @@ function filterTasks() {
     const title = card.querySelector('.task-card-title').textContent.toLowerCase();
     const matchSearch = !search || title.includes(search);
     const matchPriority = !priority || card.dataset.priority === priority;
-    const matchAssignee = !assignee || card.dataset.assignee === assignee;
-    card.style.display = (matchSearch && matchPriority && matchAssignee) ? '' : 'none';
+    let matchAssignee = false;
+    if (!assignee) matchAssignee = true;
+    else {
+      const onboard = (card.dataset.assignees || '').split(',').filter(Boolean);
+      if (onboard.includes(assignee)) matchAssignee = true;
+      if (card.dataset.assignee && card.dataset.assignee === assignee) matchAssignee = true;
+    }
+      card.style.display = (matchSearch && matchPriority && matchAssignee) ? '' : 'none';
   });
 
   updateCounts();
@@ -516,7 +522,8 @@ function openAddModal() {
   document.getElementById('fDesc').value = '';
   document.getElementById('fPriority').value = 'medium';
   document.getElementById('fDeadline').value = '';
-  document.getElementById('fAssignee').value = '';
+  // clear checkbox list
+  document.querySelectorAll('.f-assignee-checkbox').forEach(cb => cb.checked = false);
   document.getElementById('fStatus').value = 'todo';
   document.getElementById('addModal').classList.add('open');
 }
@@ -529,7 +536,15 @@ function openEditModal(task) {
   document.getElementById('fDesc').value = task.description || '';
   document.getElementById('fPriority').value = task.priority;
   document.getElementById('fDeadline').value = task.deadline ? task.deadline.substring(0, 10) : '';
-  document.getElementById('fAssignee').value = task.assigned_to || '';
+  // set checkboxes values if available
+  document.querySelectorAll('.f-assignee-checkbox').forEach(cb => cb.checked = false);
+  if (task.assignees && task.assignees.length) {
+    task.assignees.forEach(a => {
+      const cb = document.querySelector('.f-assignee-checkbox[value="' + a.id + '"]'); if (cb) cb.checked = true;
+    });
+  } else if (task.assigned_to) {
+    const cb = document.querySelector('.f-assignee-checkbox[value="' + task.assigned_to + '"]'); if (cb) cb.checked = true;
+  }
   document.getElementById('fStatus').value = task.status;
   document.getElementById('addModal').classList.add('open');
 }
@@ -544,7 +559,9 @@ function submitTask(e) {
     description: document.getElementById('fDesc').value || null,
     priority: document.getElementById('fPriority').value,
     deadline: document.getElementById('fDeadline').value || null,
-    assigned_to: document.getElementById('fAssignee').value || null,
+    // send both legacy assigned_to and assignees array (from checkboxes)
+    assignees: Array.from(document.querySelectorAll('.f-assignee-checkbox:checked')).map(cb => cb.value),
+    assigned_to: (document.querySelectorAll('.f-assignee-checkbox:checked').length ? document.querySelectorAll('.f-assignee-checkbox:checked')[0].value : null),
     status: document.getElementById('fStatus').value,
   };
 
@@ -571,7 +588,15 @@ function openDetail(taskId) {
       document.getElementById('detailCreator').textContent = 'Created by ' + (task.creator ? task.creator.name : '-') + ' • ' + formatDate(task.created_at);
       document.getElementById('detailStatus').value = task.status;
       document.getElementById('detailPriority').value = task.priority;
-      document.getElementById('detailAssignee').value = task.assigned_to || '';
+      // populate detail assignee checkboxes
+      document.querySelectorAll('.detail-assignee-checkbox').forEach(cb => cb.checked = false);
+      if (task.assignees && task.assignees.length) {
+        task.assignees.forEach(a => {
+          const cb = document.querySelector('.detail-assignee-checkbox[value="' + a.id + '"]'); if (cb) cb.checked = true;
+        });
+      } else if (task.assigned_to) {
+        const cb = document.querySelector('.detail-assignee-checkbox[value="' + task.assigned_to + '"]'); if (cb) cb.checked = true;
+      }
       document.getElementById('detailDeadline').value = task.deadline ? task.deadline.substring(0, 10) : '';
       document.getElementById('detailDesc').textContent = task.description || 'No description.';
 
@@ -613,6 +638,16 @@ function updateDetailField(field, value) {
       }
     }
   });
+}
+
+function updateDetailAssignees() {
+  if (!currentTaskId) return;
+  const arr = Array.from(document.querySelectorAll('.detail-assignee-checkbox:checked')).map(cb => cb.value);
+  const data = { assignees: arr, assigned_to: (arr.length ? arr[0] : null) };
+  fetch(BASE + '/tasks/' + currentTaskId, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+    body: JSON.stringify(data)
+  }).then(r => r.json()).then(res => { if (res.success) location.reload(); });
 }
 
 function editFromDetail() {
