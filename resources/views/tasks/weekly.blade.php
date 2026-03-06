@@ -151,6 +151,16 @@
 .at-item:hover{border-color:var(--border);box-shadow:0 1px 4px rgba(0,0,0,.04);}
 .at-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);font-weight:500;}
 
+/* Assignee Chip Selector */
+.assignee-chip-container{display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow-y:auto;padding:4px 0;}
+.assignee-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px 5px 5px;border:1.5px solid var(--border);border-radius:999px;cursor:pointer;font-size:12px;font-weight:500;color:var(--text-secondary);background:var(--card);transition:var(--transition);user-select:none;}
+.assignee-chip:hover{border-color:#94a3b8;background:#f8fafc;}
+.assignee-chip.selected{border-color:var(--primary);background:rgba(0,62,111,.07);color:var(--primary);font-weight:600;}
+.assignee-chip .chip-avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;background:linear-gradient(135deg,#94a3b8,#64748b);flex-shrink:0;transition:var(--transition);}
+.assignee-chip.selected .chip-avatar{background:linear-gradient(135deg,var(--primary),#3b82f6);}
+.assignee-chip .chip-check{display:none;font-size:11px;}
+.assignee-chip.selected .chip-check{display:inline;}
+
 /* ─── Modal ─── */
 .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(4px);z-index:1100;display:none;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
@@ -346,11 +356,13 @@
       <div class="fg-row">
         <div class="fg">
           <label>Assignees (multiple)</label>
-          <div id="fAssigneeContainer" style="min-height:80px;max-height:200px;overflow:auto;border:1px solid var(--border);padding:8px;border-radius:8px;">
+          <div class="assignee-chip-container" id="fAssigneeContainer">
             @foreach($users as $u)
-              <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                <input type="checkbox" class="f-assignee-checkbox" value="{{ $u->id }}"> {{ $u->name }}
-              </label>
+              <span class="assignee-chip" data-value="{{ $u->id }}" onclick="toggleAssigneeChip(this)">
+                <span class="chip-avatar">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
+                {{ $u->name }}
+                <span class="chip-check">✓</span>
+              </span>
             @endforeach
           </div>
         </div>
@@ -413,13 +425,15 @@
           <label>Date</label>
           <input type="date" id="detailDate" onchange="updateField('task_date',this.value)">
         </div>
-        <div class="detail-meta-item">
+        <div class="detail-meta-item" style="grid-column:1/-1;">
           <label>Assignees</label>
-          <div id="detailAssigneeContainer" style="max-height:120px;overflow:auto;border:1px solid var(--border);padding:8px;border-radius:6px;">
+          <div class="assignee-chip-container" id="detailAssigneeContainer">
             @foreach($users as $u)
-              <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                <input type="checkbox" class="detail-assignee-checkbox" value="{{ $u->id }}" onchange="updateDetailAssignees()"> {{ $u->name }}
-              </label>
+              <span class="assignee-chip" data-value="{{ $u->id }}" onclick="toggleDetailAssigneeChip(this)">
+                <span class="chip-avatar">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
+                {{ $u->name }}
+                <span class="chip-check">✓</span>
+              </span>
             @endforeach
           </div>
         </div>
@@ -603,7 +617,7 @@ function clickCell(date, hour) {
   document.getElementById('fDate').value = date;
   document.getElementById('fStartTime').value = String(hour).padStart(2, '0') + ':00';
   document.getElementById('fEndTime').value = String(Math.min(hour + 1, 23)).padStart(2, '0') + ':00';
-  document.querySelectorAll('.f-assignee-checkbox').forEach(cb => cb.checked = false);
+  document.querySelectorAll('#fAssigneeContainer .assignee-chip').forEach(c => c.classList.remove('selected'));
   document.getElementById('fStatus').value = 'todo';
   document.getElementById('addModal').classList.add('open');
 }
@@ -619,7 +633,7 @@ function openAddModal() {
   document.getElementById('fDate').value = new Date().toISOString().substring(0, 10);
   document.getElementById('fStartTime').value = '09:00';
   document.getElementById('fEndTime').value = '10:00';
-  document.querySelectorAll('.f-assignee-checkbox').forEach(cb => cb.checked = false);
+  document.querySelectorAll('#fAssigneeContainer .assignee-chip').forEach(c => c.classList.remove('selected'));
   document.getElementById('fStatus').value = 'todo';
   document.getElementById('addModal').classList.add('open');
 }
@@ -634,13 +648,13 @@ function openEditModal(task) {
   document.getElementById('fDate').value = task.task_date ? task.task_date.substring(0, 10) : '';
   document.getElementById('fStartTime').value = task.start_time ? task.start_time.substring(0, 5) : '09:00';
   document.getElementById('fEndTime').value = task.end_time ? task.end_time.substring(0, 5) : '10:00';
-  document.querySelectorAll('.f-assignee-checkbox').forEach(cb => cb.checked = false);
+  document.querySelectorAll('#fAssigneeContainer .assignee-chip').forEach(c => c.classList.remove('selected'));
   if (task.assignees && task.assignees.length) {
     task.assignees.forEach(a => {
-      const cb = document.querySelector('.f-assignee-checkbox[value="' + a.id + '"]'); if (cb) cb.checked = true;
+      const chip = document.querySelector('#fAssigneeContainer .assignee-chip[data-value="' + a.id + '"]'); if (chip) chip.classList.add('selected');
     });
   } else if (task.assigned_to) {
-    const cb = document.querySelector('.f-assignee-checkbox[value="' + task.assigned_to + '"]'); if (cb) cb.checked = true;
+    const chip = document.querySelector('#fAssigneeContainer .assignee-chip[data-value="' + task.assigned_to + '"]'); if (chip) chip.classList.add('selected');
   }
   document.getElementById('fStatus').value = task.status;
   document.getElementById('addModal').classList.add('open');
@@ -658,8 +672,8 @@ function submitTask(e) {
     task_date: document.getElementById('fDate').value,
     start_time: document.getElementById('fStartTime').value,
     end_time: document.getElementById('fEndTime').value,
-    assigned_to: (Array.from(document.querySelectorAll('.f-assignee-checkbox:checked')).length ? Array.from(document.querySelectorAll('.f-assignee-checkbox:checked'))[0].value : null),
-    assignees: Array.from(document.querySelectorAll('.f-assignee-checkbox:checked')).map(o => o.value),
+    assigned_to: (document.querySelector('#fAssigneeContainer .assignee-chip.selected') ? document.querySelector('#fAssigneeContainer .assignee-chip.selected').dataset.value : null),
+    assignees: Array.from(document.querySelectorAll('#fAssigneeContainer .assignee-chip.selected')).map(c => c.dataset.value),
     status: document.getElementById('fStatus').value,
   };
 
@@ -689,11 +703,11 @@ function openDetail(taskId) {
       document.getElementById('detailCreator').textContent = 'Created by ' + (task.creator ? task.creator.name : '-') + ' • ' + fmtDate(task.created_at);
       document.getElementById('detailStatus').value = task.status;
       document.getElementById('detailPriority').value = task.priority;
-      document.querySelectorAll('.detail-assignee-checkbox').forEach(cb => cb.checked = false);
+      document.querySelectorAll('#detailAssigneeContainer .assignee-chip').forEach(c => c.classList.remove('selected'));
       if (task.assignees && task.assignees.length) {
-        task.assignees.forEach(a => { const cb = document.querySelector('.detail-assignee-checkbox[value="' + a.id + '"]'); if (cb) cb.checked = true; });
+        task.assignees.forEach(a => { const chip = document.querySelector('#detailAssigneeContainer .assignee-chip[data-value="' + a.id + '"]'); if (chip) chip.classList.add('selected'); });
       } else if (task.assigned_to) {
-        const cb = document.querySelector('.detail-assignee-checkbox[value="' + task.assigned_to + '"]'); if (cb) cb.checked = true;
+        const chip = document.querySelector('#detailAssigneeContainer .assignee-chip[data-value="' + task.assigned_to + '"]'); if (chip) chip.classList.add('selected');
       }
       document.getElementById('detailDate').value = task.task_date ? task.task_date.substring(0, 10) : '';
       document.getElementById('detailStart').value = task.start_time ? task.start_time.substring(0, 5) : '';
@@ -745,9 +759,12 @@ function deleteFromDetail() {
   }).then(r => r.json()).then(res => { if (res.success) { closeDetail(); location.reload(); } });
 }
 
+function toggleAssigneeChip(el) { el.classList.toggle('selected'); }
+function toggleDetailAssigneeChip(el) { el.classList.toggle('selected'); updateDetailAssignees(); }
+
 function updateDetailAssignees() {
   if (!currentTaskId) return;
-  const assignees = Array.from(document.querySelectorAll('.detail-assignee-checkbox:checked')).map(cb => cb.value);
+  const assignees = Array.from(document.querySelectorAll('#detailAssigneeContainer .assignee-chip.selected')).map(c => c.dataset.value);
   fetch(BASE + '/tasks/' + currentTaskId, {
     method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
     body: JSON.stringify({ assignees })

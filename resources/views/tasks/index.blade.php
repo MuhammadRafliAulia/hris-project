@@ -118,6 +118,16 @@
 .att-name{font-size:12px;font-weight:500;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .att-uploader{font-size:10px;color:#94a3b8;}
 
+/* Assignee Chip Selector */
+.assignee-chip-container{display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow-y:auto;padding:4px 0;}
+.assignee-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px 5px 5px;border:1.5px solid var(--border);border-radius:999px;cursor:pointer;font-size:12px;font-weight:500;color:var(--text-secondary);background:var(--card);transition:var(--transition);user-select:none;}
+.assignee-chip:hover{border-color:#94a3b8;background:#f8fafc;}
+.assignee-chip.selected{border-color:var(--primary);background:rgba(0,62,111,.07);color:var(--primary);font-weight:600;}
+.assignee-chip .chip-avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;background:linear-gradient(135deg,#94a3b8,#64748b);flex-shrink:0;transition:var(--transition);}
+.assignee-chip.selected .chip-avatar{background:linear-gradient(135deg,var(--primary),#3b82f6);}
+.assignee-chip .chip-check{display:none;font-size:11px;}
+.assignee-chip.selected .chip-check{display:inline;}
+
 /* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:1100;display:none;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
@@ -271,11 +281,15 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="form-group">
           <label>Assignees (multiple)</label>
-          <select id="fAssignee" multiple style="min-height:80px;">
+          <div class="assignee-chip-container" id="fAssigneeContainer">
             @foreach($users as $u)
-              <option value="{{ $u->id }}">{{ $u->name }}</option>
+              <span class="assignee-chip" data-value="{{ $u->id }}" onclick="toggleAssigneeChip(this)">
+                <span class="chip-avatar">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
+                {{ $u->name }}
+                <span class="chip-check">✓</span>
+              </span>
             @endforeach
-          </select>
+          </div>
         </div>
         <div class="form-group">
           <label>Status</label>
@@ -328,13 +342,15 @@
             <option value="urgent">Urgent</option>
           </select>
         </div>
-        <div class="detail-meta-item">
+        <div class="detail-meta-item" style="grid-column:1/-1;">
           <label>Assignees</label>
-          <div id="detailAssigneeContainer" style="max-height:120px;overflow:auto;border:1px solid var(--border);padding:8px;border-radius:6px;">
+          <div class="assignee-chip-container" id="detailAssigneeContainer">
             @foreach($users as $u)
-              <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                <input type="checkbox" class="detail-assignee-checkbox" value="{{ $u->id }}" onchange="updateDetailAssignees()"> {{ $u->name }}
-              </label>
+              <span class="assignee-chip" data-value="{{ $u->id }}" onclick="toggleDetailAssigneeChip(this)">
+                <span class="chip-avatar">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
+                {{ $u->name }}
+                <span class="chip-check">✓</span>
+              </span>
             @endforeach
           </div>
         </div>
@@ -522,8 +538,8 @@ function openAddModal() {
   document.getElementById('fDesc').value = '';
   document.getElementById('fPriority').value = 'medium';
   document.getElementById('fDeadline').value = '';
-  // clear checkbox list
-  document.querySelectorAll('.f-assignee-checkbox').forEach(cb => cb.checked = false);
+  // clear assignee chips
+  document.querySelectorAll('#fAssigneeContainer .assignee-chip').forEach(c => c.classList.remove('selected'));
   document.getElementById('fStatus').value = 'todo';
   document.getElementById('addModal').classList.add('open');
 }
@@ -536,14 +552,14 @@ function openEditModal(task) {
   document.getElementById('fDesc').value = task.description || '';
   document.getElementById('fPriority').value = task.priority;
   document.getElementById('fDeadline').value = task.deadline ? task.deadline.substring(0, 10) : '';
-  // set checkboxes values if available
-  document.querySelectorAll('.f-assignee-checkbox').forEach(cb => cb.checked = false);
+  // set assignee chips
+  document.querySelectorAll('#fAssigneeContainer .assignee-chip').forEach(c => c.classList.remove('selected'));
   if (task.assignees && task.assignees.length) {
     task.assignees.forEach(a => {
-      const cb = document.querySelector('.f-assignee-checkbox[value="' + a.id + '"]'); if (cb) cb.checked = true;
+      const chip = document.querySelector('#fAssigneeContainer .assignee-chip[data-value="' + a.id + '"]'); if (chip) chip.classList.add('selected');
     });
   } else if (task.assigned_to) {
-    const cb = document.querySelector('.f-assignee-checkbox[value="' + task.assigned_to + '"]'); if (cb) cb.checked = true;
+    const chip = document.querySelector('#fAssigneeContainer .assignee-chip[data-value="' + task.assigned_to + '"]'); if (chip) chip.classList.add('selected');
   }
   document.getElementById('fStatus').value = task.status;
   document.getElementById('addModal').classList.add('open');
@@ -560,8 +576,8 @@ function submitTask(e) {
     priority: document.getElementById('fPriority').value,
     deadline: document.getElementById('fDeadline').value || null,
     // send both legacy assigned_to and assignees array (from checkboxes)
-    assignees: Array.from(document.querySelectorAll('.f-assignee-checkbox:checked')).map(cb => cb.value),
-    assigned_to: (document.querySelectorAll('.f-assignee-checkbox:checked').length ? document.querySelectorAll('.f-assignee-checkbox:checked')[0].value : null),
+    assignees: Array.from(document.querySelectorAll('#fAssigneeContainer .assignee-chip.selected')).map(c => c.dataset.value),
+    assigned_to: (document.querySelector('#fAssigneeContainer .assignee-chip.selected') ? document.querySelector('#fAssigneeContainer .assignee-chip.selected').dataset.value : null),
     status: document.getElementById('fStatus').value,
   };
 
@@ -588,14 +604,14 @@ function openDetail(taskId) {
       document.getElementById('detailCreator').textContent = 'Created by ' + (task.creator ? task.creator.name : '-') + ' • ' + formatDate(task.created_at);
       document.getElementById('detailStatus').value = task.status;
       document.getElementById('detailPriority').value = task.priority;
-      // populate detail assignee checkboxes
-      document.querySelectorAll('.detail-assignee-checkbox').forEach(cb => cb.checked = false);
+      // populate detail assignee chips
+      document.querySelectorAll('#detailAssigneeContainer .assignee-chip').forEach(c => c.classList.remove('selected'));
       if (task.assignees && task.assignees.length) {
         task.assignees.forEach(a => {
-          const cb = document.querySelector('.detail-assignee-checkbox[value="' + a.id + '"]'); if (cb) cb.checked = true;
+          const chip = document.querySelector('#detailAssigneeContainer .assignee-chip[data-value="' + a.id + '"]'); if (chip) chip.classList.add('selected');
         });
       } else if (task.assigned_to) {
-        const cb = document.querySelector('.detail-assignee-checkbox[value="' + task.assigned_to + '"]'); if (cb) cb.checked = true;
+        const chip = document.querySelector('#detailAssigneeContainer .assignee-chip[data-value="' + task.assigned_to + '"]'); if (chip) chip.classList.add('selected');
       }
       document.getElementById('detailDeadline').value = task.deadline ? task.deadline.substring(0, 10) : '';
       document.getElementById('detailDesc').textContent = task.description || 'No description.';
@@ -640,9 +656,12 @@ function updateDetailField(field, value) {
   });
 }
 
+function toggleAssigneeChip(el) { el.classList.toggle('selected'); }
+function toggleDetailAssigneeChip(el) { el.classList.toggle('selected'); updateDetailAssignees(); }
+
 function updateDetailAssignees() {
   if (!currentTaskId) return;
-  const arr = Array.from(document.querySelectorAll('.detail-assignee-checkbox:checked')).map(cb => cb.value);
+  const arr = Array.from(document.querySelectorAll('#detailAssigneeContainer .assignee-chip.selected')).map(c => c.dataset.value);
   const data = { assignees: arr, assigned_to: (arr.length ? arr[0] : null) };
   fetch(BASE + '/tasks/' + currentTaskId, {
     method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
