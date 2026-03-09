@@ -184,8 +184,8 @@
  <td>{{ $duration }}</td>
  <td>{{ $resp->completed_at ? $resp->completed_at->format('d/m/Y H:i') : '-' }}</td>
  <td>
- <a href="{{ route('banks.export-participant-pdf', [$bank, $resp]) }}" class="btn btn-pdf" title="Download PDF">
- PDF
+ <a href="{{ route('banks.export-report-pdf', [$bank, $resp]) }}" class="btn btn-pdf" title="Download Laporan PDF">
+ Laporan
  </a>
  </td>
  </tr>

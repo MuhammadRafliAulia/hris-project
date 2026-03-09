@@ -121,12 +121,7 @@
    'W' => 'Posisi administrasi terstruktur, back office'
   ];
 
-  // ===== PAPIKOSTIK WHEEL CHART DATA =====
-  $n = 20;
-  $cxW = 220; $cyW = 220;
-  $maxR = 140; $ringInner = 145; $ringOuter = 175; $labelR = 192;
-  $angleStep = 360 / $n;
-
+  // ===== GENERATE PAPIKOSTIK WHEEL CHART AS PNG (GD) =====
   $catDefs = [
    ['name' => 'ARAH KERJA', 'start' => 0, 'count' => 3, 'fill' => '#bbf7d0', 'stroke' => '#16a34a'],
    ['name' => 'KEPEMIMPINAN', 'start' => 3, 'count' => 2, 'fill' => '#fed7aa', 'stroke' => '#ea580c'],
@@ -137,68 +132,115 @@
    ['name' => 'KETAATAN', 'start' => 18, 'count' => 2, 'fill' => '#bfdbfe', 'stroke' => '#2563eb'],
   ];
 
-  $makeArc = function($cx2, $cy2, $ri, $ro, $sd, $ed) {
-   $sr = $sd * M_PI / 180; $er = $ed * M_PI / 180;
-   $x1o = round($cx2 + $ro * cos($sr), 2); $y1o = round($cy2 + $ro * sin($sr), 2);
-   $x2o = round($cx2 + $ro * cos($er), 2); $y2o = round($cy2 + $ro * sin($er), 2);
-   $x1i = round($cx2 + $ri * cos($sr), 2); $y1i = round($cy2 + $ri * sin($sr), 2);
-   $x2i = round($cx2 + $ri * cos($er), 2); $y2i = round($cy2 + $ri * sin($er), 2);
-   $la = ($ed - $sd) > 180 ? 1 : 0;
-   return "M{$x1o},{$y1o} A{$ro},{$ro} 0 {$la},1 {$x2o},{$y2o} L{$x2i},{$y2i} A{$ri},{$ri} 0 {$la},0 {$x1i},{$y1i} Z";
-  };
+  $hexRgb = function($h) { $h = ltrim($h,'#'); return [hexdec(substr($h,0,2)), hexdec(substr($h,2,2)), hexdec(substr($h,4,2))]; };
 
-  $gridRadii = []; for ($lv = 1; $lv <= 9; $lv++) $gridRadii[] = round($lv * $maxR / 9, 1);
-  $spokeLines = []; $labelPts = []; $scorePolyPts = []; $dotPts = [];
-  foreach ($wheelDims as $i => $dim) {
-   $ad = -90 + $i * $angleStep; $ar = $ad * M_PI / 180;
-   $spokeLines[] = ['x' => round($cxW + $maxR * cos($ar), 1), 'y' => round($cyW + $maxR * sin($ar), 1)];
-   $labelPts[] = ['x' => round($cxW + $labelR * cos($ar), 1), 'y' => round($cyW + $labelR * sin($ar), 1), 'd' => $dim];
-   $v = $scores[$dim] ?? 0; $sr2 = ($v / 9) * $maxR;
-   $sx = round($cxW + $sr2 * cos($ar), 1); $sy = round($cyW + $sr2 * sin($ar), 1);
-   $scorePolyPts[] = "{$sx},{$sy}"; $dotPts[] = ['x' => $sx, 'y' => $sy, 'v' => $v];
+  $imgSz = 500; $cx = 250; $cy = 250;
+  $maxR = 160; $ringIn = 167; $ringOut = 195; $lblR = 215;
+  $nDim = 20; $aStep = 360 / $nDim;
+
+  $img = imagecreatetruecolor($imgSz, $imgSz);
+  imagesavealpha($img, true);
+  imagealphablending($img, true);
+  imageantialias($img, true);
+
+  $white   = imagecolorallocate($img, 255, 255, 255);
+  $gLight  = imagecolorallocate($img, 221, 227, 234);
+  $gBold   = imagecolorallocate($img, 165, 180, 196);
+  $purple  = imagecolorallocate($img, 124, 58, 237);
+  $pFill   = imagecolorallocatealpha($img, 196, 181, 253, 65);
+  $dkText  = imagecolorallocate($img, 30, 41, 59);
+  $mutText = imagecolorallocate($img, 148, 163, 184);
+  $wh      = imagecolorallocate($img, 255, 255, 255);
+  imagefill($img, 0, 0, $white);
+
+  // Grid circles
+  for ($lv = 1; $lv <= 9; $lv++) {
+   $r = (int)round($lv * $maxR / 9);
+   $c = ($lv % 3 === 0) ? $gBold : $gLight;
+   imagesetthickness($img, ($lv % 3 === 0) ? 2 : 1);
+   imagearc($img, $cx, $cy, $r * 2, $r * 2, 0, 360, $c);
   }
-  $polyStr = implode(' ', $scorePolyPts);
+  imagesetthickness($img, 1);
 
-  $arcPaths = [];
+  // Spokes
+  foreach ($wheelDims as $i => $dm) {
+   $ar = deg2rad(-90 + $i * $aStep);
+   imageline($img, $cx, $cy, (int)round($cx + $maxR * cos($ar)), (int)round($cy + $maxR * sin($ar)), $gLight);
+  }
+
+  // Category ring arcs (polygon approximation)
   foreach ($catDefs as $cat) {
-   $sd = -90 + $cat['start'] * $angleStep - $angleStep / 2;
-   $ed = -90 + ($cat['start'] + $cat['count']) * $angleStep - $angleStep / 2;
-   $arcPaths[] = ['d' => $makeArc($cxW, $cyW, $ringInner, $ringOuter, $sd, $ed), 'fill' => $cat['fill'], 'stroke' => $cat['stroke']];
+   $sd = -90 + $cat['start'] * $aStep - $aStep / 2;
+   $ed = -90 + ($cat['start'] + $cat['count']) * $aStep - $aStep / 2;
+   $steps = 50;
+   $pts = [];
+   for ($j = 0; $j <= $steps; $j++) {
+    $a = deg2rad($sd + ($ed - $sd) * $j / $steps);
+    $pts[] = (int)round($cx + $ringOut * cos($a));
+    $pts[] = (int)round($cy + $ringOut * sin($a));
+   }
+   for ($j = $steps; $j >= 0; $j--) {
+    $a = deg2rad($sd + ($ed - $sd) * $j / $steps);
+    $pts[] = (int)round($cx + $ringIn * cos($a));
+    $pts[] = (int)round($cy + $ringIn * sin($a));
+   }
+   $fRgb = $hexRgb($cat['fill']); $sRgb = $hexRgb($cat['stroke']);
+   $fc = imagecolorallocate($img, $fRgb[0], $fRgb[1], $fRgb[2]);
+   $sc = imagecolorallocate($img, $sRgb[0], $sRgb[1], $sRgb[2]);
+   imagefilledpolygon($img, $pts, $fc);
+   imagesetthickness($img, 2);
+   imagepolygon($img, $pts, $sc);
+   imagesetthickness($img, 1);
   }
+
+  // Score polygon
+  $polyPts = []; $dotXY = [];
+  foreach ($wheelDims as $i => $dm) {
+   $ar = deg2rad(-90 + $i * $aStep);
+   $v = $scores[$dm] ?? 0;
+   $sr = ($v / 9) * $maxR;
+   $polyPts[] = (int)round($cx + $sr * cos($ar));
+   $polyPts[] = (int)round($cy + $sr * sin($ar));
+   $dotXY[] = [(int)round($cx + $sr * cos($ar)), (int)round($cy + $sr * sin($ar))];
+  }
+  imagefilledpolygon($img, $polyPts, $pFill);
+  imagesetthickness($img, 2);
+  imagepolygon($img, $polyPts, $purple);
+  imagesetthickness($img, 1);
+
+  // Score dots
+  foreach ($dotXY as $d) {
+   imagefilledellipse($img, $d[0], $d[1], 10, 10, $purple);
+   imagefilledellipse($img, $d[0], $d[1], 5, 5, $wh);
+  }
+
+  // Dimension labels
+  foreach ($wheelDims as $i => $dm) {
+   $ar = deg2rad(-90 + $i * $aStep);
+   $lx = (int)round($cx + $lblR * cos($ar));
+   $ly = (int)round($cy + $lblR * sin($ar));
+   $fw = strlen($dm) * imagefontwidth(5);
+   $fh = imagefontheight(5);
+   imagestring($img, 5, $lx - (int)($fw / 2), $ly - (int)($fh / 2), $dm, $dkText);
+  }
+
+  // Grid level numbers
+  for ($lv = 3; $lv <= 9; $lv += 3) {
+   $lvR = (int)round($lv * $maxR / 9);
+   imagestring($img, 2, $cx + 5, $cy - $lvR - 7, (string)$lv, $mutText);
+  }
+
+  ob_start();
+  imagepng($img);
+  $pngData = ob_get_clean();
+  imagedestroy($img);
+  $chartBase64 = 'data:image/png;base64,' . base64_encode($pngData);
  @endphp
 
  <div class="section-title">Diagram PAPIKOSTIK (Psychogram)</div>
 
  <div style="text-align:center;margin-bottom:10px;">
- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 440" width="360" height="360">
-  <!-- Grid circles -->
-  @foreach($gridRadii as $idx => $gr)
-  <circle cx="{{ $cxW }}" cy="{{ $cyW }}" r="{{ $gr }}" fill="none" stroke="{{ ($idx + 1) % 3 === 0 ? '#a5b4c4' : '#dde3ea' }}" stroke-width="{{ ($idx + 1) % 3 === 0 ? '0.8' : '0.4' }}"/>
-  @endforeach
-  <!-- Spokes -->
-  @foreach($spokeLines as $sp)
-  <line x1="{{ $cxW }}" y1="{{ $cyW }}" x2="{{ $sp['x'] }}" y2="{{ $sp['y'] }}" stroke="#dde3ea" stroke-width="0.4"/>
-  @endforeach
-  <!-- Category ring arcs -->
-  @foreach($arcPaths as $arc)
-  <path d="{{ $arc['d'] }}" fill="{{ $arc['fill'] }}" stroke="{{ $arc['stroke'] }}" stroke-width="1.5"/>
-  @endforeach
-  <!-- Score polygon -->
-  <polygon points="{{ $polyStr }}" fill="#c4b5fd" fill-opacity="0.45" stroke="#7c3aed" stroke-width="2"/>
-  <!-- Score dots -->
-  @foreach($dotPts as $dot)
-  <circle cx="{{ $dot['x'] }}" cy="{{ $dot['y'] }}" r="4" fill="#7c3aed" stroke="#ffffff" stroke-width="1"/>
-  @endforeach
-  <!-- Dimension labels -->
-  @foreach($labelPts as $lbl)
-  <text x="{{ $lbl['x'] }}" y="{{ $lbl['y'] }}" text-anchor="middle" dy="4" font-size="11" font-weight="bold" fill="#1e293b" font-family="Helvetica, Arial, sans-serif">{{ $lbl['d'] }}</text>
-  @endforeach
-  <!-- Grid level labels -->
-  @for($lv = 3; $lv <= 9; $lv += 3)
-  @php $lvR = round($lv * $maxR / 9, 1); @endphp
-  <text x="{{ $cxW + 6 }}" y="{{ $cyW - $lvR + 3 }}" font-size="7" fill="#94a3b8" font-family="Helvetica, Arial, sans-serif">{{ $lv }}</text>
-  @endfor
- </svg>
+  <img src="{{ $chartBase64 }}" width="380" height="380" style="display:inline-block;">
  </div>
 
  <!-- Category legend -->

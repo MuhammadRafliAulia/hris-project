@@ -1135,6 +1135,26 @@ class BankController extends Controller
         return $pdf->download($fileName);
     }
 
+    public function exportReportPdf(Bank $bank, ParticipantResponse $response)
+    {
+        $this->authorize('view', $bank);
+
+        if ($response->bank_id !== $bank->id) {
+            abort(404);
+        }
+
+        $subTests = $bank->subTests()->with(['questions'])->get();
+
+        $pdf = Pdf::loadView('banks.report-pdf', compact('bank', 'response', 'subTests'));
+        $pdf->setPaper('A4', 'portrait');
+
+        $fileName = 'laporan_' . str_replace(' ', '_', $response->participant_name) . '_' . date('Ymd') . '.pdf';
+
+        ActivityLog::log('export', 'bank', 'Export Laporan PDF: ' . $response->participant_name);
+
+        return $pdf->download($fileName);
+    }
+
     /**
      * Export all participant results as Excel (.xlsx) - Google Forms style.
      * Includes full question text, answer options, and participant answers.
