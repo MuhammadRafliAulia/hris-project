@@ -191,6 +191,31 @@
  </div>
  </div>
  <div class="option">
+ <label for="option_f">Opsi F</label>
+ <input type="text" id="option_f" name="option_f" value="{{ old('option_f', $question->option_f) }}" placeholder="Masukkan opsi F">
+ @error('option_f')<div class="error">{{ $message }}</div>@enderror
+ <div style="margin-top:6px;">
+ <label style="font-size:12px;color:#64748b;">Gambar Opsi F (opsional)</label>
+ <input type="file" name="option_f_image" accept="image/*" style="font-size:12px;">
+ @if($question->option_f_image)
+ <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+ @php
+	 $opt = $question->option_f_image;
+	 if (filter_var($opt, FILTER_VALIDATE_URL)) {
+		 $optUrl = $opt;
+	 } elseif (\Illuminate\Support\Str::startsWith($opt, 'storage/')) {
+		 $optUrl = asset($opt);
+	 } else {
+		 $optUrl = asset('storage/' . ltrim($opt, '/'));
+	 }
+ @endphp
+ <img src="{{ $optUrl }}" alt="Opsi F" style="max-width:100px;max-height:60px;border-radius:4px;border:1px solid #e2e8f0;">
+ <label style="font-size:11px;color:#dc2626;cursor:pointer;"><input type="checkbox" name="remove_option_f_image" value="1"> Hapus gambar</label>
+ </div>
+ @endif
+ </div>
+ </div>
+ <div class="option">
  <label for="correct_answer">Jawaban Benar *</label>
  <select id="correct_answer" name="correct_answer">
  <option value="">-- Pilih Jawaban Benar --</option>
@@ -199,6 +224,7 @@
  <option value="C" {{ old('correct_answer', $question->correct_answer) === 'C' ? 'selected' : '' }}>C</option>
  <option value="D" {{ old('correct_answer', $question->correct_answer) === 'D' ? 'selected' : '' }}>D</option>
  <option value="E" {{ old('correct_answer', $question->correct_answer) === 'E' ? 'selected' : '' }}>E</option>
+ <option value="F" {{ old('correct_answer', $question->correct_answer) === 'F' ? 'selected' : '' }}>F</option>
  </select>
  @error('correct_answer')<div class="error">{{ $message }}</div>@enderror
  </div>
@@ -219,13 +245,13 @@
  <div class="option">
  <label for="survey_option_count">Jumlah Pilihan</label>
  <select id="survey_option_count" name="option_count" onchange="updateSurveyEditOptions()">
- @for($oc = 2; $oc <= 5; $oc++)
+ @for($oc = 2; $oc <= 6; $oc++)
  <option value="{{ $oc }}" {{ old('option_count', $question->option_count ?? 4) == $oc ? 'selected' : '' }}>{{ $oc }} Pilihan</option>
  @endfor
  </select>
  </div>
- @php $editLabels = ['A','B','C','D','E']; $editFields = ['option_a','option_b','option_c','option_d','option_e']; @endphp
- @for($ei = 0; $ei < 5; $ei++)
+ @php $editLabels = ['A','B','C','D','E','F']; $editFields = ['option_a','option_b','option_c','option_d','option_e','option_f']; @endphp
+ @for($ei = 0; $ei < 6; $ei++)
  <div class="option survey-edit-opt" id="survey_edit_opt_{{ $ei }}" style="{{ $ei >= ($question->option_count ?? 4) && $question->type === 'survey' ? 'display:none;' : '' }}">
  <label>Opsi {{ $editLabels[$ei] }}</label>
  <input type="text" name="{{ $editFields[$ei] }}" value="{{ old($editFields[$ei], $question->{$editFields[$ei]}) }}" placeholder="Opsi {{ $editLabels[$ei] }}..." class="survey-edit-input">
@@ -307,7 +333,7 @@ function toggleOptions() {
 
  function updateSurveyEditOptions() {
  var count = parseInt(document.getElementById('survey_option_count').value);
- for (var i = 0; i < 5; i++) {
+ for (var i = 0; i < 6; i++) {
  var el = document.getElementById('survey_edit_opt_' + i);
  if (i < count) {
  el.style.display = 'block';

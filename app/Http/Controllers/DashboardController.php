@@ -257,9 +257,17 @@ class DashboardController extends Controller
                 ->count();
         }
 
-        // ===== POSITION DISTRIBUTION =====
-        $positionStats = ParticipantResponse::whereIn('bank_id', $bankIds)
-            ->selectRaw("COALESCE(NULLIF(position, ''), 'Tidak Diketahui') as pos, COUNT(*) as count")
+        // ===== POSITION DISTRIBUTION (uses bank target for label) =====
+        $positionStats = ParticipantResponse::whereIn('participant_responses.bank_id', $bankIds)
+            ->join('banks', 'banks.id', '=', 'participant_responses.bank_id')
+            ->selectRaw("
+                CASE
+                    WHEN banks.target = 'calon_karyawan' THEN 'Calon Karyawan'
+                    WHEN COALESCE(NULLIF(participant_responses.position, ''), '') = '' THEN 'Tidak Diketahui'
+                    ELSE participant_responses.position
+                END as pos,
+                COUNT(*) as count
+            ")
             ->groupBy('pos')
             ->orderByDesc('count')
             ->get();
@@ -286,6 +294,7 @@ class DashboardController extends Controller
 
         // ===== VIOLATION / CHEAT ANALYTICS =====
         $allCompleted = ParticipantResponse::whereIn('bank_id', $bankIds)
+            ->with('bank')
             ->where('completed', true)->get();
 
         // Total peserta curang (violation > 0)

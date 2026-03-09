@@ -129,6 +129,44 @@
  .confirm-btn { padding:10px 14px; border-radius:8px; font-weight:600; cursor:pointer; border:none; }
  .confirm-cancel { background:#e5e7eb; color:#0f172a; }
  .confirm-yes { background:#003e6f; color:#fff; }
+
+ /* Mobile responsive for test page */
+ @media (max-width: 768px) {
+  body { padding: 10px; }
+  .container { max-width: 100%; }
+  .card { padding: 16px; }
+  h1 { font-size: 16px; margin-bottom: 14px; }
+  .info { padding: 10px; font-size: 12px; line-height: 1.7; }
+  .timer-bar { flex-direction: column; gap: 4px; padding: 10px 14px; text-align: center; }
+  .timer-bar .timer-clock { font-size: 20px; }
+  .subtest-test-header { padding: 10px 14px; flex-direction: column; align-items: flex-start; gap: 6px; }
+  .subtest-card { padding: 14px; }
+  .subtest-card .st-title { font-size: 14px; }
+  .subtest-card .st-order { font-size: 22px; }
+  .question-text { font-size: 13px; padding: 12px; }
+  .option label { gap: 8px; }
+  .option-img { max-width: 160px; max-height: 100px; }
+  .btn-submit { padding: 13px; font-size: 15px; }
+  .btn-finish-subtest { padding: 11px 16px; font-size: 14px; }
+  .btn-back-overview { font-size: 12px; padding: 8px 12px; }
+  .example-header { padding: 14px; }
+  .example-header h2 { font-size: 15px; }
+  .example-question { padding: 12px; }
+  .confirm-modal { width: 92%; padding: 14px; }
+ }
+ @media (max-width: 480px) {
+  body { padding: 6px; }
+  .card { padding: 12px; }
+  h1 { font-size: 15px; }
+  .timer-bar .timer-clock { font-size: 18px; }
+  .subtest-test-header h3 { font-size: 12px; }
+  .st-timer { font-size: 14px; }
+  .subtest-card { padding: 10px; }
+  .subtest-card .st-title { font-size: 13px; }
+  .question-text { font-size: 12px; padding: 10px; }
+  .example-header { padding: 10px; }
+  .example-header h2 { font-size: 14px; }
+ }
  </style>
  <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
 </head>
@@ -287,11 +325,25 @@
 
  @if($eq->type === 'multiple_choice')
  <div style="font-size:13px;">
- @foreach(['A' => $eq->option_a, 'B' => $eq->option_b, 'C' => $eq->option_c, 'D' => $eq->option_d] as $k => $opt)
+ @foreach(['A' => $eq->option_a, 'B' => $eq->option_b, 'C' => $eq->option_c, 'D' => $eq->option_d, 'E' => $eq->option_e, 'F' => $eq->option_f] as $k => $opt)
  @if($opt)
+ @php $optImgField = 'option_' . strtolower($k) . '_image'; @endphp
  <div class="option" style="padding:6px 0;">
  <strong>{{ $k }}.</strong> {{ $opt }}
  @if($eq->correct_answer === $k) <span style="color:#10b981;font-weight:600;"> ✓ Benar</span> @endif
+ @if($eq->$optImgField)
+ @php
+ $optImg = $eq->$optImgField;
+ if (filter_var($optImg, FILTER_VALIDATE_URL)) {
+ $optImgUrl = $optImg;
+ } elseif (\Illuminate\Support\Str::startsWith($optImg, 'storage/')) {
+ $optImgUrl = asset($optImg);
+ } else {
+ $optImgUrl = asset('storage/' . ltrim($optImg, '/'));
+ }
+ @endphp
+ <div style="margin-top:4px;"><img src="{{ $optImgUrl }}" alt="Opsi {{ $k }}" style="max-width:200px;max-height:120px;border-radius:4px;border:1px solid #e2e8f0;"></div>
+ @endif
  </div>
  @endif
  @endforeach
@@ -301,7 +353,7 @@
  <div class="example-answer"> Jawaban yang benar: <strong>{{ $eq->correct_answer_text }}</strong></div>
  @elseif($eq->type === 'survey')
  <div style="font-size:13px;">
- @php $sLabels=['A','B','C','D','E']; $sFields=['option_a','option_b','option_c','option_d','option_e']; @endphp
+ @php $sLabels=['A','B','C','D','E','F']; $sFields=['option_a','option_b','option_c','option_d','option_e','option_f']; @endphp
  @for($si=0; $si<($eq->option_count??2); $si++)
  @if($eq->{$sFields[$si]})
  <div class="option" style="padding:6px 0;"><strong>{{ $sLabels[$si] }}.</strong> {{ $eq->{$sFields[$si]} }}</div>
@@ -383,8 +435,8 @@
  @elseif($question->type === 'survey')
  <div class="options">
  @php
- $surveyLabels = ['A','B','C','D','E'];
- $surveyFields = ['option_a','option_b','option_c','option_d','option_e'];
+ $surveyLabels = ['A','B','C','D','E','F'];
+ $surveyFields = ['option_a','option_b','option_c','option_d','option_e','option_f'];
  $optCount = $question->option_count ?? 2;
  @endphp
  @for($si = 0; $si < $optCount; $si++)
@@ -400,7 +452,8 @@
  </div>
  @else
  <div class="options">
- @foreach(['A' => $question->option_a, 'B' => $question->option_b, 'C' => $question->option_c, 'D' => $question->option_d] as $key => $option)
+ @foreach(['A' => $question->option_a, 'B' => $question->option_b, 'C' => $question->option_c, 'D' => $question->option_d, 'E' => $question->option_e, 'F' => $question->option_f] as $key => $option)
+ @if($option)
  @php $optImgField = 'option_' . strtolower($key) . '_image'; @endphp
  <div class="option">
  <label>
@@ -423,6 +476,7 @@
  </span>
  </label>
  </div>
+ @endif
  @endforeach
  </div>
  @endif
@@ -485,8 +539,8 @@
  @elseif($question->type === 'survey')
  <div class="options">
  @php
- $surveyLabels = ['A','B','C','D','E'];
- $surveyFields = ['option_a','option_b','option_c','option_d','option_e'];
+ $surveyLabels = ['A','B','C','D','E','F'];
+ $surveyFields = ['option_a','option_b','option_c','option_d','option_e','option_f'];
  $optCount = $question->option_count ?? 2;
  @endphp
  @for($si = 0; $si < $optCount; $si++)
@@ -502,7 +556,8 @@
  </div>
  @else
  <div class="options">
- @foreach(['A' => $question->option_a, 'B' => $question->option_b, 'C' => $question->option_c, 'D' => $question->option_d] as $key => $option)
+ @foreach(['A' => $question->option_a, 'B' => $question->option_b, 'C' => $question->option_c, 'D' => $question->option_d, 'E' => $question->option_e, 'F' => $question->option_f] as $key => $option)
+ @if($option)
  @php $optImgField = 'option_' . strtolower($key) . '_image'; @endphp
  <div class="option">
  <label>
@@ -515,6 +570,7 @@
  </span>
  </label>
  </div>
+ @endif
  @endforeach
  </div>
  @endif

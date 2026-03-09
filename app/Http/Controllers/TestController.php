@@ -96,8 +96,8 @@ class TestController extends Controller
             $rules = [
                 'participant_name' => 'required|string|max:255',
                 'participant_email' => 'required|email|max:255',
-                'phone' => 'required|string|max:20',
-                'address' => 'required|string|max:2000',
+                'birth_place' => 'required|string|max:255',
+                'birth_date' => 'required|date|before:today',
             ];
         } else {
             $rules = [
@@ -149,8 +149,8 @@ class TestController extends Controller
                 'bank_id' => $bank->id,
                 'participant_name' => $validated['participant_name'],
                 'participant_email' => $validated['participant_email'],
-                'phone' => $validated['phone'],
-                'address' => $validated['address'],
+                'birth_place' => $validated['birth_place'],
+                'birth_date' => $validated['birth_date'],
                 'token' => $token,
                 'started_at' => now(),
             ];
@@ -192,6 +192,8 @@ class TestController extends Controller
             $existingAny->participant_name = $createData['participant_name'] ?? $existingAny->participant_name;
             $existingAny->phone = $createData['phone'] ?? $existingAny->phone;
             $existingAny->address = $createData['address'] ?? $existingAny->address;
+            $existingAny->birth_place = $createData['birth_place'] ?? $existingAny->birth_place;
+            $existingAny->birth_date = $createData['birth_date'] ?? $existingAny->birth_date;
             $existingAny->nik = $createData['nik'] ?? $existingAny->nik;
             $existingAny->department = $createData['department'] ?? $existingAny->department;
             $existingAny->position = $createData['position'] ?? $existingAny->position;

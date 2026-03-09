@@ -34,16 +34,36 @@
       .card{max-width:980px}
     }
     @media (max-width: 768px) {
-      body{padding:12px}
-      .card{margin:12px;padding:14px}
-      .preview-iframe { height:380px; min-height:320px; }
-      .preview-wrap { height:380px; min-height:320px; }
+      body{padding:10px}
+      .card{margin:8px;padding:14px}
+      h2{font-size:16px}
+      p{font-size:13px}
+      label{font-size:13px}
+      input{padding:10px 12px;font-size:14px;max-width:100%}
+      .preview-iframe { height:320px; min-height:260px; }
+      .preview-wrap { height:320px; min-height:260px; }
       .sig-row { flex-direction:column; }
       .sig-left { width:100%; }
       .sig-right { width:100%; }
-      .btn{width:100%;}
+      .sig-panel{padding:10px}
+      .sig-canvas-wrap{padding:6px}
+      .btn{width:100%;text-align:center;box-sizing:border-box}
       .btn-reject{margin-left:0;margin-top:8px}
-      .modal-center > div { width:100%; max-width:560px; }
+      .btn-ghost{width:100%;text-align:center}
+      .section-title{font-size:14px}
+      .form-fields{padding:8px 0}
+      .form-fields input{max-width:100%}
+      .modal-center > div { width:95%; max-width:100%; padding:16px; }
+      .modal-center h3{font-size:15px}
+      .modal-center textarea{font-size:13px}
+    }
+    @media (max-width: 400px) {
+      body{padding:6px}
+      .card{margin:4px;padding:10px}
+      h2{font-size:15px}
+      input{padding:8px 10px;font-size:13px}
+      .preview-iframe { height:260px; min-height:220px; }
+      .preview-wrap { height:260px; min-height:220px; }
     }
   </style>
 </head>

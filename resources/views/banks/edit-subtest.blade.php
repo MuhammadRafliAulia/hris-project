@@ -132,10 +132,23 @@
  </div>
  @if($eq->type === 'multiple_choice')
  <div style="font-size:12px;margin-top:8px;">
- <div class="option"><strong>A.</strong> {{ Str::limit($eq->option_a, 50) }}</div>
- <div class="option"><strong>B.</strong> {{ Str::limit($eq->option_b, 50) }}</div>
- <div class="option"><strong>C.</strong> {{ Str::limit($eq->option_c, 50) }}</div>
- <div class="option"><strong>D.</strong> {{ Str::limit($eq->option_d, 50) }}</div>
+ @foreach(['A' => 'option_a', 'B' => 'option_b', 'C' => 'option_c', 'D' => 'option_d', 'E' => 'option_e', 'F' => 'option_f'] as $lbl => $fld)
+ @if($eq->$fld)
+ <div class="option">
+ <strong>{{ $lbl }}.</strong> {{ Str::limit($eq->$fld, 50) }}
+ @php $oImg = $fld . '_image'; @endphp
+ @if($eq->$oImg)
+ @php
+ $oi = $eq->$oImg;
+ if (filter_var($oi, FILTER_VALIDATE_URL)) { $oiUrl = $oi; }
+ elseif (\Illuminate\Support\Str::startsWith($oi, 'storage/')) { $oiUrl = asset($oi); }
+ else { $oiUrl = asset('storage/' . ltrim($oi, '/')); }
+ @endphp
+ <img src="{{ $oiUrl }}" alt="Opsi {{ $lbl }}" style="max-width:60px;max-height:40px;border-radius:3px;border:1px solid #e2e8f0;vertical-align:middle;margin-left:6px;">
+ @endif
+ </div>
+ @endif
+ @endforeach
  <div style="background:#d1fae5;padding:6px 8px;border-radius:4px;margin-top:4px;color:#065f46;font-size:11px;">
  Jawaban Benar: <strong>{{ $eq->correct_answer }}</strong>
  </div>
@@ -181,10 +194,23 @@
  </div>
  @if($question->type === 'multiple_choice')
  <div style="font-size:12px;margin-top:8px;">
- <div class="option"><strong>A.</strong> {{ Str::limit($question->option_a, 50) }}</div>
- <div class="option"><strong>B.</strong> {{ Str::limit($question->option_b, 50) }}</div>
- <div class="option"><strong>C.</strong> {{ Str::limit($question->option_c, 50) }}</div>
- <div class="option"><strong>D.</strong> {{ Str::limit($question->option_d, 50) }}</div>
+ @foreach(['A' => 'option_a', 'B' => 'option_b', 'C' => 'option_c', 'D' => 'option_d', 'E' => 'option_e', 'F' => 'option_f'] as $lbl => $fld)
+ @if($question->$fld)
+ <div class="option">
+ <strong>{{ $lbl }}.</strong> {{ Str::limit($question->$fld, 50) }}
+ @php $oImg = $fld . '_image'; @endphp
+ @if($question->$oImg)
+ @php
+ $oi = $question->$oImg;
+ if (filter_var($oi, FILTER_VALIDATE_URL)) { $oiUrl = $oi; }
+ elseif (\Illuminate\Support\Str::startsWith($oi, 'storage/')) { $oiUrl = asset($oi); }
+ else { $oiUrl = asset('storage/' . ltrim($oi, '/')); }
+ @endphp
+ <img src="{{ $oiUrl }}" alt="Opsi {{ $lbl }}" style="max-width:60px;max-height:40px;border-radius:3px;border:1px solid #e2e8f0;vertical-align:middle;margin-left:6px;">
+ @endif
+ </div>
+ @endif
+ @endforeach
  <div style="background:#f1f5f9;padding:6px 8px;border-radius:4px;margin-top:4px;font-size:11px;">
  Jawaban Benar: <strong style="color:#003e6f;">{{ $question->correct_answer }}</strong>
  </div>
@@ -193,7 +219,7 @@
  <div style="font-size:12px;background:#f1f5f9;padding:6px 8px;border-radius:4px;margin-top:8px;">Jawaban: {{ $question->correct_answer_text }}</div>
  @elseif($question->type === 'survey')
  <div style="font-size:12px;margin-top:8px;">
- @php $sLabels=['A','B','C','D','E']; $sFields=['option_a','option_b','option_c','option_d','option_e']; @endphp
+ @php $sLabels=['A','B','C','D','E','F']; $sFields=['option_a','option_b','option_c','option_d','option_e','option_f']; @endphp
  @for($si=0; $si<($question->option_count??2); $si++)
  @if($question->{$sFields[$si]}) <div class="option"><strong>{{ $sLabels[$si] }}.</strong> {{ Str::limit($question->{$sFields[$si]}, 50) }}</div> @endif
  @endfor
@@ -272,10 +298,12 @@
  <div style="margin-top:6px;"><label style="font-size:12px;color:#64748b;margin-bottom:4px;">Gambar Opsi D (opsional)</label><input type="file" name="option_d_image" accept="image/*" style="font-size:12px;"></div></div>
  <div class="form-group"><label>Opsi E</label><input type="text" name="option_e" placeholder="Opsi E...">
  <div style="margin-top:6px;"><label style="font-size:12px;color:#64748b;margin-bottom:4px;">Gambar Opsi E (opsional)</label><input type="file" name="option_e_image" accept="image/*" style="font-size:12px;"></div></div>
+ <div class="form-group"><label>Opsi F</label><input type="text" name="option_f" placeholder="Opsi F...">
+ <div style="margin-top:6px;"><label style="font-size:12px;color:#64748b;margin-bottom:4px;">Gambar Opsi F (opsional)</label><input type="file" name="option_f_image" accept="image/*" style="font-size:12px;"></div></div>
  <div class="form-group">
  <label>Jawaban Benar</label>
  <select name="correct_answer" style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:6px;">
- <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option>
+ <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option>
  </select>
  </div>
  </div>
@@ -287,10 +315,10 @@
  <div class="form-group">
  <label>Jumlah Pilihan</label>
  <select id="option_count" name="option_count">
- <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option>
+ <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
  </select>
  </div>
- @foreach(['a','b','c','d','e'] as $si => $letter)
+ @foreach(['a','b','c','d','e','f'] as $si => $letter)
  <div id="survey_opt_{{ $letter }}" class="form-group" style="{{ $si >= 4 ? 'display:none;' : '' }}">
  <label>Opsi {{ strtoupper($letter) }}</label>
  <input type="text" name="option_{{ $letter }}" placeholder="Opsi {{ strtoupper($letter) }}..." class="survey-option-input">
@@ -350,9 +378,14 @@
 		 textOpt.style.display = 'block';
 	 }
 
-	 // For all text/select inputs inside the MC block, require only if visible
+	 // For all text/select inputs inside the MC block, require only if visible (except optional E/F)
 	 mcOpts.querySelectorAll('input[type="text"], select').forEach(function(i) {
-		 setRequiredIfVisible(i, true);
+		 var n = i.getAttribute('name');
+		 if (n === 'option_e' || n === 'option_f') {
+			 i.removeAttribute('required');
+		 } else {
+			 setRequiredIfVisible(i, true);
+		 }
 	 });
 
 	 // Survey options: require only visible option inputs
@@ -366,7 +399,7 @@
 
  function updateSurveyOpts() {
 	 var c = parseInt(optCountSelect.value);
-	 ['a','b','c','d','e'].forEach(function(l, i) {
+	 ['a','b','c','d','e','f'].forEach(function(l, i) {
 		 var el = document.getElementById('survey_opt_' + l);
 		 var inp = el.querySelector('input');
 		 if (i < c) {
@@ -388,7 +421,7 @@
 // Ensure values are explicitly posted: copy visible values into `_posted_*` hidden fields before submit
 document.getElementById('addQuestionForm').addEventListener('submit', function(e){
 	var form = this;
-	var names = ['question','option_a','option_b','option_c','option_d','option_e','correct_answer','option_count','correct_answer_text'];
+	var names = ['question','option_a','option_b','option_c','option_d','option_e','option_f','correct_answer','option_count','correct_answer_text'];
 	names.forEach(function(n){
 		var src = form.querySelector('[name="' + n + '"]');
 		var val = src ? (typeof src.value !== 'undefined' ? src.value : '') : '';

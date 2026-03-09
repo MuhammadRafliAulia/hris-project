@@ -10,10 +10,21 @@
  .container{max-width:600px;margin:40px auto}
  .card{background:#fff;border:1px solid #e6eef6;padding:28px;border-radius:10px}
  label{display:block;margin-bottom:8px;color:#334155;font-weight:600}
- input[type=text],input[type=email],input[type=tel],textarea,select{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;margin-bottom:12px}
+ input[type=text],input[type=email],input[type=tel],textarea,select{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;margin-bottom:12px;box-sizing:border-box}
  textarea{min-height:100px}
  .btn{background:#003e6f;color:#fff;padding:10px 14px;border-radius:8px;border:none;cursor:pointer;width:100%}
  .info{font-size:13px;color:#64748b;margin-top:8px}
+ @media (max-width: 768px) {
+   body{padding:12px}
+   .container{margin:16px auto;max-width:100%}
+   .card{padding:20px 14px}
+   input[type=text],input[type=email],input[type=tel],textarea,select{font-size:16px;padding:11px 12px}
+   .btn{font-size:16px;padding:12px}
+ }
+ @media (max-width: 400px) {
+   body{padding:8px}
+   .card{padding:16px 10px}
+ }
  </style>
 </head>
 <body>
@@ -35,13 +46,14 @@
       <label for="participant_email">Email *</label>
       <input id="participant_email" name="participant_email" type="email" value="{{ old('participant_email') }}" required>
 
-      <label for="phone">Nomor Telepon *</label>
-      <input id="phone" name="phone" type="tel" value="{{ old('phone') }}" required>
+      <label for="birth_place">Tempat Lahir *</label>
+      <input id="birth_place" name="birth_place" type="text" value="{{ old('birth_place') }}" placeholder="Contoh: Jakarta" required>
 
-      <label for="address">Alamat *</label>
-      <textarea id="address" name="address" required>{{ old('address') }}</textarea>
+      <label for="birth_date">Tanggal Lahir *</label>
+      <input id="birth_date" name="birth_date" type="date" value="{{ old('birth_date') }}" required onchange="calcAge()">
 
-      <!-- For calon_karyawan we don't collect NIK / Departemen / Jabatan -->
+      <label>Usia</label>
+      <input id="usia_display" type="text" readonly style="background:#f1f5f9;color:#64748b;" placeholder="Otomatis dari tanggal lahir">
 
       <button class="btn" type="submit">Lanjutkan ke Tes</button>
     </form>
@@ -51,9 +63,9 @@
  </div>
 
 <!-- Modal Tata Tertib -->
-<div id="rulesModal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.6);backdrop-filter:blur(2px);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-  <div style="max-width:720px;width:100%;background:#fff;border-radius:12px;padding:22px;box-shadow:0 20px 60px rgba(2,6,23,0.4);">
-    <h2 style="margin:0 0 12px 0">Tata Tertib Mengikuti Assessment</h2>
+<div id="rulesModal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.6);backdrop-filter:blur(2px);z-index:9999;align-items:center;justify-content:center;padding:12px;">
+  <div style="max-width:720px;width:100%;background:#fff;border-radius:12px;padding:20px;box-shadow:0 20px 60px rgba(2,6,23,0.4);max-height:90vh;overflow-y:auto;">
+    <h2 style="margin:0 0 12px 0;font-size:18px;">Tata Tertib Mengikuti Assessment</h2>
     <ul style="color:#0f172a;margin:12px 0 18px 18px;line-height:1.6">
       <li>Peserta wajib hadir tepat waktu dan mengikuti instruksi pengawas.</li>
       <li>Peserta dilarang berganti tab/browser selama assessment berlangsung.</li>
@@ -62,12 +74,25 @@
       <li>Peserta wajib mengerjakan assessment secara mandiri tanpa bantuan pihak lain.</li>
       <li>Pelanggaran terhadap tata tertib ini dapat berakibat pada pembatalan hasil assessment.</li>
     </ul>
-    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px">
-      <button id="rulesCancel" style="background:#f1f5f9;border:none;padding:10px 14px;border-radius:8px;cursor:pointer">Batal</button>
-      <button id="rulesAccept" style="background:#003e6f;color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer">Saya Setuju, Lanjutkan ke Tes</button>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap">
+      <button id="rulesCancel" style="background:#f1f5f9;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;flex:1;min-width:100px">Batal</button>
+      <button id="rulesAccept" style="background:#003e6f;color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;flex:1;min-width:100px">Saya Setuju, Lanjutkan ke Tes</button>
     </div>
   </div>
 </div>
+
+<script>
+  function calcAge(){
+    var bd = document.getElementById('birth_date').value;
+    if(!bd) { document.getElementById('usia_display').value=''; return; }
+    var today = new Date(), dob = new Date(bd);
+    var age = today.getFullYear() - dob.getFullYear();
+    var m = today.getMonth() - dob.getMonth();
+    if(m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    document.getElementById('usia_display').value = age + ' tahun';
+  }
+  calcAge();
+</script>
 
 <script>
   (function(){

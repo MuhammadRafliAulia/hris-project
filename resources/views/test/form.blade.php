@@ -96,6 +96,21 @@
  color: #64748b;
  margin-top: 6px;
  }
+ /* Mobile */
+ @media (max-width: 768px) {
+ body { padding: 12px; }
+ .container { max-width: 100%; }
+ .card { padding: 24px 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+ .header h1 { font-size: 20px; }
+ .header p { font-size: 13px; }
+ input[type="text"], input[type="email"], input[type="tel"], select { font-size: 16px; padding: 11px 12px; }
+ .btn { font-size: 16px; padding: 13px; }
+ }
+ @media (max-width: 400px) {
+ body { padding: 8px; }
+ .card { padding: 18px 12px; }
+ .header h1 { font-size: 18px; }
+ }
  </style>
  <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
 </head>
@@ -210,9 +225,9 @@
  </div>
 
 <!-- Modal Tata Tertib -->
-<div id="rulesModal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.6);backdrop-filter:blur(2px);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-	<div style="max-width:720px;width:100%;background:#fff;border-radius:12px;padding:22px;box-shadow:0 20px 60px rgba(2,6,23,0.4);">
-		<h2 style="margin:0 0 12px 0">Tata Tertib Mengikuti Assessment</h2>
+<div id="rulesModal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.6);backdrop-filter:blur(2px);z-index:9999;align-items:center;justify-content:center;padding:12px;">
+	<div style="max-width:720px;width:100%;background:#fff;border-radius:12px;padding:20px;box-shadow:0 20px 60px rgba(2,6,23,0.4);max-height:90vh;overflow-y:auto;">
+		<h2 style="margin:0 0 12px 0;font-size:18px;">Tata Tertib Mengikuti Assessment</h2>
 		<ul style="color:#0f172a;margin:12px 0 18px 18px;line-height:1.6">
 			<li>Peserta wajib hadir tepat waktu dan mengikuti instruksi pengawas.</li>
 			<li>Peserta dilarang berganti tab/browser selama assessment berlangsung.</li>
@@ -221,9 +236,9 @@
 			<li>Peserta wajib mengerjakan assessment secara mandiri tanpa bantuan pihak lain.</li>
 			<li>Pelanggaran terhadap tata tertib ini dapat berakibat pada pembatalan hasil assessment.</li>
 		</ul>
-		<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px">
-			<button id="rulesCancel" style="background:#f1f5f9;border:none;padding:10px 14px;border-radius:8px;cursor:pointer">Batal</button>
-			<button id="rulesAccept" style="background:#003e6f;color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer">Saya Setuju, Lanjutkan ke Tes</button>
+		<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap">
+			<button id="rulesCancel" style="background:#f1f5f9;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;flex:1;min-width:100px">Batal</button>
+			<button id="rulesAccept" style="background:#003e6f;color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;flex:1;min-width:100px">Saya Setuju, Lanjutkan ke Tes</button>
 		</div>
 	</div>
 </div>

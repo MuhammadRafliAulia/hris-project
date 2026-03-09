@@ -208,9 +208,26 @@
   .sig-grid {
     grid-template-columns: 1fr !important;
   }
+  .sig-full {
+    grid-column: 1 !important;
+  }
   .sig-canvas-wrap canvas {
     width: 100% !important;
     height: auto !important;
+  }
+  .sig-section {
+    padding: 12px !important;
+  }
+  .sig-section h3 {
+    font-size: 12px !important;
+  }
+
+  /* Warning letter sign page buttons */
+  .signed-preview {
+    padding: 12px !important;
+  }
+  .signed-preview .sig-img {
+    max-width: 120px !important;
   }
 
   /* SP badges / status */
@@ -279,10 +296,79 @@
     font-size: 20px !important;
   }
 
+  /* Sub-test header sticky */
+  .subtest-test-header {
+    padding: 10px 14px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+  }
+  .subtest-test-header h3 {
+    font-size: 13px !important;
+  }
+  .st-timer {
+    font-size: 16px !important;
+  }
+
+  /* Sub-test cards */
+  .subtest-card {
+    padding: 14px !important;
+  }
+  .subtest-card .st-title {
+    font-size: 14px !important;
+  }
+  .subtest-card .st-desc {
+    font-size: 11px !important;
+  }
+  .subtest-card .st-order {
+    font-size: 22px !important;
+  }
+  .subtest-card .st-meta {
+    font-size: 10px !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* Example screen */
+  .example-header {
+    padding: 14px !important;
+    border-radius: 8px !important;
+  }
+  .example-header h2 {
+    font-size: 15px !important;
+  }
+  .example-header p {
+    font-size: 12px !important;
+  }
+  .example-question {
+    padding: 12px !important;
+  }
+  .btn-start-test {
+    font-size: 14px !important;
+    padding: 12px 16px !important;
+  }
+  .btn-finish-subtest {
+    font-size: 14px !important;
+    padding: 10px 16px !important;
+  }
+  .btn-back-overview {
+    font-size: 12px !important;
+    padding: 8px 12px !important;
+  }
+
   /* Question text */
   .question-text {
     font-size: 13px !important;
     padding: 12px !important;
+  }
+
+  /* Question images responsive */
+  .question-block img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  .option-img {
+    max-width: 160px !important;
+    max-height: 100px !important;
   }
 
   /* Audio player full width */
@@ -304,6 +390,30 @@
   }
   .option label span {
     word-break: break-word !important;
+  }
+
+  /* Anti-cheat warning */
+  #anti-cheat-warning .acw-box {
+    padding: 20px !important;
+    max-width: 90% !important;
+  }
+  #anti-cheat-warning .acw-title {
+    font-size: 16px !important;
+  }
+  #anti-cheat-warning .acw-msg {
+    font-size: 12px !important;
+  }
+
+  /* Confirm modal */
+  .confirm-modal {
+    width: 95% !important;
+    padding: 14px !important;
+  }
+  .confirm-modal h3 {
+    font-size: 16px !important;
+  }
+  .confirm-modal p {
+    font-size: 13px !important;
   }
 
   /* Standalone pages (banks create/edit/edit-question) */
@@ -346,5 +456,26 @@
   }
   .option label span {
     font-size: 13px !important;
+  }
+  .subtest-test-header {
+    padding: 8px 10px !important;
+  }
+  .subtest-test-header h3 {
+    font-size: 12px !important;
+  }
+  .st-timer {
+    font-size: 14px !important;
+  }
+  .subtest-card {
+    padding: 10px !important;
+  }
+  .subtest-card .st-title {
+    font-size: 13px !important;
+  }
+  .example-header {
+    padding: 10px !important;
+  }
+  .example-header h2 {
+    font-size: 14px !important;
   }
 }

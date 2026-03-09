@@ -67,6 +67,50 @@
     .signed-preview h3 { font-size:13px; color:#065f46; margin:0 0 8px 0; display:flex; align-items:center; gap:6px; }
     .signed-preview .sig-info { font-size:12px; color:#475569; margin-bottom:4px; }
     .signed-preview .sig-img { max-width:150px; max-height:55px; border:1px solid #e2e8f0; border-radius:4px; background:#fff; padding:4px; }
+
+    /* === MOBILE ≤768px === */
+    @media (max-width: 768px) {
+      body { flex-direction: column; height: auto; min-height: 100vh; }
+      .sidebar { display: none; }
+      .main { width: 100%; }
+      .topbar { padding: 14px 16px; }
+      .topbar h1 { font-size: 16px; }
+      .content { padding: 12px; }
+      .card { padding: 16px; max-width: 100%; }
+      h2 { font-size: 16px; margin-bottom: 14px; }
+      .info-box { font-size: 12px; padding: 10px 12px; }
+      .letter-summary { padding: 10px 12px; }
+      .letter-summary td { padding: 3px 6px; font-size: 12px; }
+      .letter-summary .lbl { width: 100px; font-size: 12px; }
+      .sig-grid { grid-template-columns: 1fr !important; gap: 12px; }
+      .sig-section { padding: 12px; }
+      .sig-section h3 { font-size: 12px; }
+      .sig-section.main-sig { padding: 12px; }
+      .sig-canvas-wrap canvas { height: 100px; }
+      .sig-tabs .sig-tab { font-size: 10px; padding: 6px 0; }
+      .upload-zone { min-height: 100px; padding: 12px; }
+      .upload-zone .upload-text { font-size: 10px; }
+      .upload-zone .upload-hint { font-size: 9px; }
+      label { font-size: 12px; }
+      input { font-size: 13px; padding: 8px 10px; }
+      .btn { font-size: 13px; padding: 10px 14px; width: 100%; text-align: center; box-sizing: border-box; }
+      .btn-cancel { margin-left: 0; margin-top: 8px; width: 100%; text-align: center; }
+    }
+    /* Link generation row mobile */
+    @media (max-width: 768px) {
+      .link-row-mobile { flex-wrap: wrap !important; }
+      .link-row-mobile input { min-width: 0 !important; flex: 1 1 100% !important; margin-bottom: 6px; }
+      .link-row-mobile .btn { flex: 1 1 calc(50% - 4px) !important; font-size: 12px !important; padding: 8px 10px !important; }
+    }
+    @media (max-width: 400px) {
+      .content { padding: 8px; }
+      .card { padding: 12px; }
+      .letter-summary td { font-size: 11px; }
+      .letter-summary .lbl { width: 80px; }
+      .sig-section { padding: 10px; }
+      label { font-size: 11px; }
+      input { font-size: 12px; padding: 7px 8px; }
+    }
   </style>
   <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
 </head>
@@ -195,7 +239,7 @@
                     $link = \Illuminate\Support\Facades\URL::temporarySignedRoute('warning-letters.approval', now()->addDays(14), ['warning_letter' => $warningLetter->id, 'layer' => $num]);
                   @endphp
                   <label>Generate Link (Layer {{ $num }}) — berlaku 14 hari</label>
-                  <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+                  <div class="link-row-mobile" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
                     <input type="text" id="linkInput{{ $num }}" value="{{ $link }}" readonly style="flex:1;padding:8px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;">
                     <button type="button" class="btn" onclick="copyLink({{ $num }})">Salin</button>
                     <a href="{{ $link }}" target="_blank" rel="noopener" class="btn" style="background:#10b981;">Buka</a>
@@ -255,7 +299,7 @@
             @endforeach
           </div>
 
-          <div style="margin-top:24px;">
+          <div style="margin-top:24px;display:flex;flex-wrap:wrap;gap:8px;">
             @if($allowInline)
               @if($signMode === 'admin_prod')
                 <button type="submit" class="btn" onclick="return prepareSubmit()">📤 Tandatangani & Kirim ke HR</button>

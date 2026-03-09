@@ -265,8 +265,8 @@
             @foreach($recentParticipants as $p)
             <tr>
               <td style="font-weight:500;color:#0f172a;">{{ $p->participant_name }}</td>
-              <td>{{ $p->nik ?? '-' }}</td>
-              <td>{{ $p->department ?? $p->position ?? '-' }}</td>
+              <td>{{ $p->participant_email ?? $p->nik ?? '-' }}</td>
+              <td>{{ $p->bank && $p->bank->target === 'calon_karyawan' ? 'Calon Karyawan' : ($p->department ?? $p->position ?? '-') }}</td>
               <td>{{ $p->bank->title ?? '-' }}</td>
               <td style="font-weight:600;">{{ $p->completed ? $p->score : '-' }}</td>
               <td>
@@ -420,9 +420,9 @@
             <tr>
               <td>{{ $idx + 1 }}</td>
               <td style="font-weight:500;color:#0f172a;">{{ $v->participant_name }}</td>
-              <td>{{ $v->nik ?? '-' }}</td>
-              <td>{{ $v->department ?? '-' }}</td>
-              <td>{{ $v->position ?? '-' }}</td>
+              <td>{{ $v->participant_email ?? $v->nik ?? '-' }}</td>
+              <td>{{ $v->bank && $v->bank->target === 'calon_karyawan' ? 'Calon Karyawan' : ($v->department ?? '-') }}</td>
+              <td>{{ $v->bank && $v->bank->target === 'calon_karyawan' ? 'Calon Karyawan' : ($v->position ?? '-') }}</td>
               <td>
                 @if($v->violation_count >= 5)
                   <span style="background:#dc2626;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;">{{ $v->violation_count }}x</span>

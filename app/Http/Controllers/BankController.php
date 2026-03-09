@@ -77,7 +77,7 @@ class BankController extends Controller
 
         // Trim text inputs to avoid whitespace-only values and merge back to request.
         // Also accept fallback values from client-side `_posted_*` hidden fields if present.
-        $trimFields = ['question','option_a','option_b','option_c','option_d','option_e','correct_answer','correct_answer_text'];
+        $trimFields = ['question','option_a','option_b','option_c','option_d','option_e','option_f','correct_answer','correct_answer_text'];
         $trimmed = [];
         foreach ($trimFields as $f) {
             $val = $request->input($f);
@@ -119,6 +119,7 @@ class BankController extends Controller
             'option_c_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'option_d_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'option_e_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'option_f_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ];
 
         if ($type === 'narrative') {
@@ -128,6 +129,7 @@ class BankController extends Controller
             $validated['option_c'] = null;
             $validated['option_d'] = null;
             $validated['option_e'] = null;
+            $validated['option_f'] = null;
             $validated['option_count'] = null;
             $validated['correct_answer'] = null;
             $validated['correct_answer_text'] = null;
@@ -140,15 +142,16 @@ class BankController extends Controller
             $validated['option_c'] = null;
             $validated['option_d'] = null;
             $validated['option_e'] = null;
+            $validated['option_f'] = null;
             $validated['option_count'] = null;
             $validated['correct_answer'] = null;
         } elseif ($type === 'survey') {
             $optCount = (int) $request->input('option_count', 2);
             if ($optCount < 2) $optCount = 2;
-            if ($optCount > 5) $optCount = 5;
+            if ($optCount > 6) $optCount = 6;
 
-            $surveyRules = ['option_count' => 'required|integer|min:2|max:5'];
-            $labels = ['A' => 'option_a', 'B' => 'option_b', 'C' => 'option_c', 'D' => 'option_d', 'E' => 'option_e'];
+            $surveyRules = ['option_count' => 'required|integer|min:2|max:6'];
+            $labels = ['A' => 'option_a', 'B' => 'option_b', 'C' => 'option_c', 'D' => 'option_d', 'E' => 'option_e', 'F' => 'option_f'];
             $i = 0;
             foreach ($labels as $letter => $field) {
                 $i++;
@@ -177,9 +180,9 @@ class BankController extends Controller
                 'option_c' => 'required|string|max:500',
                 'option_d' => 'required|string|max:500',
                 'option_e' => 'nullable|string|max:500',
-                'correct_answer' => 'required|in:A,B,C,D,E',
+                'option_f' => 'nullable|string|max:500',
+                'correct_answer' => 'required|in:A,B,C,D,E,F',
             ]), $this->uploadValidationMessages());
-            $validated['option_e'] = null;
             $validated['option_count'] = null;
         }
 
@@ -203,7 +206,7 @@ class BankController extends Controller
         }
 
         // Option images (for multiple_choice)
-        foreach (['a', 'b', 'c', 'd'] as $letter) {
+        foreach (['a', 'b', 'c', 'd', 'e', 'f'] as $letter) {
             $fieldName = 'option_' . $letter . '_image';
             if ($request->hasFile($fieldName)) {
                 $f = $request->file($fieldName);
@@ -568,6 +571,9 @@ class BankController extends Controller
             'option_e_image.max' => $sizeMsg,
             'option_e_image.mimes' => $formatMsg,
             'option_e.required' => 'Opsi E wajib diisi',
+            'option_f_image.max' => $sizeMsg,
+            'option_f_image.mimes' => $formatMsg,
+            'option_f.required' => 'Opsi F wajib diisi',
         ];
     }
 
@@ -642,6 +648,8 @@ class BankController extends Controller
             'option_b_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'option_c_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'option_d_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'option_e_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'option_f_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ];
 
         if ($type === 'narrative') {
@@ -651,6 +659,7 @@ class BankController extends Controller
             $validated['option_c'] = null;
             $validated['option_d'] = null;
             $validated['option_e'] = null;
+            $validated['option_f'] = null;
             $validated['option_count'] = null;
             $validated['correct_answer'] = null;
             $validated['correct_answer_text'] = null;
@@ -663,15 +672,16 @@ class BankController extends Controller
             $validated['option_c'] = null;
             $validated['option_d'] = null;
             $validated['option_e'] = null;
+            $validated['option_f'] = null;
             $validated['option_count'] = null;
             $validated['correct_answer'] = null;
         } elseif ($type === 'survey') {
             $optCount = (int) $request->input('option_count', 2);
             if ($optCount < 2) $optCount = 2;
-            if ($optCount > 5) $optCount = 5;
+            if ($optCount > 6) $optCount = 6;
 
-            $surveyRules = ['option_count' => 'required|integer|min:2|max:5'];
-            $labels = ['A' => 'option_a', 'B' => 'option_b', 'C' => 'option_c', 'D' => 'option_d', 'E' => 'option_e'];
+            $surveyRules = ['option_count' => 'required|integer|min:2|max:6'];
+            $labels = ['A' => 'option_a', 'B' => 'option_b', 'C' => 'option_c', 'D' => 'option_d', 'E' => 'option_e', 'F' => 'option_f'];
             $i = 0;
             foreach ($labels as $letter => $field) {
                 $i++;
@@ -699,7 +709,8 @@ class BankController extends Controller
                 'option_c' => 'required|string|max:500',
                 'option_d' => 'required|string|max:500',
                 'option_e' => 'nullable|string|max:500',
-                'correct_answer' => 'required|in:A,B,C,D,E',
+                'option_f' => 'nullable|string|max:500',
+                'correct_answer' => 'required|in:A,B,C,D,E,F',
             ]), $this->uploadValidationMessages());
             $validated['option_count'] = null;
         }
@@ -722,7 +733,7 @@ class BankController extends Controller
         }
 
         // Option images (for multiple_choice)
-        foreach (['a', 'b', 'c', 'd'] as $letter) {
+        foreach (['a', 'b', 'c', 'd', 'e', 'f'] as $letter) {
             $fieldName = 'option_' . $letter . '_image';
             if ($request->hasFile($fieldName)) {
                 $f = $request->file($fieldName);
@@ -840,22 +851,43 @@ class BankController extends Controller
         $totalQuestions = $questions->count();
         $scoreableQuestions = $questions->whereNotIn('type', ['narrative', 'survey'])->count();
 
-        // Build headers
-        $headers = [
-            'No',
-            'Waktu Selesai',
-            'Nama Peserta',
-            'NIK',
-            'Email',
-            'No. Telepon',
-            'Departemen',
-            'Jabatan',
-            'Skor',
-            'Total Soal Dinilai',
-            'Persentase (%)',
-            'Keterangan',
-            'Durasi',
-        ];
+        // Build headers — different columns for calon_karyawan vs karyawan
+        $isCalon = $bank->target === 'calon_karyawan';
+
+        if ($isCalon) {
+            $fixedHeaders = [
+                'No',
+                'Waktu Selesai',
+                'Nama Peserta',
+                'Email',
+                'Tempat Lahir',
+                'Tanggal Lahir',
+                'Usia',
+                'Skor',
+                'Total Soal Dinilai',
+                'Persentase (%)',
+                'Keterangan',
+                'Durasi',
+            ];
+        } else {
+            $fixedHeaders = [
+                'No',
+                'Waktu Selesai',
+                'Nama Peserta',
+                'NIK',
+                'Email',
+                'No. Telepon',
+                'Departemen',
+                'Jabatan',
+                'Skor',
+                'Total Soal Dinilai',
+                'Persentase (%)',
+                'Keterangan',
+                'Durasi',
+            ];
+        }
+
+        $headers = $fixedHeaders;
 
         // Add each question as a column header with full question text
         $typeLabelMap = ['narrative' => '[Narasi]', 'text' => '[Isian]'];
@@ -924,11 +956,12 @@ class BankController extends Controller
 
         // -- Correct answer reference row (row 5) --
         $refRow = $headerRow + 1;
+        $fixedCols = count($fixedHeaders);
         $sheet->getCellByColumnAndRow(1, $refRow)->setValue('');
         $sheet->getCellByColumnAndRow(2, $refRow)->setValue('KUNCI JAWABAN');
-        $sheet->mergeCells('B' . $refRow . ':H' . $refRow);
+        $mergeEndCol = Coordinate::stringFromColumnIndex($fixedCols);
+        $sheet->mergeCells('B' . $refRow . ':' . $mergeEndCol . $refRow);
 
-        $fixedCols = 13;
         foreach ($questions as $qIdx => $question) {
             $colIdx = $fixedCols + $qIdx + 1;
             if ($question->type === 'narrative') {
@@ -968,16 +1001,30 @@ class BankController extends Controller
                 $resp->completed_at ? $resp->completed_at->format('d/m/Y H:i:s') : '-'
             );
             $sheet->getCellByColumnAndRow(3, $currentRow)->setValue($resp->participant_name);
-            $sheet->getCellByColumnAndRow(4, $currentRow)->setValue($resp->nik ?? '-');
-            $sheet->getCellByColumnAndRow(5, $currentRow)->setValue($resp->participant_email ?? '-');
-            $sheet->getCellByColumnAndRow(6, $currentRow)->setValue($resp->phone ?? '-');
-            $sheet->getCellByColumnAndRow(7, $currentRow)->setValue($resp->department ?? '-');
-            $sheet->getCellByColumnAndRow(8, $currentRow)->setValue($resp->position ?? '-');
-            $sheet->getCellByColumnAndRow(9, $currentRow)->setValue($resp->score);
-            $sheet->getCellByColumnAndRow(10, $currentRow)->setValue($scoreableQuestions);
-            $sheet->getCellByColumnAndRow(11, $currentRow)->setValue($percentage);
-            $sheet->getCellByColumnAndRow(12, $currentRow)->setValue($keterangan);
-            $sheet->getCellByColumnAndRow(13, $currentRow)->setValue($duration);
+
+            if ($isCalon) {
+                $usia = $resp->birth_date ? \Carbon\Carbon::parse($resp->birth_date)->age . ' tahun' : '-';
+                $sheet->getCellByColumnAndRow(4, $currentRow)->setValue($resp->participant_email ?? '-');
+                $sheet->getCellByColumnAndRow(5, $currentRow)->setValue($resp->birth_place ?? '-');
+                $sheet->getCellByColumnAndRow(6, $currentRow)->setValue($resp->birth_date ? $resp->birth_date->format('d/m/Y') : '-');
+                $sheet->getCellByColumnAndRow(7, $currentRow)->setValue($usia);
+                $sheet->getCellByColumnAndRow(8, $currentRow)->setValue($resp->score);
+                $sheet->getCellByColumnAndRow(9, $currentRow)->setValue($scoreableQuestions);
+                $sheet->getCellByColumnAndRow(10, $currentRow)->setValue($percentage);
+                $sheet->getCellByColumnAndRow(11, $currentRow)->setValue($keterangan);
+                $sheet->getCellByColumnAndRow(12, $currentRow)->setValue($duration);
+            } else {
+                $sheet->getCellByColumnAndRow(4, $currentRow)->setValue($resp->nik ?? '-');
+                $sheet->getCellByColumnAndRow(5, $currentRow)->setValue($resp->participant_email ?? '-');
+                $sheet->getCellByColumnAndRow(6, $currentRow)->setValue($resp->phone ?? '-');
+                $sheet->getCellByColumnAndRow(7, $currentRow)->setValue($resp->department ?? '-');
+                $sheet->getCellByColumnAndRow(8, $currentRow)->setValue($resp->position ?? '-');
+                $sheet->getCellByColumnAndRow(9, $currentRow)->setValue($resp->score);
+                $sheet->getCellByColumnAndRow(10, $currentRow)->setValue($scoreableQuestions);
+                $sheet->getCellByColumnAndRow(11, $currentRow)->setValue($percentage);
+                $sheet->getCellByColumnAndRow(12, $currentRow)->setValue($keterangan);
+                $sheet->getCellByColumnAndRow(13, $currentRow)->setValue($duration);
+            }
 
             // Answer columns - show full answer text
             $answers = $resp->responses ?? [];
@@ -1041,8 +1088,8 @@ class BankController extends Controller
                 'font' => ['size' => 10],
             ]);
 
-            // Center-align fixed columns
-            foreach ([1, 6, 7, 8, 9, 10] as $centerCol) {
+            // Center-align numeric/short columns
+            for ($centerCol = 1; $centerCol <= $fixedCols; $centerCol++) {
                 $colLetter = Coordinate::stringFromColumnIndex($centerCol);
                 $sheet->getStyle($colLetter . $dataStartRow . ':' . $colLetter . ($currentRow - 1))
                     ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -1058,7 +1105,8 @@ class BankController extends Controller
             }
 
             // Keterangan column coloring
-            $ketCol = Coordinate::stringFromColumnIndex(9);
+            $ketColIdx = $isCalon ? $fixedCols - 1 : $fixedCols - 1;
+            $ketCol = Coordinate::stringFromColumnIndex($ketColIdx);
             for ($r = $dataStartRow; $r < $currentRow; $r++) {
                 $val = $sheet->getCell($ketCol . $r)->getValue();
                 if ($val === 'BAIK') {
@@ -1295,14 +1343,14 @@ class BankController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
 
         if ($type === 'multiple_choice' || $type === 'pilgan') {
-            $headers = ['sub_test_title', 'type', 'question', 'image', 'option_a', 'option_a_image', 'option_b', 'option_b_image', 'option_c', 'option_c_image', 'option_d', 'option_d_image', 'option_e', 'option_e_image', 'correct_answer', 'is_example'];
-            $example = ['', 'multiple_choice', 'Contoh: Apa warna langit?', '<base64 or URL>', 'Biru', '<base64 or URL>', 'Merah', '', 'Kuning', '', 'Hijau', '', '', '', 'A', '0'];
+            $headers = ['sub_test_title', 'type', 'question', 'image', 'option_a', 'option_a_image', 'option_b', 'option_b_image', 'option_c', 'option_c_image', 'option_d', 'option_d_image', 'option_e', 'option_e_image', 'option_f', 'option_f_image', 'correct_answer', 'is_example'];
+            $example = ['', 'multiple_choice', 'Contoh: Apa warna langit?', '<base64 or URL>', 'Biru', '<base64 or URL>', 'Merah', '', 'Kuning', '', 'Hijau', '', '', '', '', '', 'A', '0'];
         } elseif ($type === 'text' || $type === 'isian') {
             $headers = ['sub_test_title', 'type', 'question', 'image', 'correct_answer_text', 'is_example'];
             $example = ['', 'text', 'Contoh: Sebutkan ibu kota Indonesia?', '<base64 or URL>', 'Jakarta', '0'];
         } elseif ($type === 'survey') {
-            $headers = ['sub_test_title', 'type', 'question', 'image', 'option_count', 'option_a', 'option_a_image', 'option_b', 'option_b_image', 'option_c', 'option_c_image', 'option_d', 'option_d_image', 'option_e', 'option_e_image', 'is_example'];
-            $example = ['', 'survey', 'Contoh: Seberapa puas Anda?', '<base64 or URL>', 4, 'Sangat Puas', '', 'Puas', '', 'Cukup', '', 'Tidak Puas', '', '', '', '0'];
+            $headers = ['sub_test_title', 'type', 'question', 'image', 'option_count', 'option_a', 'option_a_image', 'option_b', 'option_b_image', 'option_c', 'option_c_image', 'option_d', 'option_d_image', 'option_e', 'option_e_image', 'option_f', 'option_f_image', 'is_example'];
+            $example = ['', 'survey', 'Contoh: Seberapa puas Anda?', '<base64 or URL>', 4, 'Sangat Puas', '', 'Puas', '', 'Cukup', '', 'Tidak Puas', '', '', '', '', '', '0'];
         } elseif ($type === 'narrative') {
             $headers = ['sub_test_title', 'type', 'question', 'image', 'is_example'];
             $example = ['', 'narrative', 'Contoh: Jelaskan pengalaman kerja Anda.', '<base64 or URL>', '0'];
@@ -1348,7 +1396,7 @@ class BankController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Daftar Soal');
 
-        $headers = ['type', 'sub_test_title', 'question', 'option_count', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'correct_answer', 'correct_answer_text', 'is_example'];
+        $headers = ['type', 'sub_test_title', 'question', 'option_count', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'option_f', 'correct_answer', 'correct_answer_text', 'is_example'];
         foreach ($headers as $col => $h) {
             $sheet->setCellValueByColumnAndRow($col + 1, 1, $h);
         }
@@ -1365,9 +1413,10 @@ class BankController extends Controller
             $sheet->setCellValueByColumnAndRow(7, $row, $q->option_c);
             $sheet->setCellValueByColumnAndRow(8, $row, $q->option_d);
             $sheet->setCellValueByColumnAndRow(9, $row, $q->option_e);
-            $sheet->setCellValueByColumnAndRow(10, $row, $q->correct_answer);
-            $sheet->setCellValueByColumnAndRow(11, $row, $q->correct_answer_text);
-            $sheet->setCellValueByColumnAndRow(12, $row, $q->is_example ? 1 : 0);
+            $sheet->setCellValueByColumnAndRow(10, $row, $q->option_f);
+            $sheet->setCellValueByColumnAndRow(11, $row, $q->correct_answer);
+            $sheet->setCellValueByColumnAndRow(12, $row, $q->correct_answer_text);
+            $sheet->setCellValueByColumnAndRow(13, $row, $q->is_example ? 1 : 0);
         }
 
         $tempFile = tempnam(sys_get_temp_dir(), 'questions');
@@ -1452,12 +1501,14 @@ class BankController extends Controller
                     'option_c' => $data['option_c'] ?? null,
                     'option_d' => $data['option_d'] ?? null,
                     'option_e' => $data['option_e'] ?? null,
+                    'option_f' => $data['option_f'] ?? null,
                     'image' => $data['image'] ?? null,
                     'option_a_image' => $data['option_a_image'] ?? null,
                     'option_b_image' => $data['option_b_image'] ?? null,
                     'option_c_image' => $data['option_c_image'] ?? null,
                     'option_d_image' => $data['option_d_image'] ?? null,
                     'option_e_image' => $data['option_e_image'] ?? null,
+                    'option_f_image' => $data['option_f_image'] ?? null,
                     'option_count' => isset($data['option_count']) ? (int)$data['option_count'] : null,
                     'correct_answer' => isset($data['correct_answer']) ? strtoupper($data['correct_answer']) : null,
                     'correct_answer_text' => $data['correct_answer_text'] ?? null,
@@ -1468,7 +1519,7 @@ class BankController extends Controller
 
                 // Normalize type-specific fields
                 if ($payload['type'] === 'narrative') {
-                    $payload['option_a'] = $payload['option_b'] = $payload['option_c'] = $payload['option_d'] = $payload['option_e'] = null;
+                    $payload['option_a'] = $payload['option_b'] = $payload['option_c'] = $payload['option_d'] = $payload['option_e'] = $payload['option_f'] = null;
                     $payload['option_count'] = null;
                     $payload['correct_answer'] = null;
                     $payload['correct_answer_text'] = null;
@@ -1482,7 +1533,7 @@ class BankController extends Controller
                         }
                     }
                 } elseif ($payload['type'] === 'text') {
-                    $payload['option_a'] = $payload['option_b'] = $payload['option_c'] = $payload['option_d'] = $payload['option_e'] = null;
+                    $payload['option_a'] = $payload['option_b'] = $payload['option_c'] = $payload['option_d'] = $payload['option_e'] = $payload['option_f'] = null;
                     $payload['option_count'] = null;
                     // ensure correct_answer_text exists
                     $payload['correct_answer_text'] = $payload['correct_answer_text'] ?? '';
@@ -1496,14 +1547,14 @@ class BankController extends Controller
                         }
                     }
                 } elseif ($payload['type'] === 'survey') {
-                    // option_count must be between 2 and 5
+                    // option_count must be between 2 and 6
                     $oc = (int)($payload['option_count'] ?? 2);
                     if ($oc < 2) $oc = 2;
-                    if ($oc > 5) $oc = 5;
+                    if ($oc > 6) $oc = 6;
                     $payload['option_count'] = $oc;
                     // null out unused options
-                    $labels = ['option_a','option_b','option_c','option_d','option_e'];
-                    for ($i = $oc; $i < 5; $i++) {
+                    $labels = ['option_a','option_b','option_c','option_d','option_e','option_f'];
+                    for ($i = $oc; $i < 6; $i++) {
                         $payload[$labels[$i]] = null;
                     }
                     $payload['correct_answer'] = null;
@@ -1514,7 +1565,7 @@ class BankController extends Controller
                         if ($imgPath) $payload['image'] = $imgPath;
                     }
                     // option images
-                    foreach (['option_a_image','option_b_image','option_c_image','option_d_image','option_e_image'] as $optImg) {
+                    foreach (['option_a_image','option_b_image','option_c_image','option_d_image','option_e_image','option_f_image'] as $optImg) {
                         if (!empty($data[$optImg]) && is_string($data[$optImg])) {
                             $p = $this->storeImageFromCell($data[$optImg], 'questions/option-images');
                             if ($p) $payload[$optImg] = $p;
@@ -1523,11 +1574,12 @@ class BankController extends Controller
                 } else {
                     // multiple_choice
                     $payload['option_e'] = $payload['option_e'] ?? null;
+                    $payload['option_f'] = $payload['option_f'] ?? null;
                     $payload['option_count'] = null;
-                    // correct_answer should be one of A,B,C,D,E
+                    // correct_answer should be one of A,B,C,D,E,F
                     if (!empty($payload['correct_answer'])) {
                         $ca = strtoupper(substr($payload['correct_answer'],0,1));
-                        if (!in_array($ca, ['A','B','C','D','E'])) $ca = null;
+                        if (!in_array($ca, ['A','B','C','D','E','F'])) $ca = null;
                         $payload['correct_answer'] = $ca;
                     }
                     // handle question image and option images for MC
@@ -1539,7 +1591,7 @@ class BankController extends Controller
                             $payload['image_mime'] = finfo_buffer(finfo_open(FILEINFO_MIME_TYPE), $payload['image_data']);
                         }
                     }
-                    foreach (['option_a_image','option_b_image','option_c_image','option_d_image','option_e_image'] as $optImg) {
+                    foreach (['option_a_image','option_b_image','option_c_image','option_d_image','option_e_image','option_f_image'] as $optImg) {
                         if (!empty($data[$optImg]) && is_string($data[$optImg])) {
                             $p = $this->storeImageFromCell($data[$optImg], 'questions/option-images');
                             if ($p) $payload[$optImg] = $p;

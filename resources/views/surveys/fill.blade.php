@@ -57,6 +57,44 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-s
 
 .error-box{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:10px 16px;border-radius:8px;font-size:13px;margin-bottom:16px;}
 .error-box ul{margin:4px 0 0 16px;}
+
+/* === MOBILE ≤768px === */
+@media (max-width: 768px) {
+  body { padding: 12px 6px; }
+  .container { max-width: 100%; }
+  .survey-header { padding: 20px 16px; border-radius: 10px 10px 0 0; }
+  .survey-title { font-size: 18px; }
+  .survey-desc { font-size: 12px; }
+  .survey-body { padding: 16px 12px; }
+  .identity-section { padding: 12px; }
+  .identity-title { font-size: 12px; }
+  .form-input, .form-select, .form-textarea { font-size: 14px; padding: 10px 12px; }
+  .question-card { padding: 14px; margin-bottom: 10px; }
+  .q-number { width: 24px; height: 24px; font-size: 10px; border-radius: 6px; }
+  .q-text { font-size: 13px; }
+  .scale-group { gap: 4px; }
+  .scale-option { min-width: 44px; }
+  .scale-option label { padding: 8px 4px; border-radius: 6px; }
+  .scale-value { font-size: 15px; }
+  .scale-label { font-size: 8px; }
+  .choice-option label { padding: 10px 12px; font-size: 13px; }
+  .submit-btn { font-size: 14px; padding: 13px; }
+}
+
+/* === SMALL MOBILE ≤400px === */
+@media (max-width: 400px) {
+  body { padding: 8px 4px; }
+  .survey-header { padding: 16px 12px; }
+  .survey-title { font-size: 16px; }
+  .survey-body { padding: 12px 8px; }
+  .question-card { padding: 12px 10px; }
+  .scale-group { gap: 3px; }
+  .scale-option { min-width: 38px; }
+  .scale-option label { padding: 6px 2px; }
+  .scale-value { font-size: 14px; }
+  .scale-label { font-size: 7px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 50px; }
+  .form-input, .form-select, .form-textarea { font-size: 13px; padding: 8px 10px; }
+}
 </style>
 </head>
 <body>
