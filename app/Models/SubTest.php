@@ -9,7 +9,13 @@ class SubTest extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['bank_id', 'title', 'description', 'order', 'duration_minutes'];
+    protected $fillable = ['bank_id', 'title', 'description', 'order', 'duration_minutes', 'type', 'kraepelin_config', 'disc_config', 'papikostik_config'];
+
+    protected $casts = [
+        'kraepelin_config' => 'array',
+        'disc_config' => 'array',
+        'papikostik_config' => 'array',
+    ];
 
     public function bank()
     {

@@ -167,6 +167,137 @@
   .example-header { padding: 10px; }
   .example-header h2 { font-size: 14px; }
  }
+
+ /* ===== KRAEPELIN CALCULATOR TEST STYLES ===== */
+ .kraepelin-screen { display:none; }
+ .kraepelin-screen.show { display:block; }
+ .kraepelin-header { background:linear-gradient(135deg, #7c3aed, #5b21b6); color:#fff; padding:14px 20px; border-radius:10px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:10px; z-index:90; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+ .kraepelin-header h3 { margin:0; font-size:14px; }
+ .kraepelin-header .kp-progress { font-size:11px; opacity:0.9; }
+ .kraepelin-header .kp-timer { font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; }
+ .kraepelin-header.kp-warning { background:#dc2626; animation:pulse 1s infinite; }
+ .kraepelin-info { background:#ede9fe; color:#5b21b6; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; text-align:center; }
+ .kraepelin-waiting { text-align:center; padding:40px 20px; }
+ .kraepelin-waiting h2 { font-size:20px; color:#5b21b6; margin-bottom:10px; }
+ .kraepelin-waiting p { color:#64748b; font-size:14px; }
+ .btn-start-kraepelin { background:#7c3aed; color:#fff; border:none; padding:14px 24px; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; width:100%; margin-top:16px; }
+ .btn-start-kraepelin:hover { background:#6d28d9; }
+ /* Calculator UI */
+ .kp-calc { max-width:360px; margin:0 auto; background:#1e1b2e; border-radius:16px; padding:20px; box-shadow:0 8px 32px rgba(0,0,0,0.25); }
+ .kp-calc-display { background:#0f0d1a; border-radius:12px; padding:20px; margin-bottom:16px; text-align:center; }
+ .kp-calc-pair-label { font-size:11px; color:#a78bfa; margin-bottom:4px; letter-spacing:1px; text-transform:uppercase; }
+ .kp-calc-digits { display:flex; justify-content:center; align-items:center; gap:12px; }
+ .kp-calc-digit { font-size:52px; font-weight:800; color:#fff; font-variant-numeric:tabular-nums; width:64px; height:72px; display:flex; align-items:center; justify-content:center; background:#2d2845; border-radius:10px; }
+ .kp-calc-plus { font-size:28px; color:#a78bfa; font-weight:700; }
+ .kp-calc-answer { margin-top:12px; }
+ .kp-calc-answer-display { font-size:42px; font-weight:800; color:#7c3aed; height:56px; display:flex; align-items:center; justify-content:center; background:#2d2845; border-radius:10px; min-width:64px; margin:0 auto; width:80px; letter-spacing:2px; }
+ .kp-calc-answer-display.has-val { color:#34d399; }
+ .kp-calc-answer-label { font-size:10px; color:#64748b; margin-top:4px; }
+ .kp-numpad { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+ .kp-numpad-btn { background:#2d2845; color:#fff; border:none; font-size:24px; font-weight:700; padding:16px 0; border-radius:10px; cursor:pointer; transition:all 0.1s; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
+ .kp-numpad-btn:hover { background:#3d3660; }
+ .kp-numpad-btn:active, .kp-numpad-btn.pressed { background:#7c3aed; transform:scale(0.95); }
+ .kp-numpad-btn.zero { grid-column:span 2; }
+ .kp-numpad-btn.del { background:#4a1d3d; color:#f87171; }
+ .kp-numpad-btn.del:hover { background:#6b2150; }
+ .kp-calc-counter { display:flex; justify-content:space-between; align-items:center; padding:8px 4px; }
+ .kp-calc-counter .kp-pair-num { font-size:12px; color:#a78bfa; font-weight:600; }
+ .kp-calc-counter .kp-pair-track { display:flex; gap:3px; }
+ .kp-calc-counter .kp-dot { width:6px; height:6px; border-radius:50%; background:#2d2845; }
+ .kp-calc-counter .kp-dot.done { background:#34d399; }
+ .kp-calc-counter .kp-dot.current { background:#7c3aed; }
+ @media (max-width: 480px) {
+  .kp-calc { max-width:100%; padding:14px; }
+  .kp-calc-digit { font-size:40px; width:52px; height:58px; }
+  .kp-calc-answer-display { font-size:34px; height:48px; width:64px; }
+  .kp-numpad-btn { font-size:20px; padding:14px 0; }
+  .kraepelin-header { padding:10px 14px; flex-direction:column; gap:4px; }
+ }
+
+ /* ===== DISC PERSONALITY TEST STYLES ===== */
+ .disc-screen { display:none; }
+ .disc-screen.show { display:block; }
+ .disc-header { background:linear-gradient(135deg, #0d9488, #0f766e); color:#fff; padding:14px 20px; border-radius:10px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:10px; z-index:90; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+ .disc-header h3 { margin:0; font-size:14px; }
+ .disc-header .disc-progress { font-size:11px; opacity:0.9; }
+ .disc-header .disc-group-num { font-size:18px; font-weight:700; }
+ .disc-info { background:#e0f2f1; color:#004d40; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; text-align:center; }
+ .disc-waiting { text-align:center; padding:40px 20px; }
+ .disc-waiting h2 { font-size:20px; color:#0d9488; margin-bottom:10px; }
+ .disc-waiting p { color:#64748b; font-size:14px; max-width:500px; margin:0 auto; }
+ .btn-start-disc { background:#0d9488; color:#fff; border:none; padding:14px 24px; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; width:100%; margin-top:16px; max-width:360px; }
+ .btn-start-disc:hover { background:#0f766e; }
+ .disc-card-container { max-width:500px; margin:0 auto; }
+ .disc-group-label { text-align:center; font-size:13px; color:#64748b; margin-bottom:12px; font-weight:600; }
+ .disc-instruction { text-align:center; font-size:12px; color:#0f766e; margin-bottom:16px; background:#e0f2f1; padding:8px 12px; border-radius:6px; }
+ .disc-statement { position:relative; background:#fff; border:2px solid #e2e8f0; border-radius:10px; padding:16px 18px; margin-bottom:10px; cursor:pointer; transition:all 0.2s; user-select:none; -webkit-user-select:none; font-size:14px; color:#1e293b; display:flex; align-items:center; gap:12px; }
+ .disc-statement:hover { border-color:#94a3b8; background:#f8fafc; }
+ .disc-statement.selected-most { border-color:#059669; background:#ecfdf5; }
+ .disc-statement.selected-least { border-color:#dc2626; background:#fef2f2; }
+ .disc-statement .disc-badge { display:none; font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px; white-space:nowrap; flex-shrink:0; }
+ .disc-statement.selected-most .disc-badge.badge-most { display:inline-block; background:#059669; color:#fff; }
+ .disc-statement.selected-least .disc-badge.badge-least { display:inline-block; background:#dc2626; color:#fff; }
+ .disc-statement .disc-num { width:28px; height:28px; border-radius:50%; background:#f1f5f9; color:#64748b; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+ .disc-statement.selected-most .disc-num { background:#059669; color:#fff; }
+ .disc-statement.selected-least .disc-num { background:#dc2626; color:#fff; }
+ .disc-statement .disc-text { flex:1; }
+ .disc-nav { display:flex; gap:10px; margin-top:20px; max-width:500px; margin-left:auto; margin-right:auto; }
+ .disc-nav button { flex:1; padding:12px; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+ .disc-nav .disc-prev { background:#f1f5f9; color:#334155; }
+ .disc-nav .disc-prev:hover { background:#e2e8f0; }
+ .disc-nav .disc-prev:disabled { opacity:0.4; cursor:not-allowed; }
+ .disc-nav .disc-next { background:#0d9488; color:#fff; }
+ .disc-nav .disc-next:hover { background:#0f766e; }
+ .disc-nav .disc-next:disabled { opacity:0.4; cursor:not-allowed; }
+ .disc-progress-bar { max-width:500px; margin:0 auto 16px; height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden; }
+ .disc-progress-fill { height:100%; background:linear-gradient(90deg, #0d9488, #14b8a6); border-radius:3px; transition:width 0.3s; }
+ .disc-legend { display:flex; justify-content:center; gap:16px; margin-bottom:12px; font-size:11px; color:#64748b; }
+ .disc-legend span { display:flex; align-items:center; gap:4px; }
+ .disc-legend .dot-most { width:10px; height:10px; border-radius:50%; background:#059669; }
+ .disc-legend .dot-least { width:10px; height:10px; border-radius:50%; background:#dc2626; }
+ @media (max-width: 480px) {
+  .disc-card-container { max-width:100%; }
+  .disc-statement { padding:12px 14px; font-size:13px; }
+  .disc-header { padding:10px 14px; flex-direction:column; gap:4px; }
+ }
+
+ /* ===== PAPIKOSTIK PERSONALITY TEST STYLES ===== */
+ .papi-screen { display:none; }
+ .papi-screen.show { display:block; }
+ .papi-header { background:linear-gradient(135deg, #7c3aed, #6d28d9); color:#fff; padding:14px 20px; border-radius:10px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:10px; z-index:90; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+ .papi-header h3 { margin:0; font-size:14px; }
+ .papi-header .papi-progress { font-size:11px; opacity:0.9; }
+ .papi-header .papi-num { font-size:18px; font-weight:700; }
+ .papi-info { background:#ede9fe; color:#5b21b6; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; text-align:center; }
+ .papi-waiting { text-align:center; padding:40px 20px; }
+ .papi-waiting h2 { font-size:20px; color:#7c3aed; margin-bottom:10px; }
+ .papi-waiting p { color:#64748b; font-size:14px; max-width:500px; margin:0 auto; }
+ .btn-start-papi { background:#7c3aed; color:#fff; border:none; padding:14px 24px; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; width:100%; margin-top:16px; max-width:360px; }
+ .btn-start-papi:hover { background:#6d28d9; }
+ .papi-card-container { max-width:500px; margin:0 auto; }
+ .papi-pair-label { text-align:center; font-size:13px; color:#64748b; margin-bottom:12px; font-weight:600; }
+ .papi-instruction { text-align:center; font-size:12px; color:#6d28d9; margin-bottom:16px; background:#ede9fe; padding:8px 12px; border-radius:6px; }
+ .papi-choice { position:relative; background:#fff; border:2px solid #e2e8f0; border-radius:10px; padding:16px 18px; margin-bottom:10px; cursor:pointer; transition:all 0.2s; user-select:none; -webkit-user-select:none; font-size:14px; color:#1e293b; display:flex; align-items:center; gap:12px; }
+ .papi-choice:hover { border-color:#a78bfa; background:#faf5ff; }
+ .papi-choice.selected { border-color:#7c3aed; background:#ede9fe; }
+ .papi-choice .papi-letter { width:32px; height:32px; border-radius:50%; background:#f1f5f9; color:#64748b; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; }
+ .papi-choice.selected .papi-letter { background:#7c3aed; color:#fff; }
+ .papi-choice .papi-text { flex:1; }
+ .papi-nav { display:flex; gap:10px; margin-top:20px; max-width:500px; margin-left:auto; margin-right:auto; }
+ .papi-nav button { flex:1; padding:12px; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+ .papi-nav .papi-prev { background:#f1f5f9; color:#334155; }
+ .papi-nav .papi-prev:hover { background:#e2e8f0; }
+ .papi-nav .papi-prev:disabled { opacity:0.4; cursor:not-allowed; }
+ .papi-nav .papi-next { background:#7c3aed; color:#fff; }
+ .papi-nav .papi-next:hover { background:#6d28d9; }
+ .papi-nav .papi-next:disabled { opacity:0.4; cursor:not-allowed; }
+ .papi-progress-bar { max-width:500px; margin:0 auto 16px; height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden; }
+ .papi-progress-fill { height:100%; background:linear-gradient(90deg, #7c3aed, #a78bfa); border-radius:3px; transition:width 0.3s; }
+ @media (max-width: 480px) {
+  .papi-card-container { max-width:100%; }
+  .papi-choice { padding:12px 14px; font-size:13px; }
+  .papi-header { padding:10px 14px; flex-direction:column; gap:4px; }
+ }
  </style>
  <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
 </head>
@@ -260,12 +391,35 @@
  <div class="st-desc">{{ Str::limit($subTest->description, 100) }}</div>
  @endif
  <div class="st-meta">
+ @if($subTest->type === 'kraepelin')
+ @php $kc = $subTest->kraepelin_config; @endphp
+ <span style="background:#ede9fe;color:#5b21b6;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;">Kraepelin</span>
+ @if($kc)
+ <span>{{ $kc['columns_count'] }} kolom</span>
+ <span>~{{ round(array_sum($kc['column_durations']) / 60) }} menit</span>
+ @endif
+ @elseif($subTest->type === 'disc')
+ @php $dc = $subTest->disc_config; @endphp
+ <span style="background:#e0f2f1;color:#0d9488;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;">DISC</span>
+ @if($dc)
+ <span>{{ $dc['question_count'] }} grup</span>
+ <span>~10-15 menit</span>
+ @endif
+ @elseif($subTest->type === 'papikostik')
+ @php $pc = $subTest->papikostik_config; @endphp
+ <span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;">PAPIKOSTIK</span>
+ @if($pc)
+ <span>{{ $pc['question_count'] }} pasang</span>
+ <span>~15-20 menit</span>
+ @endif
+ @else
  <span> {{ $subTest->questions->count() }} soal</span>
  @if($subTest->duration_minutes)
  <span> {{ $subTest->duration_minutes }} menit</span>
  @endif
  @if($subTest->exampleQuestions->count() > 0)
  <span> {{ $subTest->exampleQuestions->count() }} contoh</span>
+ @endif
  @endif
  </div>
  <div class="st-status pending" id="stStatus{{ $subTest->id }}">Belum Dikerjakan</div>
@@ -278,7 +432,148 @@
 
  {{-- PER-SUBTEST SCREENS --}}
  @foreach($subTests as $subTest)
- {{-- Example Questions Screen --}}
+
+ @if($subTest->type === 'kraepelin')
+ {{-- KRAEPELIN TEST SCREEN --}}
+ @php $kc = $subTest->kraepelin_config ?? []; @endphp
+ <div class="kraepelin-screen" id="kraepelinScreen{{ $subTest->id }}">
+ <button type="button" class="btn-back-overview" onclick="backToOverview()">← Kembali ke Daftar Sub-Test</button>
+
+ <div class="kraepelin-info">
+ <strong>Tes Kraepelin — {{ $subTest->title }}</strong><br>
+ Jumlahkan setiap pasangan angka yang berdekatan, lalu masukkan <strong>angka satuan</strong> hasilnya menggunakan tombol angka.<br>
+ Contoh: 7 + 8 = 15 → tekan <strong>5</strong>. Kolom berganti otomatis saat waktu habis.
+ @if($subTest->description)
+ <div style="margin-top:8px;font-style:italic;">{{ $subTest->description }}</div>
+ @endif
+ </div>
+
+ <div class="kraepelin-waiting" id="kraepelinWaiting{{ $subTest->id }}">
+ <h2>Siap Memulai?</h2>
+ <p>Tes ini terdiri dari {{ $kc['columns_count'] ?? 0 }} kolom angka.<br>Setiap kolom memiliki batas waktu berbeda. Kerjakan secepat dan seteliti mungkin.</p>
+ <button type="button" class="btn-start-kraepelin" onclick="startKraepelin({{ $subTest->id }})">
+ Mulai Tes Kraepelin →
+ </button>
+ </div>
+
+ <div id="kraepelinActive{{ $subTest->id }}" style="display:none;">
+ <div class="kraepelin-header" id="kpHeader{{ $subTest->id }}">
+ <div>
+ <h3>{{ $subTest->title }}</h3>
+ <div class="kp-progress" id="kpProgress{{ $subTest->id }}">Kolom 1/{{ $kc['columns_count'] ?? 0 }} — Pasangan 1</div>
+ </div>
+ <div class="kp-timer" id="kpTimer{{ $subTest->id }}">--</div>
+ </div>
+ <div id="kpContainer{{ $subTest->id }}"></div>
+ </div>
+
+ {{-- Hidden field to store kraepelin JSON data --}}
+ <input type="hidden" name="kraepelin_data[{{ $subTest->id }}]" id="kraepelinData{{ $subTest->id }}" value="">
+ </div>
+
+ <script>
+ (function(){
+  window['kraepelinConfig_{{ $subTest->id }}'] = @json($kc);
+ })();
+ </script>
+ @elseif($subTest->type === 'disc')
+ {{-- DISC PERSONALITY TEST SCREEN --}}
+ @php $dc = $subTest->disc_config ?? []; @endphp
+ <div class="disc-screen" id="discScreen{{ $subTest->id }}">
+ <button type="button" class="btn-back-overview" onclick="backToOverview()">← Kembali ke Daftar Sub-Test</button>
+
+ <div class="disc-info">
+ <strong>Tes DISC — {{ $subTest->title }}</strong><br>
+ Untuk setiap grup, pilih pernyataan yang <strong>paling menggambarkan diri Anda</strong> dan yang <strong>paling tidak menggambarkan diri Anda</strong>.
+ @if($subTest->description)
+ <div style="margin-top:8px;font-style:italic;">{{ $subTest->description }}</div>
+ @endif
+ </div>
+
+ <div class="disc-waiting" id="discWaiting{{ $subTest->id }}">
+ <h2>Tes Kepribadian DISC</h2>
+ <p>Tes ini terdiri dari {{ $dc['question_count'] ?? 24 }} grup pernyataan.<br>Setiap grup memiliki 4 pernyataan. Pilih yang <strong>paling sesuai</strong> dan <strong>paling tidak sesuai</strong> dengan diri Anda.<br>Tidak ada jawaban benar atau salah. Jawablah dengan jujur.</p>
+ <button type="button" class="btn-start-disc" onclick="startDisc({{ $subTest->id }})">
+ Mulai Tes DISC →
+ </button>
+ </div>
+
+ <div id="discActive{{ $subTest->id }}" style="display:none;">
+ <div class="disc-header" id="discHeader{{ $subTest->id }}">
+ <div>
+ <h3>{{ $subTest->title }}</h3>
+ <div class="disc-progress" id="discProgress{{ $subTest->id }}">Grup 1/{{ $dc['question_count'] ?? 24 }}</div>
+ </div>
+ <div class="disc-group-num" id="discGroupNum{{ $subTest->id }}">1</div>
+ </div>
+ <div class="disc-progress-bar"><div class="disc-progress-fill" id="discProgressFill{{ $subTest->id }}" style="width:0%"></div></div>
+ <div class="disc-legend">
+ <span><span class="dot-most"></span> Paling Sesuai</span>
+ <span><span class="dot-least"></span> Paling Tidak Sesuai</span>
+ </div>
+ <div class="disc-card-container" id="discContainer{{ $subTest->id }}"></div>
+ <div class="disc-nav">
+ <button type="button" class="disc-prev" id="discPrev{{ $subTest->id }}" onclick="prevDiscGroup({{ $subTest->id }})" disabled>← Sebelumnya</button>
+ <button type="button" class="disc-next" id="discNext{{ $subTest->id }}" onclick="nextDiscGroup({{ $subTest->id }})">Selanjutnya →</button>
+ </div>
+ </div>
+
+ <input type="hidden" name="disc_data[{{ $subTest->id }}]" id="discData{{ $subTest->id }}" value="">
+ </div>
+
+ <script>
+ (function(){
+  window['discConfig_{{ $subTest->id }}'] = @json($dc);
+ })();
+ </script>
+ @elseif($subTest->type === 'papikostik')
+ {{-- PAPIKOSTIK PERSONALITY TEST SCREEN --}}
+ @php $pc = $subTest->papikostik_config ?? []; @endphp
+ <div class="papi-screen" id="papiScreen{{ $subTest->id }}">
+ <button type="button" class="btn-back-overview" onclick="backToOverview()">← Kembali ke Daftar Sub-Test</button>
+
+ <div class="papi-info">
+ <strong>Tes PAPIKOSTIK — {{ $subTest->title }}</strong><br>
+ Untuk setiap pasangan, pilih pernyataan yang <strong>paling menggambarkan diri Anda</strong>.
+ @if($subTest->description)
+ <div style="margin-top:8px;font-style:italic;">{{ $subTest->description }}</div>
+ @endif
+ </div>
+
+ <div class="papi-waiting" id="papiWaiting{{ $subTest->id }}">
+ <h2>Tes Kepribadian PAPIKOSTIK</h2>
+ <p>Tes ini terdiri dari {{ $pc['question_count'] ?? 90 }} pasang pernyataan.<br>Pilih salah satu pernyataan (A atau B) yang <strong>paling menggambarkan diri Anda</strong>.<br>Tidak ada jawaban benar atau salah. Jawablah dengan jujur.</p>
+ <button type="button" class="btn-start-papi" onclick="startPapi({{ $subTest->id }})">
+ Mulai Tes PAPIKOSTIK →
+ </button>
+ </div>
+
+ <div id="papiActive{{ $subTest->id }}" style="display:none;">
+ <div class="papi-header" id="papiHeader{{ $subTest->id }}">
+ <div>
+ <h3>{{ $subTest->title }}</h3>
+ <div class="papi-progress" id="papiProgress{{ $subTest->id }}">Soal 1/{{ $pc['question_count'] ?? 90 }}</div>
+ </div>
+ <div class="papi-num" id="papiNum{{ $subTest->id }}">1</div>
+ </div>
+ <div class="papi-progress-bar"><div class="papi-progress-fill" id="papiProgressFill{{ $subTest->id }}" style="width:0%"></div></div>
+ <div class="papi-card-container" id="papiContainer{{ $subTest->id }}"></div>
+ <div class="papi-nav">
+ <button type="button" class="papi-prev" id="papiPrev{{ $subTest->id }}" onclick="prevPapi({{ $subTest->id }})" disabled>← Sebelumnya</button>
+ <button type="button" class="papi-next" id="papiNext{{ $subTest->id }}" onclick="nextPapi({{ $subTest->id }})">Selanjutnya →</button>
+ </div>
+ </div>
+
+ <input type="hidden" name="papikostik_data[{{ $subTest->id }}]" id="papiData{{ $subTest->id }}" value="">
+ </div>
+
+ <script>
+ (function(){
+  window['papiConfig_{{ $subTest->id }}'] = @json($pc);
+ })();
+ </script>
+ @else
+ {{-- NORMAL SUB-TEST: Example Questions Screen --}}
  @if($subTest->exampleQuestions->count() > 0)
  <div class="example-screen" id="exampleScreen{{ $subTest->id }}">
  <button type="button" class="btn-back-overview" onclick="backToOverview()">← Kembali</button>
@@ -488,6 +783,7 @@
  Selesai — Kembali ke Daftar Sub-Test
  </button>
  </div>
+ @endif
  @endforeach
  </form>
 
@@ -721,6 +1017,9 @@ var TEST_TOKEN_GLOBAL = '{{ $response->token }}';
  document.getElementById('overviewScreen').classList.add('hidden');
  document.querySelectorAll('.example-screen').forEach(function(el) { el.classList.remove('show'); });
  document.querySelectorAll('.subtest-test-screen').forEach(function(el) { el.classList.remove('show'); });
+ document.querySelectorAll('.kraepelin-screen').forEach(function(el) { el.classList.remove('show'); });
+ document.querySelectorAll('.disc-screen').forEach(function(el) { el.classList.remove('show'); });
+ document.querySelectorAll('.papi-screen').forEach(function(el) { el.classList.remove('show'); });
  }
 
  function backToOverview() {
@@ -731,6 +1030,33 @@ var TEST_TOKEN_GLOBAL = '{{ $response->token }}';
  }
 
  function openSubTest(stId) {
+     // Check if this is a papikostik sub-test
+     var papiScreen = document.getElementById('papiScreen' + stId);
+     if (papiScreen) {
+         hideAllScreens();
+         papiScreen.classList.add('show');
+         window.scrollTo(0, 0);
+         return;
+     }
+
+     // Check if this is a disc sub-test
+     var discScreen = document.getElementById('discScreen' + stId);
+     if (discScreen) {
+         hideAllScreens();
+         discScreen.classList.add('show');
+         window.scrollTo(0, 0);
+         return;
+     }
+
+     // Check if this is a kraepelin sub-test
+     var kraepelinScreen = document.getElementById('kraepelinScreen' + stId);
+     if (kraepelinScreen) {
+         hideAllScreens();
+         kraepelinScreen.classList.add('show');
+         window.scrollTo(0, 0);
+         return;
+     }
+
      // If there is an example screen for this subtest, show it first.
      var exampleScreen = document.getElementById('exampleScreen' + stId);
      if (exampleScreen) {
@@ -943,6 +1269,620 @@ function _clearAllSubtestKeys() {
 	 _unblockNavigationDuringSubtest();
 	 backToOverview();
  }
+
+ // === KRAEPELIN CALCULATOR TEST ENGINE ===
+ var kraepelinState = {};
+
+ function startKraepelin(stId) {
+  var config = window['kraepelinConfig_' + stId];
+  if (!config || !config.digits) return;
+
+  var state = {
+   stId: stId,
+   config: config,
+   currentCol: 0,
+   currentPair: 0,
+   totalCols: config.columns_count,
+   colAnswers: [],
+   colCorrect: [],
+   results: [],
+   timer: null
+  };
+  kraepelinState[stId] = state;
+
+  document.getElementById('kraepelinWaiting' + stId).style.display = 'none';
+  document.getElementById('kraepelinActive' + stId).style.display = 'block';
+  _blockNavigationDuringSubtest(stId);
+  startKraepelinColumn(stId);
+ }
+
+ function startKraepelinColumn(stId) {
+  var state = kraepelinState[stId];
+  if (!state) return;
+  if (state.currentCol >= state.totalCols) { finishKraepelin(stId); return; }
+
+  state.currentPair = 0;
+  state.colAnswers = [];
+  state.colCorrect = [];
+
+  var digits = state.config.digits[state.currentCol];
+  state.totalPairs = digits.length - 1;
+
+  renderKraepelinPair(stId);
+
+  // Start column timer
+  var duration = state.config.column_durations[state.currentCol];
+  var timerEl = document.getElementById('kpTimer' + stId);
+  var headerEl = document.getElementById('kpHeader' + stId);
+  var remaining = duration;
+  timerEl.textContent = remaining;
+  headerEl.classList.remove('kp-warning');
+
+  if (state.timer) clearInterval(state.timer);
+  state.timer = setInterval(function(){
+   remaining--;
+   timerEl.textContent = remaining;
+   if (remaining <= 5) headerEl.classList.add('kp-warning');
+   if (remaining <= 0) {
+    clearInterval(state.timer);
+    state.timer = null;
+    // Fill remaining pairs as unanswered
+    while (state.colAnswers.length < state.totalPairs) {
+     state.colAnswers.push(null);
+     var pi = state.colAnswers.length - 1;
+     var d = state.config.digits[state.currentCol];
+     state.colCorrect.push((d[pi] + d[pi + 1]) % 10);
+    }
+    collectKraepelinColumn(stId);
+    state.currentCol++;
+    if (state.currentCol < state.totalCols) {
+     startKraepelinColumn(stId);
+    } else {
+     finishKraepelin(stId);
+    }
+   }
+  }, 1000);
+ }
+
+ function renderKraepelinPair(stId) {
+  var state = kraepelinState[stId];
+  var col = state.currentCol;
+  var pair = state.currentPair;
+  var digits = state.config.digits[col];
+
+  // Update progress text
+  document.getElementById('kpProgress' + stId).textContent =
+   'Kolom ' + (col + 1) + '/' + state.totalCols + ' — Pasangan ' + (pair + 1) + '/' + state.totalPairs;
+
+  var container = document.getElementById('kpContainer' + stId);
+  var d1 = digits[pair];
+  var d2 = digits[pair + 1];
+
+  // Build progress dots (show max 20 recent)
+  var dotsHtml = '';
+  var showStart = Math.max(0, pair - 18);
+  for (var di = showStart; di <= Math.min(pair, state.totalPairs - 1); di++) {
+   var cls = di < pair ? 'kp-dot done' : 'kp-dot current';
+   dotsHtml += '<span class="' + cls + '"></span>';
+  }
+
+  container.innerHTML =
+   '<div class="kp-calc">' +
+    '<div class="kp-calc-counter">' +
+     '<span class="kp-pair-num">' + (pair + 1) + ' / ' + state.totalPairs + '</span>' +
+     '<span class="kp-pair-track">' + dotsHtml + '</span>' +
+    '</div>' +
+    '<div class="kp-calc-display">' +
+     '<div class="kp-calc-pair-label">Jumlahkan angka satuan</div>' +
+     '<div class="kp-calc-digits">' +
+      '<div class="kp-calc-digit">' + d1 + '</div>' +
+      '<div class="kp-calc-plus">+</div>' +
+      '<div class="kp-calc-digit">' + d2 + '</div>' +
+     '</div>' +
+     '<div class="kp-calc-answer">' +
+      '<div class="kp-calc-answer-display" id="kpAnswerDisp' + stId + '">_</div>' +
+      '<div class="kp-calc-answer-label">Jawaban Anda</div>' +
+     '</div>' +
+    '</div>' +
+    '<div class="kp-numpad" id="kpNumpad' + stId + '">' +
+     '<button type="button" class="kp-numpad-btn" data-val="1">1</button>' +
+     '<button type="button" class="kp-numpad-btn" data-val="2">2</button>' +
+     '<button type="button" class="kp-numpad-btn" data-val="3">3</button>' +
+     '<button type="button" class="kp-numpad-btn" data-val="4">4</button>' +
+     '<button type="button" class="kp-numpad-btn" data-val="5">5</button>' +
+     '<button type="button" class="kp-numpad-btn" data-val="6">6</button>' +
+     '<button type="button" class="kp-numpad-btn" data-val="7">7</button>' +
+     '<button type="button" class="kp-numpad-btn" data-val="8">8</button>' +
+     '<button type="button" class="kp-numpad-btn" data-val="9">9</button>' +
+     '<button type="button" class="kp-numpad-btn zero" data-val="0">0</button>' +
+     '<button type="button" class="kp-numpad-btn del" data-val="del">⌫</button>' +
+    '</div>' +
+   '</div>';
+
+  // Attach numpad event listeners
+  var numpad = document.getElementById('kpNumpad' + stId);
+  numpad.querySelectorAll('.kp-numpad-btn').forEach(function(btn) {
+   btn.addEventListener('click', function() {
+    kpNumpadPress(stId, this.getAttribute('data-val'));
+    this.classList.add('pressed');
+    var b = this;
+    setTimeout(function(){ b.classList.remove('pressed'); }, 120);
+   });
+  });
+
+  // Keyboard support
+  if (!state._keyHandler) {
+   state._keyHandler = function(e) {
+    if (e.key >= '0' && e.key <= '9') {
+     kpNumpadPress(stId, e.key);
+    } else if (e.key === 'Backspace') {
+     kpNumpadPress(stId, 'del');
+     e.preventDefault();
+    }
+   };
+   document.addEventListener('keydown', state._keyHandler);
+  }
+ }
+
+ function kpNumpadPress(stId, val) {
+  var state = kraepelinState[stId];
+  if (!state) return;
+  var disp = document.getElementById('kpAnswerDisp' + stId);
+  if (!disp) return;
+
+  if (val === 'del') {
+   disp.textContent = '_';
+   disp.classList.remove('has-val');
+   return;
+  }
+
+  // Show the digit
+  disp.textContent = val;
+  disp.classList.add('has-val');
+
+  // Record answer and auto-advance after brief delay
+  var digits = state.config.digits[state.currentCol];
+  var expected = (digits[state.currentPair] + digits[state.currentPair + 1]) % 10;
+  state.colAnswers.push(parseInt(val, 10));
+  state.colCorrect.push(expected);
+
+  setTimeout(function() {
+   state.currentPair++;
+   if (state.currentPair >= state.totalPairs) {
+    // Column complete early - collect and move on
+    clearInterval(state.timer);
+    state.timer = null;
+    collectKraepelinColumn(stId);
+    state.currentCol++;
+    if (state.currentCol < state.totalCols) {
+     startKraepelinColumn(stId);
+    } else {
+     finishKraepelin(stId);
+    }
+   } else {
+    renderKraepelinPair(stId);
+   }
+  }, 150);
+ }
+
+ function collectKraepelinColumn(stId) {
+  var state = kraepelinState[stId];
+  var correctCount = 0;
+  var attempted = 0;
+  for (var i = 0; i < state.colAnswers.length; i++) {
+   if (state.colAnswers[i] !== null) {
+    attempted++;
+    if (state.colAnswers[i] === state.colCorrect[i]) correctCount++;
+   }
+  }
+  state.results.push({
+   col: state.currentCol + 1,
+   answers: state.colAnswers,
+   correct: state.colCorrect,
+   correct_count: correctCount,
+   attempted: attempted,
+   duration: state.config.column_durations[state.currentCol]
+  });
+ }
+
+ function finishKraepelin(stId) {
+  var state = kraepelinState[stId];
+  if (!state) return;
+  if (state.timer) { clearInterval(state.timer); state.timer = null; }
+  if (state._keyHandler) {
+   document.removeEventListener('keydown', state._keyHandler);
+   state._keyHandler = null;
+  }
+
+  // Store results as JSON in hidden field
+  var dataField = document.getElementById('kraepelinData' + stId);
+  if (dataField) {
+   dataField.value = JSON.stringify(state.results);
+  }
+
+  // Mark subtest completed
+  completedSubTests.add(stId);
+  try { saveCompletedSubtests(); } catch(e){}
+
+  // Add subtest completed marker to form
+  var form = document.getElementById('testForm');
+  if (form) {
+   var mh = document.createElement('input');
+   mh.type = 'hidden'; mh.name = 'subtest_completed[' + stId + ']'; mh.value = '1'; mh.setAttribute('data-subtest-id', stId);
+   form.appendChild(mh);
+  }
+
+  // Update card UI
+  var card = document.getElementById('stCard' + stId);
+  if (card) { card.classList.remove('active'); card.classList.add('completed'); }
+  var status = document.getElementById('stStatus' + stId);
+  if (status) { status.className = 'st-status done'; status.textContent = 'Selesai'; }
+
+  _unblockNavigationDuringSubtest();
+  backToOverview();
+ }
+
+ // ===== DISC PERSONALITY TEST ENGINE =====
+ var discState = {};
+
+ function startDisc(stId) {
+  var config = window['discConfig_' + stId];
+  if (!config || !config.questions) return;
+
+  var state = {
+   stId: stId,
+   config: config,
+   currentGroup: 0,
+   totalGroups: config.question_count,
+   answers: [] // [{group, most, least}]
+  };
+  // Initialize answers array
+  for (var i = 0; i < state.totalGroups; i++) {
+   state.answers.push({ group: i + 1, most: null, least: null });
+  }
+  discState[stId] = state;
+
+  document.getElementById('discWaiting' + stId).style.display = 'none';
+  document.getElementById('discActive' + stId).style.display = 'block';
+  _blockNavigationDuringSubtest(stId);
+  renderDiscGroup(stId);
+ }
+
+ function renderDiscGroup(stId) {
+  var state = discState[stId];
+  if (!state) return;
+  var g = state.currentGroup;
+  var question = state.config.questions[g];
+  var answer = state.answers[g];
+
+  // Update header
+  document.getElementById('discProgress' + stId).textContent = 'Grup ' + (g + 1) + '/' + state.totalGroups;
+  document.getElementById('discGroupNum' + stId).textContent = (g + 1);
+
+  // Update progress bar
+  var pct = Math.round((g / state.totalGroups) * 100);
+  document.getElementById('discProgressFill' + stId).style.width = pct + '%';
+
+  // Build statement cards
+  var container = document.getElementById('discContainer' + stId);
+  var html = '<div class="disc-group-label">Grup ' + (g + 1) + ' dari ' + state.totalGroups + '</div>';
+  html += '<div class="disc-instruction">Klik sekali untuk <strong>Paling Sesuai</strong>, klik lagi untuk <strong>Paling Tidak Sesuai</strong>, klik ketiga untuk membatalkan.</div>';
+
+  for (var i = 0; i < question.statements.length; i++) {
+   var st = question.statements[i];
+   var cls = 'disc-statement';
+   if (answer.most === st.trait) cls += ' selected-most';
+   if (answer.least === st.trait) cls += ' selected-least';
+
+   html += '<div class="' + cls + '" data-trait="' + st.trait + '" onclick="selectDiscStatement(' + stId + ', \'' + st.trait + '\')">';
+   html += '<div class="disc-num">' + (i + 1) + '</div>';
+   html += '<div class="disc-text">' + st.text + '</div>';
+   html += '<span class="disc-badge badge-most">PALING SESUAI</span>';
+   html += '<span class="disc-badge badge-least">PALING TIDAK SESUAI</span>';
+   html += '</div>';
+  }
+  container.innerHTML = html;
+
+  // Update nav buttons
+  var prevBtn = document.getElementById('discPrev' + stId);
+  var nextBtn = document.getElementById('discNext' + stId);
+  prevBtn.disabled = (g === 0);
+
+  if (g === state.totalGroups - 1) {
+   nextBtn.textContent = 'Selesaikan Tes DISC';
+   nextBtn.style.background = '#059669';
+  } else {
+   nextBtn.textContent = 'Selanjutnya \u2192';
+   nextBtn.style.background = '#0d9488';
+  }
+
+  // Enable/disable next based on selection
+  updateDiscNextBtn(stId);
+ }
+
+ function selectDiscStatement(stId, trait) {
+  var state = discState[stId];
+  if (!state) return;
+  var answer = state.answers[state.currentGroup];
+
+  if (answer.most === trait) {
+   // clicking same as most -> move to least (if not already least)
+   answer.most = null;
+   // do not auto-assign least, just deselect most
+  } else if (answer.least === trait) {
+   // clicking same as least -> deselect least
+   answer.least = null;
+  } else if (answer.most === null) {
+   // no most selected -> set as most
+   answer.most = trait;
+  } else if (answer.least === null) {
+   // most is set, no least -> set as least
+   answer.least = trait;
+  } else {
+   // both set, clicking a third one -> replace least
+   answer.least = trait;
+  }
+
+  renderDiscGroup(stId);
+ }
+
+ function updateDiscNextBtn(stId) {
+  var state = discState[stId];
+  var answer = state.answers[state.currentGroup];
+  var nextBtn = document.getElementById('discNext' + stId);
+  nextBtn.disabled = !(answer.most && answer.least);
+ }
+
+ function nextDiscGroup(stId) {
+  var state = discState[stId];
+  if (!state) return;
+  var answer = state.answers[state.currentGroup];
+  if (!answer.most || !answer.least) return;
+
+  if (state.currentGroup >= state.totalGroups - 1) {
+   finishDisc(stId);
+   return;
+  }
+
+  state.currentGroup++;
+  renderDiscGroup(stId);
+  window.scrollTo(0, 0);
+ }
+
+ function prevDiscGroup(stId) {
+  var state = discState[stId];
+  if (!state || state.currentGroup <= 0) return;
+  state.currentGroup--;
+  renderDiscGroup(stId);
+  window.scrollTo(0, 0);
+ }
+
+ function finishDisc(stId) {
+  var state = discState[stId];
+  if (!state) return;
+
+  // Calculate scores
+  var scores = {
+   D: { most: 0, least: 0 },
+   I: { most: 0, least: 0 },
+   S: { most: 0, least: 0 },
+   C: { most: 0, least: 0 }
+  };
+
+  for (var i = 0; i < state.answers.length; i++) {
+   var a = state.answers[i];
+   if (a.most && scores[a.most]) scores[a.most].most++;
+   if (a.least && scores[a.least]) scores[a.least].least++;
+  }
+
+  // Determine profile type (highest most score)
+  var traits = ['D', 'I', 'S', 'C'];
+  var maxMost = 0;
+  var profileType = '';
+  for (var t = 0; t < traits.length; t++) {
+   if (scores[traits[t]].most > maxMost) {
+    maxMost = scores[traits[t]].most;
+    profileType = traits[t];
+   }
+  }
+  // Add secondary (second highest)
+  var secondMax = 0;
+  var secondType = '';
+  for (var t = 0; t < traits.length; t++) {
+   if (traits[t] !== profileType && scores[traits[t]].most > secondMax) {
+    secondMax = scores[traits[t]].most;
+    secondType = traits[t];
+   }
+  }
+  if (secondMax > 0) profileType += secondType;
+
+  var result = {
+   answers: state.answers,
+   scores: scores,
+   profile_type: profileType
+  };
+
+  // Store in hidden field
+  var dataField = document.getElementById('discData' + stId);
+  if (dataField) {
+   dataField.value = JSON.stringify(result);
+  }
+
+  // Mark subtest completed
+  completedSubTests.add(stId);
+  try { saveCompletedSubtests(); } catch(e){}
+
+  // Add subtest completed marker
+  var form = document.getElementById('testForm');
+  if (form) {
+   var mh = document.createElement('input');
+   mh.type = 'hidden'; mh.name = 'subtest_completed[' + stId + ']'; mh.value = '1'; mh.setAttribute('data-subtest-id', stId);
+   form.appendChild(mh);
+  }
+
+  // Update card UI
+  var card = document.getElementById('stCard' + stId);
+  if (card) { card.classList.remove('active'); card.classList.add('completed'); }
+  var status = document.getElementById('stStatus' + stId);
+  if (status) { status.className = 'st-status done'; status.textContent = 'Selesai'; }
+
+  _unblockNavigationDuringSubtest();
+  backToOverview();
+ }
+
+ // ===== PAPIKOSTIK PERSONALITY TEST ENGINE =====
+ var papiState = {};
+
+ function startPapi(stId) {
+  var config = window['papiConfig_' + stId];
+  if (!config || !config.questions) return;
+
+  var state = {
+   stId: stId,
+   config: config,
+   currentQ: 0,
+   totalQ: config.question_count,
+   answers: [] // [{number, choice: 'a'|'b'|null}]
+  };
+  for (var i = 0; i < state.totalQ; i++) {
+   state.answers.push({ number: i + 1, choice: null });
+  }
+  papiState[stId] = state;
+
+  document.getElementById('papiWaiting' + stId).style.display = 'none';
+  document.getElementById('papiActive' + stId).style.display = 'block';
+  _blockNavigationDuringSubtest(stId);
+  renderPapiQ(stId);
+ }
+
+ function renderPapiQ(stId) {
+  var state = papiState[stId];
+  if (!state) return;
+  var q = state.currentQ;
+  var question = state.config.questions[q];
+  var answer = state.answers[q];
+
+  document.getElementById('papiProgress' + stId).textContent = 'Soal ' + (q + 1) + '/' + state.totalQ;
+  document.getElementById('papiNum' + stId).textContent = (q + 1);
+
+  var pct = Math.round((q / state.totalQ) * 100);
+  document.getElementById('papiProgressFill' + stId).style.width = pct + '%';
+
+  var container = document.getElementById('papiContainer' + stId);
+  var html = '<div class="papi-pair-label">Soal ' + (q + 1) + ' dari ' + state.totalQ + '</div>';
+  html += '<div class="papi-instruction">Pilih pernyataan yang <strong>paling menggambarkan diri Anda</strong>.</div>';
+
+  var clsA = 'papi-choice' + (answer.choice === 'a' ? ' selected' : '');
+  var clsB = 'papi-choice' + (answer.choice === 'b' ? ' selected' : '');
+
+  html += '<div class="' + clsA + '" onclick="selectPapi(' + stId + ', \'a\')">';
+  html += '<div class="papi-letter">A</div>';
+  html += '<div class="papi-text">' + question.a.text + '</div>';
+  html += '</div>';
+
+  html += '<div class="' + clsB + '" onclick="selectPapi(' + stId + ', \'b\')">';
+  html += '<div class="papi-letter">B</div>';
+  html += '<div class="papi-text">' + question.b.text + '</div>';
+  html += '</div>';
+
+  container.innerHTML = html;
+
+  var prevBtn = document.getElementById('papiPrev' + stId);
+  var nextBtn = document.getElementById('papiNext' + stId);
+  prevBtn.disabled = (q === 0);
+
+  if (q === state.totalQ - 1) {
+   nextBtn.textContent = 'Selesaikan Tes PAPIKOSTIK';
+   nextBtn.style.background = '#059669';
+  } else {
+   nextBtn.textContent = 'Selanjutnya \u2192';
+   nextBtn.style.background = '#7c3aed';
+  }
+
+  nextBtn.disabled = !answer.choice;
+ }
+
+ function selectPapi(stId, choice) {
+  var state = papiState[stId];
+  if (!state) return;
+  var answer = state.answers[state.currentQ];
+  answer.choice = (answer.choice === choice) ? null : choice;
+  renderPapiQ(stId);
+ }
+
+ function nextPapi(stId) {
+  var state = papiState[stId];
+  if (!state) return;
+  var answer = state.answers[state.currentQ];
+  if (!answer.choice) return;
+
+  if (state.currentQ >= state.totalQ - 1) {
+   finishPapi(stId);
+   return;
+  }
+
+  state.currentQ++;
+  renderPapiQ(stId);
+  window.scrollTo(0, 0);
+ }
+
+ function prevPapi(stId) {
+  var state = papiState[stId];
+  if (!state || state.currentQ <= 0) return;
+  state.currentQ--;
+  renderPapiQ(stId);
+  window.scrollTo(0, 0);
+ }
+
+ function finishPapi(stId) {
+  var state = papiState[stId];
+  if (!state) return;
+
+  var dims = state.config.dimensions;
+  var scores = {};
+  for (var d = 0; d < dims.length; d++) {
+   scores[dims[d]] = 0;
+  }
+
+  for (var i = 0; i < state.answers.length; i++) {
+   var a = state.answers[i];
+   var q = state.config.questions[i];
+   if (a.choice === 'a' && q.a.dim) {
+    scores[q.a.dim] = (scores[q.a.dim] || 0) + 1;
+   } else if (a.choice === 'b' && q.b.dim) {
+    scores[q.b.dim] = (scores[q.b.dim] || 0) + 1;
+   }
+  }
+
+  var result = {
+   answers: state.answers,
+   scores: scores
+  };
+
+  var dataField = document.getElementById('papiData' + stId);
+  if (dataField) {
+   dataField.value = JSON.stringify(result);
+  }
+
+  completedSubTests.add(stId);
+  try { saveCompletedSubtests(); } catch(e){}
+
+  var form = document.getElementById('testForm');
+  if (form) {
+   var mh = document.createElement('input');
+   mh.type = 'hidden'; mh.name = 'subtest_completed[' + stId + ']'; mh.value = '1'; mh.setAttribute('data-subtest-id', stId);
+   form.appendChild(mh);
+  }
+
+  var card = document.getElementById('stCard' + stId);
+  if (card) { card.classList.remove('active'); card.classList.add('completed'); }
+  var status = document.getElementById('stStatus' + stId);
+  if (status) { status.className = 'st-status done'; status.textContent = 'Selesai'; }
+
+  _unblockNavigationDuringSubtest();
+  backToOverview();
+ }
+
  @endif
 
  // === ANTI-CHEAT SYSTEM ===

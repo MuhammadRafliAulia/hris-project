@@ -40,8 +40,9 @@
 
  <div class="card">
  <h1>{{ $subTest->title }}</h1>
- <p style="font-size:13px;color:#64748b;margin:0;">Sub-test dari: {{ $bank->title }}</p>
+ <p style="font-size:13px;color:#64748b;margin:0;">Sub-test dari: {{ $bank->title }}@if($subTest->type === 'kraepelin') <span style="background:#fce4ec;color:#880e4f;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-left:8px;">KRAEPELIN</span>@endif @if($subTest->type === 'disc') <span style="background:#e0f2f1;color:#00695c;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-left:8px;">DISC</span>@endif @if($subTest->type === 'papikostik') <span style="background:#ede9fe;color:#5b21b6;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-left:8px;">PAPIKOSTIK</span>@endif</p>
 
+@if($subTest->type !== 'kraepelin' && $subTest->type !== 'disc' && $subTest->type !== 'papikostik')
 <!-- Import / Export Soal (sub-test) -->
 <div style="margin-top:12px;padding:12px;border-radius:8px;background:#f8fafc;border:1px dashed #cbd5e1;">
 	<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -76,6 +77,7 @@
 	</div>
 	@endif
 </div>
+@endif
 
  @if(session('success'))
  <div class="success" style="margin-top:12px;">{{ session('success') }}</div>
@@ -99,6 +101,7 @@
  <label for="description">Deskripsi / Instruksi</label>
  <textarea id="description" name="description" rows="3">{{ $subTest->description }}</textarea>
  </div>
+@if($subTest->type !== 'kraepelin' && $subTest->type !== 'disc' && $subTest->type !== 'papikostik')
  <div class="form-group">
  <label for="duration_minutes"> Durasi (menit)</label>
  <div style="display:flex;align-items:center;gap:8px;">
@@ -106,11 +109,87 @@
  <span style="font-size:13px;color:#64748b;">menit (kosongkan = tanpa batas waktu)</span>
  </div>
  </div>
- <button type="submit" class="btn">Simpan Perubahan</button>
+ </div>
+@endif
+@if($subTest->type === 'kraepelin')
+ @php $kc = $subTest->kraepelin_config ?? []; @endphp
+ <div style="background:#e0f2fe;color:#0c4a6e;padding:12px 14px;border-radius:6px;margin:14px 0;font-size:13px;">
+ <strong>Konfigurasi Kraepelin</strong> — Centang "Regenerasi" untuk mengacak ulang digit & durasi kolom.
+ </div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+ <div class="form-group">
+ <label for="kraepelin_columns">Jumlah Kolom</label>
+ <input id="kraepelin_columns" type="number" name="kraepelin_columns" value="{{ $kc['columns_count'] ?? 50 }}" min="5" max="100">
+ </div>
+ <div class="form-group">
+ <label for="kraepelin_digits">Digit per Kolom</label>
+ <input id="kraepelin_digits" type="number" name="kraepelin_digits" value="{{ $kc['digits_per_column'] ?? 60 }}" min="20" max="100">
+ </div>
+ <div class="form-group">
+ <label for="kraepelin_min_seconds">Detik Min / Kolom</label>
+ <input id="kraepelin_min_seconds" type="number" name="kraepelin_min_seconds" value="{{ $kc['min_seconds'] ?? 15 }}" min="5" max="120">
+ </div>
+ <div class="form-group">
+ <label for="kraepelin_max_seconds">Detik Maks / Kolom</label>
+ <input id="kraepelin_max_seconds" type="number" name="kraepelin_max_seconds" value="{{ $kc['max_seconds'] ?? 45 }}" min="5" max="120">
+ </div>
+ </div>
+ <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:0;">
+ <input type="checkbox" name="regenerate_kraepelin" value="1" style="width:auto;accent-color:#dc2626;">
+ <span style="font-size:13px;font-weight:500;color:#dc2626;">Regenerasi digit & durasi kolom (data lama akan hilang)</span>
+ </label>
+ <div style="margin-top:14px;padding:12px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;">
+ <strong style="font-size:13px;">Ringkasan Konfigurasi Saat Ini:</strong>
+ <div style="font-size:12px;color:#64748b;margin-top:6px;">
+ {{ $kc['columns_count'] ?? '-' }} kolom &middot;
+ {{ $kc['digits_per_column'] ?? '-' }} digit/kolom &middot;
+ {{ $kc['min_seconds'] ?? '-' }}-{{ $kc['max_seconds'] ?? '-' }} detik/kolom (acak) &middot;
+ Total durasi: ~{{ isset($kc['column_durations']) ? round(array_sum($kc['column_durations']) / 60, 1) : '-' }} menit
+ </div>
+ </div>
+@endif
+@if($subTest->type === 'disc')
+ @php $dc = $subTest->disc_config ?? []; @endphp
+ <div style="background:#e0f2f1;color:#004d40;padding:12px 14px;border-radius:6px;margin:14px 0;font-size:13px;">
+ <strong>Konfigurasi DISC</strong> — Centang "Regenerasi" untuk mengacak ulang urutan pernyataan dalam setiap grup.
+ </div>
+ <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:0;">
+ <input type="checkbox" name="regenerate_disc" value="1" style="width:auto;accent-color:#dc2626;">
+ <span style="font-size:13px;font-weight:500;color:#dc2626;">Regenerasi urutan pernyataan (acak ulang posisi per grup)</span>
+ </label>
+ <div style="margin-top:14px;padding:12px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;">
+ <strong style="font-size:13px;">Ringkasan Konfigurasi Saat Ini:</strong>
+ <div style="font-size:12px;color:#64748b;margin-top:6px;">
+ {{ $dc['question_count'] ?? '-' }} grup pernyataan &middot;
+ 4 dimensi: Dominance (D), Influence (I), Steadiness (S), Compliance (C) &middot;
+ Self-paced (tanpa batas waktu)
+ </div>
+ </div>
+@endif
+@if($subTest->type === 'papikostik')
+ @php $pc = $subTest->papikostik_config ?? []; @endphp
+ <div style="background:#ede9fe;color:#5b21b6;padding:12px 14px;border-radius:6px;margin:14px 0;font-size:13px;">
+ <strong>Konfigurasi PAPIKOSTIK</strong> — Centang "Regenerasi" untuk mengacak ulang pasangan soal.
+ </div>
+ <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:0;">
+ <input type="checkbox" name="regenerate_papikostik" value="1" style="width:auto;accent-color:#dc2626;">
+ <span style="font-size:13px;font-weight:500;color:#dc2626;">Regenerasi pasangan soal (data lama akan hilang)</span>
+ </label>
+ <div style="margin-top:14px;padding:12px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;">
+ <strong style="font-size:13px;">Ringkasan Konfigurasi Saat Ini:</strong>
+ <div style="font-size:12px;color:#64748b;margin-top:6px;">
+ {{ $pc['question_count'] ?? '-' }} pasang soal &middot;
+ 20 dimensi: N, G, A, L, P, I, T, V, S, R, D, C, X, B, O, Z, E, K, F, W &middot;
+ Self-paced (tanpa batas waktu)
+ </div>
+ </div>
+@endif
+ <button type="submit" class="btn" style="margin-top:16px;">Simpan Perubahan</button>
  </form>
  </div>
 
  {{-- Example Questions --}}
+@if($subTest->type !== 'kraepelin' && $subTest->type !== 'disc' && $subTest->type !== 'papikostik')
  <div class="card">
  <div class="section-title"> Contoh Soal ({{ $exampleQuestions->count() }})</div>
  <p style="font-size:12px;color:#64748b;margin:0 0 12px 0;">Contoh soal ditampilkan sebelum peserta mengerjakan sub-test ini. Tidak dinilai.</p>
@@ -441,6 +520,7 @@ document.getElementById('addQuestionForm').addEventListener('submit', function(e
 });
  </script>
  </div>
+@endif
  </div>
 </body>
 </html>

@@ -96,6 +96,9 @@ Route::middleware(['auth', 'role:superadmin,recruitmentteam'])->group(function (
     Route::get('/banks/{bank}/questions/template/{type}', [BankController::class, 'downloadQuestionTemplate'])->name('banks.questions.template');
     Route::post('/banks/{bank}/questions/import', [BankController::class, 'importQuestions'])->name('banks.questions.import');
     Route::get('/banks/{bank}/participant/{response}/pdf', [BankController::class, 'exportParticipantPdf'])->name('banks.export-participant-pdf');
+    Route::get('/banks/{bank}/participant/{response}/kraepelin/{subTest}/pdf', [BankController::class, 'exportKraepelinPdf'])->name('banks.export-kraepelin-pdf');
+    Route::get('/banks/{bank}/participant/{response}/disc/{subTest}/pdf', [BankController::class, 'exportDiscPdf'])->name('banks.export-disc-pdf');
+    Route::get('/banks/{bank}/participant/{response}/papikostik/{subTest}/pdf', [BankController::class, 'exportPapikostikPdf'])->name('banks.export-papikostik-pdf');
     Route::get('/banks/{bank}/export-excel', [BankController::class, 'exportExcel'])->name('banks.export-excel');
     Route::get('/cheat-log', [BankController::class, 'cheatLog'])->name('banks.cheat-log');
 });

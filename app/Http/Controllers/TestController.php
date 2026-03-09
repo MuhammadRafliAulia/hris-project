@@ -303,6 +303,64 @@ class TestController extends Controller
             }
         }
 
+        // Process kraepelin sub-test data
+        $kraepelinInputs = $request->input('kraepelin_data', []);
+        foreach ($subTests as $st) {
+            if ($st->type === 'kraepelin' && isset($kraepelinInputs[$st->id])) {
+                $rawData = $kraepelinInputs[$st->id];
+                $columns = is_string($rawData) ? json_decode($rawData, true) : $rawData;
+                if (is_array($columns)) {
+                    $totalCorrect = 0;
+                    $totalAttempted = 0;
+                    foreach ($columns as &$col) {
+                        $totalCorrect += (int) ($col['correct_count'] ?? 0);
+                        $totalAttempted += (int) ($col['attempted'] ?? 0);
+                    }
+                    unset($col);
+                    $responsesData['kraepelin_' . $st->id] = [
+                        'columns' => $columns,
+                        'summary' => [
+                            'total_correct' => $totalCorrect,
+                            'total_attempted' => $totalAttempted,
+                            'accuracy' => $totalAttempted > 0 ? round(($totalCorrect / $totalAttempted) * 100, 1) : 0,
+                        ],
+                    ];
+                }
+            }
+        }
+
+        // Process DISC sub-test data
+        $discInputs = $request->input('disc_data', []);
+        foreach ($subTests as $st) {
+            if ($st->type === 'disc' && isset($discInputs[$st->id])) {
+                $rawData = $discInputs[$st->id];
+                $discResult = is_string($rawData) ? json_decode($rawData, true) : $rawData;
+                if (is_array($discResult)) {
+                    $scores = $discResult['scores'] ?? ['D' => ['most' => 0, 'least' => 0], 'I' => ['most' => 0, 'least' => 0], 'S' => ['most' => 0, 'least' => 0], 'C' => ['most' => 0, 'least' => 0]];
+                    $responsesData['disc_' . $st->id] = [
+                        'answers' => $discResult['answers'] ?? [],
+                        'scores' => $scores,
+                        'profile_type' => $discResult['profile_type'] ?? '',
+                    ];
+                }
+            }
+        }
+
+        // Process PAPIKOSTIK sub-test data
+        $papiInputs = $request->input('papikostik_data', []);
+        foreach ($subTests as $st) {
+            if ($st->type === 'papikostik' && isset($papiInputs[$st->id])) {
+                $rawData = $papiInputs[$st->id];
+                $papiResult = is_string($rawData) ? json_decode($rawData, true) : $rawData;
+                if (is_array($papiResult)) {
+                    $responsesData['papikostik_' . $st->id] = [
+                        'answers' => $papiResult['answers'] ?? [],
+                        'scores' => $papiResult['scores'] ?? [],
+                    ];
+                }
+            }
+        }
+
         // Collect anti-cheat violation data
         $violationCount = (int) $request->input('violation_count', 0);
         $violationLog = $request->input('violation_log') ? json_decode($request->input('violation_log'), true) : [];
@@ -335,7 +393,9 @@ class TestController extends Controller
         if ($subTests->count() > 0) {
             $questions = collect();
             foreach ($subTests as $st) {
-                $questions = $questions->merge($st->questions);
+                if ($st->type !== 'kraepelin' && $st->type !== 'disc' && $st->type !== 'papikostik') {
+                    $questions = $questions->merge($st->questions);
+                }
             }
         } else {
             $questions = $bank->questions;
@@ -347,6 +407,30 @@ class TestController extends Controller
         // Fill empty answers
         foreach ($questions as $question) {
             $responsesData[$question->id] = null;
+        }
+
+        // Empty kraepelin results
+        foreach ($subTests as $st) {
+            if ($st->type === 'kraepelin') {
+                $responsesData['kraepelin_' . $st->id] = [
+                    'columns' => [],
+                    'summary' => ['total_correct' => 0, 'total_attempted' => 0, 'accuracy' => 0],
+                ];
+            }
+            if ($st->type === 'disc') {
+                $responsesData['disc_' . $st->id] = [
+                    'answers' => [],
+                    'scores' => ['D' => ['most' => 0, 'least' => 0], 'I' => ['most' => 0, 'least' => 0], 'S' => ['most' => 0, 'least' => 0], 'C' => ['most' => 0, 'least' => 0]],
+                    'profile_type' => '',
+                ];
+            }
+            if ($st->type === 'papikostik') {
+                $dims = ['N','G','A','L','P','I','T','V','S','R','D','C','X','B','O','Z','E','K','F','W'];
+                $responsesData['papikostik_' . $st->id] = [
+                    'answers' => [],
+                    'scores' => array_fill_keys($dims, 0),
+                ];
+            }
         }
 
         $response->update([

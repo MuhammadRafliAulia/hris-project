@@ -485,23 +485,243 @@ class BankController extends Controller
         $bank = Bank::findOrFail($request->bank_id);
         $this->authorize('update', $bank);
 
+        $subTestType = $request->input('sub_test_type', 'default');
+
         $validated = $request->validate([
             'sub_test_title' => 'required|string|max:255',
             'sub_test_description' => 'nullable|string|max:1000',
             'sub_test_duration' => 'nullable|integer|min:1|max:600',
+            'sub_test_type' => 'nullable|in:default,kraepelin,disc,papikostik',
         ]);
 
         $order = $bank->subTests()->max('order') ?? -1;
-        SubTest::create([
+        $data = [
             'bank_id' => $bank->id,
             'title' => $validated['sub_test_title'],
             'description' => $validated['sub_test_description'] ?? null,
             'duration_minutes' => $validated['sub_test_duration'] ?? null,
             'order' => $order + 1,
-        ]);
+            'type' => $subTestType,
+        ];
+
+        if ($subTestType === 'kraepelin') {
+            $request->validate([
+                'kraepelin_columns' => 'required|integer|min:5|max:100',
+                'kraepelin_digits' => 'required|integer|min:20|max:100',
+                'kraepelin_min_seconds' => 'required|integer|min:5|max:120',
+                'kraepelin_max_seconds' => 'required|integer|min:5|max:120|gte:kraepelin_min_seconds',
+            ]);
+
+            $columnsCount = (int) $request->input('kraepelin_columns', 50);
+            $digitsPerCol = (int) $request->input('kraepelin_digits', 60);
+            $minSeconds = (int) $request->input('kraepelin_min_seconds', 15);
+            $maxSeconds = (int) $request->input('kraepelin_max_seconds', 45);
+
+            $data['kraepelin_config'] = $this->generateKraepelinConfig($columnsCount, $digitsPerCol, $minSeconds, $maxSeconds);
+            $data['duration_minutes'] = null; // kraepelin uses its own timing
+        }
+
+        if ($subTestType === 'disc') {
+            $data['disc_config'] = $this->generateDiscConfig();
+            $data['duration_minutes'] = null; // disc is self-paced
+        }
+
+        if ($subTestType === 'papikostik') {
+            $data['papikostik_config'] = $this->generatePapikostikConfig();
+            $data['duration_minutes'] = null; // papikostik is self-paced
+        }
+
+        SubTest::create($data);
 
         ActivityLog::log('create', 'subtest', 'Menambahkan sub-test ke bank: ' . $bank->title);
         return redirect()->route('banks.edit', $bank)->with('success', 'Sub-test berhasil ditambahkan.');
+    }
+
+    private function generateKraepelinConfig(int $columnsCount, int $digitsPerCol, int $minSeconds, int $maxSeconds): array
+    {
+        $digits = [];
+        for ($c = 0; $c < $columnsCount; $c++) {
+            $col = [];
+            for ($d = 0; $d < $digitsPerCol; $d++) {
+                $col[] = random_int(1, 9);
+            }
+            $digits[] = $col;
+        }
+
+        $columnDurations = [];
+        for ($c = 0; $c < $columnsCount; $c++) {
+            $columnDurations[] = random_int($minSeconds, $maxSeconds);
+        }
+
+        return [
+            'columns_count' => $columnsCount,
+            'digits_per_column' => $digitsPerCol,
+            'min_seconds' => $minSeconds,
+            'max_seconds' => $maxSeconds,
+            'column_durations' => $columnDurations,
+            'digits' => $digits,
+        ];
+    }
+
+    private function generateDiscConfig(): array
+    {
+        $groups = [
+            ['D' => 'Tegas dan langsung', 'I' => 'Antusias dan optimis', 'S' => 'Sabar dan tenang', 'C' => 'Teliti dan akurat'],
+            ['D' => 'Suka tantangan', 'I' => 'Mudah bergaul', 'S' => 'Setia dan konsisten', 'C' => 'Mengikuti aturan'],
+            ['D' => 'Berani mengambil risiko', 'I' => 'Meyakinkan orang lain', 'S' => 'Pendengar yang baik', 'C' => 'Berpikir analitis'],
+            ['D' => 'Kompetitif', 'I' => 'Ekspresif', 'S' => 'Kooperatif', 'C' => 'Perfeksionis'],
+            ['D' => 'Mandiri', 'I' => 'Ramah', 'S' => 'Suportif', 'C' => 'Hati-hati'],
+            ['D' => 'Berorientasi hasil', 'I' => 'Ceria dan energik', 'S' => 'Sabar menunggu', 'C' => 'Sistematis'],
+            ['D' => 'Dominan', 'I' => 'Inspiratif', 'S' => 'Stabil', 'C' => 'Kritis'],
+            ['D' => 'Ambisius', 'I' => 'Percaya diri di depan orang', 'S' => 'Dapat diandalkan', 'C' => 'Disiplin'],
+            ['D' => 'Suka memimpin', 'I' => 'Komunikatif', 'S' => 'Loyal', 'C' => 'Cermat'],
+            ['D' => 'Cepat bertindak', 'I' => 'Kreatif', 'S' => 'Konsisten', 'C' => 'Terstruktur'],
+            ['D' => 'Mengontrol situasi', 'I' => 'Membangun hubungan', 'S' => 'Mendukung tim', 'C' => 'Mengevaluasi data'],
+            ['D' => 'Menuntut', 'I' => 'Spontan', 'S' => 'Tenang', 'C' => 'Logis'],
+            ['D' => 'Mengarahkan orang lain', 'I' => 'Memotivasi orang lain', 'S' => 'Mendengarkan orang lain', 'C' => 'Menganalisis masalah'],
+            ['D' => 'Kuat', 'I' => 'Populer', 'S' => 'Rendah hati', 'C' => 'Presisi'],
+            ['D' => 'Suka bersaing', 'I' => 'Suka bersosialisasi', 'S' => 'Suka bekerja sama', 'C' => 'Suka merencanakan'],
+            ['D' => 'Terus terang', 'I' => 'Humoris', 'S' => 'Bijaksana', 'C' => 'Faktual'],
+            ['D' => 'Fokus pada tujuan', 'I' => 'Fokus pada orang', 'S' => 'Fokus pada harmoni', 'C' => 'Fokus pada kualitas'],
+            ['D' => 'Menentukan arah', 'I' => 'Memberikan semangat', 'S' => 'Menjaga kestabilan', 'C' => 'Memastikan akurasi'],
+            ['D' => 'Pelopor', 'I' => 'Promotor', 'S' => 'Pendukung', 'C' => 'Analis'],
+            ['D' => 'Pengambil keputusan cepat', 'I' => 'Pembicara handal', 'S' => 'Penengah konflik', 'C' => 'Pemecah masalah detail'],
+            ['D' => 'Energik dan intensif', 'I' => 'Antusias dan hangat', 'S' => 'Tenang dan sabar', 'C' => 'Serius dan berhati-hati'],
+            ['D' => 'Berorientasi kekuasaan', 'I' => 'Berorientasi pengakuan', 'S' => 'Berorientasi keamanan', 'C' => 'Berorientasi prosedur'],
+            ['D' => 'Gesit', 'I' => 'Menarik', 'S' => 'Stabil', 'C' => 'Rapi'],
+            ['D' => 'Mengatasi hambatan', 'I' => 'Mempengaruhi orang', 'S' => 'Menjaga ketenangan', 'C' => 'Memperhatikan detail'],
+        ];
+
+        $questions = [];
+        foreach ($groups as $gi => $group) {
+            $statements = [];
+            foreach ($group as $trait => $text) {
+                $statements[] = ['trait' => $trait, 'text' => $text];
+            }
+            shuffle($statements);
+            $questions[] = [
+                'group' => $gi + 1,
+                'statements' => $statements,
+            ];
+        }
+
+        return [
+            'question_count' => count($groups),
+            'questions' => $questions,
+        ];
+    }
+
+    private function generatePapikostikConfig(): array
+    {
+        // 90 forced-choice pairs mapping to 20 PAPIKOSTIK dimensions
+        // Each dimension: N,G,A,L,P,I,T,V,S,R,D,C,X,B,O,Z,E,K,F,W (scored 0-9)
+        $pairs = [
+            ['a' => ['dim' => 'G', 'text' => 'Saya suka menjadi pemimpin dalam kelompok'], 'b' => ['dim' => 'N', 'text' => 'Saya butuh menyelesaikan tugas sendiri']],
+            ['a' => ['dim' => 'A', 'text' => 'Saya nyaman bekerja dengan kecepatan tinggi'], 'b' => ['dim' => 'L', 'text' => 'Saya lebih suka rutinitas yang teratur']],
+            ['a' => ['dim' => 'P', 'text' => 'Saya selalu ingin menampilkan yang terbaik'], 'b' => ['dim' => 'I', 'text' => 'Saya suka berpikir mandiri']],
+            ['a' => ['dim' => 'T', 'text' => 'Saya suka bekerja dekat dengan orang lain'], 'b' => ['dim' => 'V', 'text' => 'Saya suka aktivitas yang penuh energi']],
+            ['a' => ['dim' => 'S', 'text' => 'Saya suka berinteraksi sosial dengan banyak orang'], 'b' => ['dim' => 'R', 'text' => 'Saya lebih suka bekerja dengan konsep teoritis']],
+            ['a' => ['dim' => 'D', 'text' => 'Saya suka memperhatikan detail pekerjaan'], 'b' => ['dim' => 'C', 'text' => 'Saya suka mengorganisir dan menata pekerjaan']],
+            ['a' => ['dim' => 'X', 'text' => 'Saya membutuhkan variasi dalam pekerjaan'], 'b' => ['dim' => 'B', 'text' => 'Saya merasa nyaman mengikuti arahan orang lain']],
+            ['a' => ['dim' => 'O', 'text' => 'Saya sering memilih berdasarkan perasaan'], 'b' => ['dim' => 'Z', 'text' => 'Saya lebih suka tugas yang menantang']],
+            ['a' => ['dim' => 'E', 'text' => 'Saya suka memengaruhi pendapat orang lain'], 'b' => ['dim' => 'K', 'text' => 'Saya suka bekerja keras untuk mencapai tujuan']],
+            ['a' => ['dim' => 'F', 'text' => 'Saya suka membantu dan mendukung orang lain'], 'b' => ['dim' => 'W', 'text' => 'Saya nyaman bekerja berdekatan dengan orang lain']],
+            ['a' => ['dim' => 'N', 'text' => 'Saya ingin mencapai hasil kerja yang sempurna'], 'b' => ['dim' => 'A', 'text' => 'Saya suka menjalani hidup dengan cepat dan dinamis']],
+            ['a' => ['dim' => 'G', 'text' => 'Saya suka mengambil tanggung jawab kepemimpinan'], 'b' => ['dim' => 'P', 'text' => 'Saya ingin dilihat sebagai orang yang berpengaruh']],
+            ['a' => ['dim' => 'L', 'text' => 'Saya merasa tenang dengan jadwal yang tetap'], 'b' => ['dim' => 'I', 'text' => 'Saya suka menganalisis sebelum bertindak']],
+            ['a' => ['dim' => 'T', 'text' => 'Saya menikmati kerja tim yang harmonis'], 'b' => ['dim' => 'S', 'text' => 'Saya mudah bergaul dan suka bertemu orang baru']],
+            ['a' => ['dim' => 'V', 'text' => 'Saya suka pekerjaan yang menuntut fisik aktif'], 'b' => ['dim' => 'D', 'text' => 'Saya cermat memeriksa hasil pekerjaan saya']],
+            ['a' => ['dim' => 'R', 'text' => 'Saya menikmati pekerjaan yang membutuhkan logika'], 'b' => ['dim' => 'X', 'text' => 'Saya bosan dengan pekerjaan yang monoton']],
+            ['a' => ['dim' => 'C', 'text' => 'Saya suka merencanakan pekerjaan secara terstruktur'], 'b' => ['dim' => 'O', 'text' => 'Saya sering merasa empati yang kuat terhadap orang lain']],
+            ['a' => ['dim' => 'B', 'text' => 'Saya nyaman bekerja di bawah pengawasan'], 'b' => ['dim' => 'E', 'text' => 'Saya suka membujuk orang untuk mengikuti ide saya']],
+            ['a' => ['dim' => 'Z', 'text' => 'Saya terdorong untuk berprestasi tinggi'], 'b' => ['dim' => 'F', 'text' => 'Saya selalu siap membantu rekan kerja']],
+            ['a' => ['dim' => 'K', 'text' => 'Saya gigih dan tidak mudah menyerah'], 'b' => ['dim' => 'W', 'text' => 'Saya butuh lingkungan kerja yang nyaman']],
+            ['a' => ['dim' => 'N', 'text' => 'Saya teliti dalam setiap pekerjaan yang saya lakukan'], 'b' => ['dim' => 'G', 'text' => 'Saya senang mengambil peran sebagai koordinator']],
+            ['a' => ['dim' => 'A', 'text' => 'Saya bekerja dengan tempo cepat'], 'b' => ['dim' => 'T', 'text' => 'Saya sangat menghargai hubungan kerja yang dekat']],
+            ['a' => ['dim' => 'P', 'text' => 'Saya ingin diakui atas pencapaian saya'], 'b' => ['dim' => 'V', 'text' => 'Saya lebih suka pekerjaan yang melibatkan gerakan fisik']],
+            ['a' => ['dim' => 'L', 'text' => 'Saya suka lingkungan kerja yang stabil dan terprediksi'], 'b' => ['dim' => 'S', 'text' => 'Saya mudah memulai percakapan dengan orang asing']],
+            ['a' => ['dim' => 'I', 'text' => 'Saya sering mempertimbangkan keputusan dengan hati-hati'], 'b' => ['dim' => 'D', 'text' => 'Saya fokus pada akurasi dan ketepatan']],
+            ['a' => ['dim' => 'R', 'text' => 'Saya menikmati memecahkan masalah yang rumit'], 'b' => ['dim' => 'C', 'text' => 'Saya suka mengatur jadwal dan prioritas']],
+            ['a' => ['dim' => 'X', 'text' => 'Saya suka mencoba hal-hal baru dalam pekerjaan'], 'b' => ['dim' => 'Z', 'text' => 'Saya termotivasi oleh target yang menantang']],
+            ['a' => ['dim' => 'B', 'text' => 'Saya lebih suka mengikuti prosedur yang sudah ada'], 'b' => ['dim' => 'K', 'text' => 'Saya bekerja keras meskipun tidak ada yang mengawasi']],
+            ['a' => ['dim' => 'O', 'text' => 'Saya sensitif terhadap perasaan orang di sekitar saya'], 'b' => ['dim' => 'W', 'text' => 'Saya membutuhkan rasa aman dalam pekerjaan']],
+            ['a' => ['dim' => 'E', 'text' => 'Saya percaya diri menyampaikan pendapat di depan banyak orang'], 'b' => ['dim' => 'F', 'text' => 'Saya suka menolong orang yang mengalami kesulitan']],
+            ['a' => ['dim' => 'G', 'text' => 'Saya suka mengarahkan orang lain dalam bekerja'], 'b' => ['dim' => 'A', 'text' => 'Saya terbiasa menyelesaikan pekerjaan dengan cepat']],
+            ['a' => ['dim' => 'N', 'text' => 'Saya berusaha agar pekerjaan saya sempurna'], 'b' => ['dim' => 'L', 'text' => 'Saya merasa aman dengan pola kerja yang teratur']],
+            ['a' => ['dim' => 'P', 'text' => 'Saya ingin pekerjaan saya diperhatikan orang lain'], 'b' => ['dim' => 'T', 'text' => 'Saya membangun hubungan dekat dengan rekan kerja']],
+            ['a' => ['dim' => 'I', 'text' => 'Saya hati-hati sebelum memutuskan sesuatu'], 'b' => ['dim' => 'V', 'text' => 'Saya penuh semangat dan berenergi tinggi']],
+            ['a' => ['dim' => 'S', 'text' => 'Saya pandai mempengaruhi orang dalam pergaulan'], 'b' => ['dim' => 'R', 'text' => 'Saya menikmati pembelajaran hal-hal abstrak']],
+            ['a' => ['dim' => 'D', 'text' => 'Saya tidak suka membuat kesalahan'], 'b' => ['dim' => 'X', 'text' => 'Saya merasa bosan jika pekerjaan itu-itu saja']],
+            ['a' => ['dim' => 'C', 'text' => 'Saya suka membuat daftar tugas dan menaatinya'], 'b' => ['dim' => 'B', 'text' => 'Saya nyaman menerima instruksi dari atasan']],
+            ['a' => ['dim' => 'Z', 'text' => 'Saya ambisius dalam mencapai tujuan karir saya'], 'b' => ['dim' => 'O', 'text' => 'Saya mudah merasakan apa yang orang lain rasakan']],
+            ['a' => ['dim' => 'K', 'text' => 'Saya tekun mengerjakan tugas meskipun sulit'], 'b' => ['dim' => 'E', 'text' => 'Saya suka memimpin diskusi kelompok']],
+            ['a' => ['dim' => 'F', 'text' => 'Saya rela berkorban demi membantu orang lain'], 'b' => ['dim' => 'W', 'text' => 'Saya menghindari konflik di tempat kerja']],
+            ['a' => ['dim' => 'A', 'text' => 'Saya produktif dan cepat dalam bekerja'], 'b' => ['dim' => 'G', 'text' => 'Saya ingin memegang kendali dalam proyek']],
+            ['a' => ['dim' => 'N', 'text' => 'Saya perfeksionis dalam hal pekerjaan'], 'b' => ['dim' => 'P', 'text' => 'Saya ingin terlihat menonjol di hadapan orang lain']],
+            ['a' => ['dim' => 'L', 'text' => 'Saya lebih nyaman dengan cara kerja yang sudah terbukti'], 'b' => ['dim' => 'T', 'text' => 'Saya selalu mencari kedekatan emosional dengan tim']],
+            ['a' => ['dim' => 'I', 'text' => 'Saya mempertimbangkan banyak hal sebelum bertindak'], 'b' => ['dim' => 'S', 'text' => 'Saya dikenal sebagai orang yang ramah dan terbuka']],
+            ['a' => ['dim' => 'V', 'text' => 'Saya lebih suka bergerak aktif daripada duduk diam'], 'b' => ['dim' => 'R', 'text' => 'Saya suka menganalisis data dan informasi']],
+            ['a' => ['dim' => 'D', 'text' => 'Saya mengutamakan kualitas daripada kuantitas'], 'b' => ['dim' => 'C', 'text' => 'Saya suka membuat rencana kerja yang terperinci']],
+            ['a' => ['dim' => 'X', 'text' => 'Saya suka perubahan dan hal yang tidak terduga'], 'b' => ['dim' => 'B', 'text' => 'Saya lebih suka mendapat arahan yang jelas']],
+            ['a' => ['dim' => 'Z', 'text' => 'Saya selalu ingin lebih baik dari sebelumnya'], 'b' => ['dim' => 'K', 'text' => 'Saya tidak mudah menyerah meskipun banyak hambatan']],
+            ['a' => ['dim' => 'O', 'text' => 'Saya perhatian terhadap kebutuhan orang lain'], 'b' => ['dim' => 'E', 'text' => 'Saya suka meyakinkan orang dengan argumen saya']],
+            ['a' => ['dim' => 'F', 'text' => 'Saya tulus dalam membantu orang tanpa pamrih'], 'b' => ['dim' => 'W', 'text' => 'Saya butuh kepastian dan keamanan dalam karir']],
+            ['a' => ['dim' => 'G', 'text' => 'Saya percaya diri mengambil keputusan untuk tim'], 'b' => ['dim' => 'L', 'text' => 'Saya lebih memilih bekerja di zona nyaman saya']],
+            ['a' => ['dim' => 'N', 'text' => 'Saya mengejar standar tinggi dalam pekerjaan'], 'b' => ['dim' => 'T', 'text' => 'Saya mementingkan kebersamaan dalam bekerja']],
+            ['a' => ['dim' => 'A', 'text' => 'Saya menyelesaikan tugas lebih cepat dari kebanyakan orang'], 'b' => ['dim' => 'I', 'text' => 'Saya lebih suka bekerja sendiri daripada berkelompok']],
+            ['a' => ['dim' => 'P', 'text' => 'Saya senang mendapat pengakuan publik'], 'b' => ['dim' => 'D', 'text' => 'Saya selalu memeriksa ulang hasil pekerjaan saya']],
+            ['a' => ['dim' => 'V', 'text' => 'Saya menyukai pekerjaan lapangan yang aktif'], 'b' => ['dim' => 'X', 'text' => 'Saya suka tugas yang bervariasi setiap hari']],
+            ['a' => ['dim' => 'S', 'text' => 'Saya aktif dalam kegiatan sosial di kantor'], 'b' => ['dim' => 'B', 'text' => 'Saya merasa nyaman bekerja sesuai panduan']],
+            ['a' => ['dim' => 'R', 'text' => 'Saya suka memahami teori di balik suatu masalah'], 'b' => ['dim' => 'Z', 'text' => 'Saya memiliki standar pencapaian yang tinggi']],
+            ['a' => ['dim' => 'C', 'text' => 'Saya selalu merencanakan langkah-langkah saya'], 'b' => ['dim' => 'F', 'text' => 'Saya senang mendukung orang lain untuk berhasil']],
+            ['a' => ['dim' => 'O', 'text' => 'Saya peka terhadap suasana hati di lingkungan saya'], 'b' => ['dim' => 'K', 'text' => 'Saya bertekad kuat menyelesaikan apa yang saya mulai']],
+            ['a' => ['dim' => 'E', 'text' => 'Saya yakin bisa meyakinkan orang lain'], 'b' => ['dim' => 'W', 'text' => 'Saya mencari stabilitas dalam hidup dan pekerjaan']],
+            ['a' => ['dim' => 'G', 'text' => 'Saya senang memimpin rapat atau diskusi'], 'b' => ['dim' => 'V', 'text' => 'Saya menikmati pekerjaan yang melibatkan banyak gerakan']],
+            ['a' => ['dim' => 'N', 'text' => 'Saya tidak puas jika pekerjaan belum sempurna'], 'b' => ['dim' => 'S', 'text' => 'Saya suka berkumpul dan berdiskusi dengan orang banyak']],
+            ['a' => ['dim' => 'A', 'text' => 'Saya menyukai ritme kerja yang cepat'], 'b' => ['dim' => 'D', 'text' => 'Saya teliti dan memperhatikan hal-hal kecil']],
+            ['a' => ['dim' => 'P', 'text' => 'Saya suka menjadi pusat perhatian'], 'b' => ['dim' => 'R', 'text' => 'Saya gemar mempelajari sesuatu secara mendalam']],
+            ['a' => ['dim' => 'L', 'text' => 'Saya tidak suka perubahan mendadak'], 'b' => ['dim' => 'X', 'text' => 'Saya selalu mencari pengalaman baru']],
+            ['a' => ['dim' => 'I', 'text' => 'Saya sering merenung sebelum mengambil tindakan'], 'b' => ['dim' => 'C', 'text' => 'Saya menyusun prioritas kerja dengan rapi']],
+            ['a' => ['dim' => 'T', 'text' => 'Saya setia terhadap orang-orang terdekat saya'], 'b' => ['dim' => 'B', 'text' => 'Saya hormat pada otoritas dan patuh pada aturan']],
+            ['a' => ['dim' => 'Z', 'text' => 'Saya punya ambisi yang besar dalam karir'], 'b' => ['dim' => 'E', 'text' => 'Saya pandai memengaruhi keputusan orang lain']],
+            ['a' => ['dim' => 'K', 'text' => 'Saya pantang menyerah meski dalam tekanan'], 'b' => ['dim' => 'F', 'text' => 'Saya suka merawat dan memperhatikan orang lain']],
+            ['a' => ['dim' => 'O', 'text' => 'Saya mudah terharu oleh cerita orang lain'], 'b' => ['dim' => 'W', 'text' => 'Saya perlu rasa nyaman dalam bekerja']],
+            ['a' => ['dim' => 'G', 'text' => 'Saya suka mengambil inisiatif dalam kelompok'], 'b' => ['dim' => 'D', 'text' => 'Saya memeriksa pekerjaan hingga detail terkecil']],
+            ['a' => ['dim' => 'N', 'text' => 'Saya berusaha keras agar hasilnya sempurna'], 'b' => ['dim' => 'R', 'text' => 'Saya senang mengkaji ide-ide baru']],
+            ['a' => ['dim' => 'A', 'text' => 'Saya selalu ingin segera menyelesaikan tugas'], 'b' => ['dim' => 'X', 'text' => 'Saya tidak suka mengerjakan hal yang sama berulang-ulang']],
+            ['a' => ['dim' => 'P', 'text' => 'Saya senang bila pencapaian saya dipuji'], 'b' => ['dim' => 'C', 'text' => 'Saya sangat terorganisir dalam bekerja']],
+            ['a' => ['dim' => 'L', 'text' => 'Saya menghargai konsistensi dalam pekerjaan'], 'b' => ['dim' => 'B', 'text' => 'Saya mematuhi aturan dan prosedur yang ada']],
+            ['a' => ['dim' => 'I', 'text' => 'Saya lebih suka mengerjakan tugas secara mandiri'], 'b' => ['dim' => 'Z', 'text' => 'Saya didorong oleh keinginan untuk sukses']],
+            ['a' => ['dim' => 'T', 'text' => 'Saya menaruh perhatian besar pada perasaan rekan kerja'], 'b' => ['dim' => 'E', 'text' => 'Saya bisa membuat orang lain mengikuti visi saya']],
+            ['a' => ['dim' => 'V', 'text' => 'Saya suka aktivitas yang melibatkan fisik'], 'b' => ['dim' => 'F', 'text' => 'Saya sukarela menawarkan bantuan kepada siapa saja']],
+            ['a' => ['dim' => 'S', 'text' => 'Saya menikmati pesta dan acara sosial'], 'b' => ['dim' => 'W', 'text' => 'Saya menghindari situasi yang tidak pasti']],
+            ['a' => ['dim' => 'K', 'text' => 'Saya terus berusaha meskipun menghadapi kegagalan'], 'b' => ['dim' => 'O', 'text' => 'Saya mudah memahami perasaan orang lain']],
+            ['a' => ['dim' => 'G', 'text' => 'Saya nyaman mengambil keputusan sulit'], 'b' => ['dim' => 'R', 'text' => 'Saya suka berpikir kritis tentang suatu topik']],
+            ['a' => ['dim' => 'N', 'text' => 'Saya menetapkan standar tinggi untuk diri sendiri'], 'b' => ['dim' => 'X', 'text' => 'Saya suka eksplorasi dan petualangan']],
+            ['a' => ['dim' => 'A', 'text' => 'Saya bisa bekerja di bawah tekanan waktu'], 'b' => ['dim' => 'C', 'text' => 'Saya suka mengatur dan mengelola proyek']],
+            ['a' => ['dim' => 'P', 'text' => 'Saya bangga dengan pencapaian saya'], 'b' => ['dim' => 'B', 'text' => 'Saya mengikuti petunjuk atasan dengan baik']],
+            ['a' => ['dim' => 'L', 'text' => 'Saya memilih pekerjaan yang sudah familiar'], 'b' => ['dim' => 'Z', 'text' => 'Saya selalu mengejar target yang lebih tinggi']],
+            ['a' => ['dim' => 'I', 'text' => 'Saya berhati-hati dan penuh pertimbangan'], 'b' => ['dim' => 'E', 'text' => 'Saya percaya diri dalam presentasi']],
+            ['a' => ['dim' => 'T', 'text' => 'Saya menjaga hubungan baik dengan semua rekan'], 'b' => ['dim' => 'F', 'text' => 'Saya merasa puas ketika bisa membantu orang']],
+            ['a' => ['dim' => 'V', 'text' => 'Saya tidak betah duduk lama di meja kerja'], 'b' => ['dim' => 'W', 'text' => 'Saya menghargai lingkungan kerja yang terkendali']],
+            ['a' => ['dim' => 'S', 'text' => 'Saya senang berkenalan dengan orang-orang baru'], 'b' => ['dim' => 'O', 'text' => 'Saya berempati tinggi terhadap penderitaan orang lain']],
+            ['a' => ['dim' => 'D', 'text' => 'Saya mengerjakan sesuatu dengan penuh kehati-hatian'], 'b' => ['dim' => 'K', 'text' => 'Saya pekerja keras yang tidak kenal lelah']],
+        ];
+
+        $questions = [];
+        foreach ($pairs as $pi => $pair) {
+            $questions[] = [
+                'number' => $pi + 1,
+                'a' => $pair['a'],
+                'b' => $pair['b'],
+            ];
+        }
+
+        return [
+            'question_count' => count($pairs),
+            'dimensions' => ['N','G','A','L','P','I','T','V','S','R','D','C','X','B','O','Z','E','K','F','W'],
+            'questions' => $questions,
+        ];
     }
 
     public function editSubTest(SubTest $subTest)
@@ -523,6 +743,42 @@ class BankController extends Controller
             'description' => 'nullable|string|max:1000',
             'duration_minutes' => 'nullable|integer|min:1|max:600',
         ]);
+
+        if ($subTest->type === 'kraepelin') {
+            $validated['duration_minutes'] = null;
+
+            if ($request->boolean('regenerate_kraepelin')) {
+                $request->validate([
+                    'kraepelin_columns' => 'required|integer|min:5|max:100',
+                    'kraepelin_digits' => 'required|integer|min:20|max:100',
+                    'kraepelin_min_seconds' => 'required|integer|min:5|max:120',
+                    'kraepelin_max_seconds' => 'required|integer|min:5|max:120|gte:kraepelin_min_seconds',
+                ]);
+
+                $validated['kraepelin_config'] = $this->generateKraepelinConfig(
+                    (int) $request->input('kraepelin_columns'),
+                    (int) $request->input('kraepelin_digits'),
+                    (int) $request->input('kraepelin_min_seconds'),
+                    (int) $request->input('kraepelin_max_seconds')
+                );
+            }
+        }
+
+        if ($subTest->type === 'disc') {
+            $validated['duration_minutes'] = null;
+
+            if ($request->boolean('regenerate_disc')) {
+                $validated['disc_config'] = $this->generateDiscConfig();
+            }
+        }
+
+        if ($subTest->type === 'papikostik') {
+            $validated['duration_minutes'] = null;
+
+            if ($request->boolean('regenerate_papikostik')) {
+                $validated['papikostik_config'] = $this->generatePapikostikConfig();
+            }
+        }
 
         $subTest->update($validated);
         ActivityLog::log('update', 'subtest', 'Mengupdate sub-test: ' . $validated['title']);
@@ -809,6 +1065,72 @@ class BankController extends Controller
         $pdf->setPaper('A4', 'portrait');
 
         $fileName = 'hasil_tes_' . str_replace(' ', '_', $response->participant_name) . '_' . date('Ymd') . '.pdf';
+
+        return $pdf->download($fileName);
+    }
+
+    /**
+     * Export individual kraepelin result as PDF with graph and full metrics.
+     */
+    public function exportKraepelinPdf(Bank $bank, ParticipantResponse $response, SubTest $subTest)
+    {
+        $this->authorize('view', $bank);
+
+        if ($response->bank_id !== $bank->id) {
+            abort(404);
+        }
+        if ($subTest->bank_id !== $bank->id || $subTest->type !== 'kraepelin') {
+            abort(404);
+        }
+
+        $pdf = Pdf::loadView('banks.kraepelin-pdf', compact('bank', 'response', 'subTest'));
+        $pdf->setPaper('A4', 'portrait');
+
+        $fileName = 'kraepelin_' . str_replace(' ', '_', $response->participant_name) . '_' . date('Ymd') . '.pdf';
+
+        ActivityLog::log('export', 'bank', 'Export PDF Kraepelin: ' . $response->participant_name . ' - ' . $subTest->title);
+
+        return $pdf->download($fileName);
+    }
+
+    public function exportDiscPdf(Bank $bank, ParticipantResponse $response, SubTest $subTest)
+    {
+        $this->authorize('view', $bank);
+
+        if ($response->bank_id !== $bank->id) {
+            abort(404);
+        }
+        if ($subTest->bank_id !== $bank->id || $subTest->type !== 'disc') {
+            abort(404);
+        }
+
+        $pdf = Pdf::loadView('banks.disc-pdf', compact('bank', 'response', 'subTest'));
+        $pdf->setPaper('A4', 'portrait');
+
+        $fileName = 'disc_' . str_replace(' ', '_', $response->participant_name) . '_' . date('Ymd') . '.pdf';
+
+        ActivityLog::log('export', 'bank', 'Export PDF DISC: ' . $response->participant_name . ' - ' . $subTest->title);
+
+        return $pdf->download($fileName);
+    }
+
+    public function exportPapikostikPdf(Bank $bank, ParticipantResponse $response, SubTest $subTest)
+    {
+        $this->authorize('view', $bank);
+
+        if ($response->bank_id !== $bank->id) {
+            abort(404);
+        }
+        if ($subTest->bank_id !== $bank->id || $subTest->type !== 'papikostik') {
+            abort(404);
+        }
+
+        $pdf = Pdf::loadView('banks.papikostik-pdf', compact('bank', 'response', 'subTest'));
+        $pdf->setPaper('A4', 'portrait');
+
+        $fileName = 'papikostik_' . str_replace(' ', '_', $response->participant_name) . '_' . date('Ymd') . '.pdf';
+
+        ActivityLog::log('export', 'bank', 'Export PDF PAPIKOSTIK: ' . $response->participant_name . ' - ' . $subTest->title);
 
         return $pdf->download($fileName);
     }
@@ -1213,6 +1535,265 @@ class BankController extends Controller
             $questionSheet->getColumnDimension($col)->setWidth(25);
         }
         $questionSheet->getColumnDimension('H')->setWidth(30);
+
+        // ===== SHEET 3 (conditional): Kraepelin =====
+        $kraepelinSubTests = $subTests->where('type', 'kraepelin');
+        if ($kraepelinSubTests->count() > 0) {
+            foreach ($kraepelinSubTests as $kst) {
+                $kSheet = $spreadsheet->createSheet();
+                $sheetTitle = mb_substr('Kraepelin - ' . $kst->title, 0, 31);
+                $kSheet->setTitle($sheetTitle);
+
+                $kConfig = $kst->kraepelin_config ?? [];
+                $colCount = $kConfig['columns_count'] ?? 50;
+
+                // Title
+                $kLastCol = Coordinate::stringFromColumnIndex(7 + $colCount);
+                $kSheet->mergeCells('A1:' . $kLastCol . '1');
+                $kSheet->getCellByColumnAndRow(1, 1)->setValue('KRAEPELIN: ' . mb_strtoupper($kst->title));
+                $kSheet->getStyle('A1')->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 13, 'color' => ['rgb' => 'FFFFFF']],
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '5B21B6']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+
+                // Headers
+                $kHeaders = ['No', 'Nama'];
+                for ($c = 1; $c <= $colCount; $c++) {
+                    $kHeaders[] = 'K' . $c;
+                }
+                $kHeaders = array_merge($kHeaders, ['Total', 'Kecepatan', 'Ketelitian (%)', 'Ketahanan (%)', 'Stabilitas (SD)', 'Semangat']);
+
+                $kHeaderRow = 3;
+                foreach ($kHeaders as $ci => $h) {
+                    $kSheet->getCellByColumnAndRow($ci + 1, $kHeaderRow)->setValue($h);
+                }
+                $kHdrEnd = Coordinate::stringFromColumnIndex(count($kHeaders));
+                $kSheet->getStyle('A' . $kHeaderRow . ':' . $kHdrEnd . $kHeaderRow)->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 9, 'color' => ['rgb' => 'FFFFFF']],
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '5B21B6']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+                ]);
+
+                // Data rows
+                $kRow = $kHeaderRow + 1;
+                foreach ($responses as $rIdx => $resp) {
+                    $kData = ($resp->responses ?? [])['kraepelin_' . $kst->id] ?? null;
+                    $cols = $kData['columns'] ?? [];
+
+                    $correctPerCol = array_map(fn($c) => $c['correct_count'] ?? 0, $cols);
+                    $attemptedPerCol = array_map(fn($c) => $c['attempted'] ?? 0, $cols);
+                    $total = array_sum($correctPerCol);
+                    $totalAttempted = array_sum($attemptedPerCol);
+                    $colN = count($cols);
+
+                    $speed = $colN > 0 ? round($total / $colN, 1) : 0;
+                    $accuracy = $totalAttempted > 0 ? round(($total / $totalAttempted) * 100, 1) : 0;
+                    $third = max(1, intval($colN / 3));
+                    $firstThird = $colN > 0 ? array_sum(array_slice($correctPerCol, 0, $third)) / $third : 0;
+                    $lastThird = $colN > 0 ? array_sum(array_slice($correctPerCol, -$third)) / $third : 0;
+                    $endurance = $firstThird > 0 ? round(($lastThird / $firstThird) * 100, 0) : 0;
+                    $mean = $speed;
+                    $variance = $colN > 0 ? array_sum(array_map(fn($v) => pow($v - $mean, 2), $correctPerCol)) / $colN : 0;
+                    $stdDev = round(sqrt($variance), 1);
+                    $motivation = $lastThird > $firstThird ? 'Positif' : ($lastThird < $firstThird ? 'Menurun' : 'Stabil');
+
+                    $kSheet->getCellByColumnAndRow(1, $kRow)->setValue($rIdx + 1);
+                    $kSheet->getCellByColumnAndRow(2, $kRow)->setValue($resp->participant_name);
+
+                    for ($ci = 0; $ci < $colCount; $ci++) {
+                        $kSheet->getCellByColumnAndRow(3 + $ci, $kRow)->setValue($correctPerCol[$ci] ?? 0);
+                    }
+
+                    $metricStart = 3 + $colCount;
+                    $kSheet->getCellByColumnAndRow($metricStart, $kRow)->setValue($total);
+                    $kSheet->getCellByColumnAndRow($metricStart + 1, $kRow)->setValue($speed);
+                    $kSheet->getCellByColumnAndRow($metricStart + 2, $kRow)->setValue($accuracy);
+                    $kSheet->getCellByColumnAndRow($metricStart + 3, $kRow)->setValue($endurance);
+                    $kSheet->getCellByColumnAndRow($metricStart + 4, $kRow)->setValue($stdDev);
+                    $kSheet->getCellByColumnAndRow($metricStart + 5, $kRow)->setValue($motivation);
+
+                    // Alternate rows
+                    if ($rIdx % 2 === 1) {
+                        $kSheet->getStyle('A' . $kRow . ':' . $kHdrEnd . $kRow)->applyFromArray([
+                            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F5F3FF']],
+                        ]);
+                    }
+
+                    $kRow++;
+                }
+
+                // Style data
+                if ($kRow > $kHeaderRow + 1) {
+                    $kSheet->getStyle('A' . ($kHeaderRow + 1) . ':' . $kHdrEnd . ($kRow - 1))->applyFromArray([
+                        'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']]],
+                        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                        'font' => ['size' => 9],
+                    ]);
+                }
+
+                // Column widths
+                $kSheet->getColumnDimension('A')->setWidth(5);
+                $kSheet->getColumnDimension('B')->setWidth(22);
+                for ($ci = 3; $ci <= 2 + $colCount; $ci++) {
+                    $kSheet->getColumnDimension(Coordinate::stringFromColumnIndex($ci))->setWidth(5);
+                }
+                for ($ci = $metricStart; $ci <= $metricStart + 5; $ci++) {
+                    $kSheet->getColumnDimension(Coordinate::stringFromColumnIndex($ci))->setWidth(14);
+                }
+
+                $kSheet->freezePane('C' . ($kHeaderRow + 1));
+            }
+        }
+
+        // ===== SHEET (conditional): DISC =====
+        $discSubTests = $subTests->where('type', 'disc');
+        if ($discSubTests->count() > 0) {
+            foreach ($discSubTests as $dst) {
+                $dSheet = $spreadsheet->createSheet();
+                $dSheetTitle = mb_substr('DISC - ' . $dst->title, 0, 31);
+                $dSheet->setTitle($dSheetTitle);
+
+                // Title
+                $dSheet->mergeCells('A1:L1');
+                $dSheet->getCellByColumnAndRow(1, 1)->setValue('DISC: ' . mb_strtoupper($dst->title));
+                $dSheet->getStyle('A1')->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 13, 'color' => ['rgb' => 'FFFFFF']],
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '0D9488']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+
+                // Headers
+                $dHeaders = ['No', 'Nama', 'D (Most)', 'D (Least)', 'I (Most)', 'I (Least)', 'S (Most)', 'S (Least)', 'C (Most)', 'C (Least)', 'Profil'];
+                $dHeaderRow = 3;
+                foreach ($dHeaders as $ci => $h) {
+                    $dSheet->getCellByColumnAndRow($ci + 1, $dHeaderRow)->setValue($h);
+                }
+                $dHdrEnd = Coordinate::stringFromColumnIndex(count($dHeaders));
+                $dSheet->getStyle('A' . $dHeaderRow . ':' . $dHdrEnd . $dHeaderRow)->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 9, 'color' => ['rgb' => 'FFFFFF']],
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '0D9488']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+                ]);
+
+                // Data rows
+                $dRow = $dHeaderRow + 1;
+                foreach ($responses as $rIdx => $resp) {
+                    $discData = ($resp->responses ?? [])['disc_' . $dst->id] ?? null;
+                    $dScores = $discData['scores'] ?? ['D' => ['most' => 0, 'least' => 0], 'I' => ['most' => 0, 'least' => 0], 'S' => ['most' => 0, 'least' => 0], 'C' => ['most' => 0, 'least' => 0]];
+                    $dProfile = $discData['profile_type'] ?? '-';
+
+                    $dSheet->getCellByColumnAndRow(1, $dRow)->setValue($rIdx + 1);
+                    $dSheet->getCellByColumnAndRow(2, $dRow)->setValue($resp->participant_name);
+                    $dSheet->getCellByColumnAndRow(3, $dRow)->setValue($dScores['D']['most'] ?? 0);
+                    $dSheet->getCellByColumnAndRow(4, $dRow)->setValue($dScores['D']['least'] ?? 0);
+                    $dSheet->getCellByColumnAndRow(5, $dRow)->setValue($dScores['I']['most'] ?? 0);
+                    $dSheet->getCellByColumnAndRow(6, $dRow)->setValue($dScores['I']['least'] ?? 0);
+                    $dSheet->getCellByColumnAndRow(7, $dRow)->setValue($dScores['S']['most'] ?? 0);
+                    $dSheet->getCellByColumnAndRow(8, $dRow)->setValue($dScores['S']['least'] ?? 0);
+                    $dSheet->getCellByColumnAndRow(9, $dRow)->setValue($dScores['C']['most'] ?? 0);
+                    $dSheet->getCellByColumnAndRow(10, $dRow)->setValue($dScores['C']['least'] ?? 0);
+                    $dSheet->getCellByColumnAndRow(11, $dRow)->setValue($dProfile);
+
+                    if ($rIdx % 2 === 1) {
+                        $dSheet->getStyle('A' . $dRow . ':' . $dHdrEnd . $dRow)->applyFromArray([
+                            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F0FDFA']],
+                        ]);
+                    }
+
+                    $dRow++;
+                }
+
+                // Style data
+                if ($dRow > $dHeaderRow + 1) {
+                    $dSheet->getStyle('A' . ($dHeaderRow + 1) . ':' . $dHdrEnd . ($dRow - 1))->applyFromArray([
+                        'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']]],
+                        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                        'font' => ['size' => 9],
+                    ]);
+                }
+
+                // Column widths
+                $dSheet->getColumnDimension('A')->setWidth(5);
+                $dSheet->getColumnDimension('B')->setWidth(22);
+                for ($ci = 3; $ci <= 10; $ci++) {
+                    $dSheet->getColumnDimension(Coordinate::stringFromColumnIndex($ci))->setWidth(12);
+                }
+                $dSheet->getColumnDimension('K')->setWidth(14);
+
+                $dSheet->freezePane('C' . ($dHeaderRow + 1));
+            }
+        }
+
+        // ===== SHEET (conditional): PAPIKOSTIK =====
+        $papiSubTests = $subTests->where('type', 'papikostik');
+        if ($papiSubTests->count() > 0) {
+            $papiDims = ['N','G','A','L','P','I','T','V','S','R','D','C','X','B','O','Z','E','K','F','W'];
+            foreach ($papiSubTests as $pst) {
+                $pSheet = $spreadsheet->createSheet();
+                $pSheetTitle = mb_substr('PAPI - ' . $pst->title, 0, 31);
+                $pSheet->setTitle($pSheetTitle);
+
+                $pLastCol = Coordinate::stringFromColumnIndex(2 + count($papiDims));
+                $pSheet->mergeCells('A1:' . $pLastCol . '1');
+                $pSheet->getCellByColumnAndRow(1, 1)->setValue('PAPIKOSTIK: ' . mb_strtoupper($pst->title));
+                $pSheet->getStyle('A1')->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 13, 'color' => ['rgb' => 'FFFFFF']],
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '7C3AED']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+
+                $pHeaders = array_merge(['No', 'Nama'], $papiDims);
+                $pHeaderRow = 3;
+                foreach ($pHeaders as $ci => $h) {
+                    $pSheet->getCellByColumnAndRow($ci + 1, $pHeaderRow)->setValue($h);
+                }
+                $pHdrEnd = Coordinate::stringFromColumnIndex(count($pHeaders));
+                $pSheet->getStyle('A' . $pHeaderRow . ':' . $pHdrEnd . $pHeaderRow)->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 9, 'color' => ['rgb' => 'FFFFFF']],
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '7C3AED']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+                ]);
+
+                $pRow = $pHeaderRow + 1;
+                foreach ($responses as $rIdx => $resp) {
+                    $papiData = ($resp->responses ?? [])['papikostik_' . $pst->id] ?? null;
+                    $pScores = $papiData['scores'] ?? [];
+
+                    $pSheet->getCellByColumnAndRow(1, $pRow)->setValue($rIdx + 1);
+                    $pSheet->getCellByColumnAndRow(2, $pRow)->setValue($resp->participant_name);
+
+                    foreach ($papiDims as $di => $dim) {
+                        $pSheet->getCellByColumnAndRow(3 + $di, $pRow)->setValue($pScores[$dim] ?? 0);
+                    }
+
+                    if ($rIdx % 2 === 1) {
+                        $pSheet->getStyle('A' . $pRow . ':' . $pHdrEnd . $pRow)->applyFromArray([
+                            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F5F3FF']],
+                        ]);
+                    }
+                    $pRow++;
+                }
+
+                if ($pRow > $pHeaderRow + 1) {
+                    $pSheet->getStyle('A' . ($pHeaderRow + 1) . ':' . $pHdrEnd . ($pRow - 1))->applyFromArray([
+                        'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']]],
+                        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                        'font' => ['size' => 9],
+                    ]);
+                }
+
+                $pSheet->getColumnDimension('A')->setWidth(5);
+                $pSheet->getColumnDimension('B')->setWidth(22);
+                for ($ci = 3; $ci <= 2 + count($papiDims); $ci++) {
+                    $pSheet->getColumnDimension(Coordinate::stringFromColumnIndex($ci))->setWidth(6);
+                }
+                $pSheet->freezePane('C' . ($pHeaderRow + 1));
+            }
+        }
 
         // Set active sheet back to results
         $spreadsheet->setActiveSheetIndex(0);

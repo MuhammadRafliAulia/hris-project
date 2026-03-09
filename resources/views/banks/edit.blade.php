@@ -137,9 +137,30 @@
  <div class="subtest-title">{{ $index + 1 }}. {{ $subTest->title }}</div>
  <div class="subtest-meta">
  @if($subTest->description) {{ Str::limit($subTest->description, 80) }} &middot; @endif
+ @if($subTest->type === 'kraepelin')
+ <span class="badge" style="background:#fce4ec;color:#880e4f;">Kraepelin</span>
+ @php $kc = $subTest->kraepelin_config; @endphp
+ @if($kc)
+ <span class="badge badge-amber">{{ $kc['columns_count'] }} kolom</span>
+ <span class="badge badge-amber">{{ $kc['min_seconds'] }}-{{ $kc['max_seconds'] }}s/kolom</span>
+ @endif
+ @elseif($subTest->type === 'disc')
+ <span class="badge" style="background:#e0f2f1;color:#00695c;">DISC</span>
+ @php $dc = $subTest->disc_config; @endphp
+ @if($dc)
+ <span class="badge" style="background:#e0f7fa;color:#006064;">{{ $dc['question_count'] }} grup</span>
+ @endif
+ @elseif($subTest->type === 'papikostik')
+ <span class="badge" style="background:#ede9fe;color:#5b21b6;">PAPIKOSTIK</span>
+ @php $pc = $subTest->papikostik_config; @endphp
+ @if($pc)
+ <span class="badge" style="background:#f3e8ff;color:#6b21a8;">{{ $pc['question_count'] }} pasang</span>
+ @endif
+ @else
  <span class="badge badge-blue">{{ $subTest->questions_count }} Soal</span>
  <span class="badge badge-green">{{ $subTest->example_questions_count }} Contoh</span>
  @if($subTest->duration_minutes) <span class="badge badge-amber">{{ $subTest->duration_minutes }} menit</span> @endif
+ @endif
  </div>
  </div>
  <div class="subtest-actions">
@@ -172,14 +193,67 @@
  <textarea id="sub_test_description" name="sub_test_description" rows="2" placeholder="Instruksi atau penjelasan sub-test..."></textarea>
  </div>
  <div class="form-group">
+ <label for="sub_test_type">Tipe Sub-Test</label>
+ <select id="sub_test_type" name="sub_test_type" onchange="toggleSubTestType()">
+ <option value="default">Default (Soal Biasa)</option>
+ <option value="kraepelin">Tes Kraepelin (Pauli)</option>
+ <option value="disc">Tes DISC (Kepribadian)</option>
+ <option value="papikostik">Tes PAPIKOSTIK (PA Preference)</option>
+ </select>
+ </div>
+ <div id="defaultSubTestFields">
+ <div class="form-group">
  <label for="sub_test_duration">Durasi Sub-Test (menit)</label>
  <div style="display:flex;align-items:center;gap:8px;">
  <input id="sub_test_duration" type="number" name="sub_test_duration" min="1" max="600" placeholder="Contoh: 15" style="width:180px;">
  <span style="font-size:13px;color:#64748b;">menit (kosongkan jika tanpa batas waktu)</span>
  </div>
  </div>
+ </div>
+ <div id="kraepelinSubTestFields" style="display:none;">
+ <div style="background:#e0f2fe;color:#0c4a6e;padding:12px 14px;border-radius:6px;margin-bottom:14px;font-size:13px;">
+ <strong>Tes Kraepelin (Pauli)</strong> — Peserta menjumlahkan pasangan digit angka dalam kolom-kolom berurutan. Waktu per kolom diacak dalam rentang yang ditentukan.
+ </div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+ <div class="form-group">
+ <label for="kraepelin_columns">Jumlah Kolom</label>
+ <input id="kraepelin_columns" type="number" name="kraepelin_columns" value="50" min="5" max="100" placeholder="50">
+ </div>
+ <div class="form-group">
+ <label for="kraepelin_digits">Digit per Kolom</label>
+ <input id="kraepelin_digits" type="number" name="kraepelin_digits" value="60" min="20" max="100" placeholder="60">
+ </div>
+ <div class="form-group">
+ <label for="kraepelin_min_seconds">Detik Min / Kolom</label>
+ <input id="kraepelin_min_seconds" type="number" name="kraepelin_min_seconds" value="15" min="5" max="120" placeholder="15">
+ </div>
+ <div class="form-group">
+ <label for="kraepelin_max_seconds">Detik Maks / Kolom</label>
+ <input id="kraepelin_max_seconds" type="number" name="kraepelin_max_seconds" value="45" min="5" max="120" placeholder="45">
+ </div>
+ </div>
+ </div>
+ <div id="discSubTestFields" style="display:none;">
+ <div style="background:#e0f2f1;color:#004d40;padding:12px 14px;border-radius:6px;margin-bottom:14px;font-size:13px;">
+ <strong>Tes DISC (Kepribadian)</strong> — Peserta memilih pernyataan yang <strong>paling sesuai</strong> dan <strong>paling tidak sesuai</strong> dari 4 pilihan dalam setiap grup. Terdiri dari 24 grup pernyataan standar untuk mengukur 4 dimensi kepribadian: <strong>Dominance (D)</strong>, <strong>Influence (I)</strong>, <strong>Steadiness (S)</strong>, <strong>Compliance (C)</strong>. Tanpa batas waktu.
+ </div>
+ </div>
+ <div id="papikostikSubTestFields" style="display:none;">
+ <div style="background:#ede9fe;color:#5b21b6;padding:12px 14px;border-radius:6px;margin-bottom:14px;font-size:13px;">
+ <strong>Tes PAPIKOSTIK (PA Preference Inventory)</strong> — Peserta memilih 1 dari 2 pernyataan yang paling menggambarkan dirinya pada setiap pasangan soal. Terdiri dari 90 pasang pernyataan untuk mengukur <strong>20 dimensi kepribadian</strong> (N, G, A, L, P, I, T, V, S, R, D, C, X, B, O, Z, E, K, F, W). Tanpa batas waktu.
+ </div>
+ </div>
  <button type="submit" class="btn">+ Tambah Sub-Test</button>
  </form>
+ <script>
+ function toggleSubTestType() {
+  var t = document.getElementById('sub_test_type').value;
+  document.getElementById('defaultSubTestFields').style.display = t === 'default' ? 'block' : 'none';
+  document.getElementById('kraepelinSubTestFields').style.display = t === 'kraepelin' ? 'block' : 'none';
+  document.getElementById('discSubTestFields').style.display = t === 'disc' ? 'block' : 'none';
+  document.getElementById('papikostikSubTestFields').style.display = t === 'papikostik' ? 'block' : 'none';
+ }
+ </script>
  </div>
 
  <div class="card">
