@@ -36,7 +36,7 @@
     .incorrect { color: #991b1b; font-weight: 600; }
 
     .footer { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 30px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
-    .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 120px; font-weight: 900; color: #d1d5db; opacity: 0.08; z-index: -1; pointer-events: none; letter-spacing: 8px; }
+    .watermark { position: fixed; top: 10px; right: 10px; font-size: 14px; font-weight: 700; color: #dc2626; opacity: 1; z-index: 999; pointer-events: none; }
   </style>
 </head>
 <body>
