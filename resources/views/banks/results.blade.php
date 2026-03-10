@@ -47,6 +47,14 @@
  .filter-form .btn-filter:hover { background:#002a4f; }
  .filter-form .btn-reset { background:#64748b; color:#fff; border:none; padding:8px 16px; border-radius:6px; font-size:13px; cursor:pointer; text-decoration:none; height:fit-content; }
  .filter-form .btn-reset:hover { background:#475569; }
+ .checkbox-cell { width:40px; text-align:center; }
+ .checkbox-cell input[type="checkbox"] { cursor:pointer; width:16px; height:16px; }
+ .btn-danger { background:#dc2626; }
+ .btn-danger:hover { background:#b91c1c; }
+ .bulk-delete-actions { display:none; margin-bottom:16px; padding:16px; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; align-items:center; gap:12px; }
+ .bulk-delete-actions.show { display:flex; }
+ .bulk-delete-info { font-size:13px; color:#64748b; flex:1; }
+ .bulk-delete-info strong { color:#0f172a; }
  </style>
  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
  <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
@@ -125,12 +133,27 @@
  </form>
 
  {{-- Results Table --}}
+ <form id="bulkDeleteForm" method="POST" action="{{ route('banks.bulk-delete-responses', $bank) }}" style="margin-bottom:16px;">
+ @csrf
+ <div id="bulkDeleteActions" class="bulk-delete-actions">
+ <span class="bulk-delete-info">
+ <span id="selectedCount">0</span> peserta dipilih
+ </span>
+ <button type="button" class="btn btn-danger" onclick="if(confirm('Yakin hapus peserta terpilih? Data tidak dapat dikembalikan!')) { document.getElementById('bulkDeleteForm').submit(); }">
+ Hapus Peserta Terpilih
+ </button>
+ <button type="button" class="btn" style="background:#64748b;" onclick="clearAllCheckboxes()" title="Batalkan Pemilihan">
+ Batal
+ </button>
+ </div>
+
  <div class="card">
  @if($completedResponses->count() > 0)
  <div style="overflow-x:auto;">
  <table>
  <thead>
  <tr>
+ <th class="checkbox-cell"><input type="checkbox" id="selectAll" title="Pilih semua peserta di halaman ini"></th>
  <th>No</th>
  <th>Nama Peserta</th>
  <th>NIK</th>
@@ -155,6 +178,7 @@
  : '-';
  @endphp
  <tr>
+ <td class="checkbox-cell"><input type="checkbox" name="response_ids[]" value="{{ $resp->id }}" class="response-checkbox" data-name="{{ $resp->participant_name }}"></td>
  <td>{{ $index + 1 }}</td>
  <td><strong>{{ $resp->participant_name }}</strong></td>
  <td>{{ $resp->nik ?? '-' }}</td>
@@ -197,6 +221,7 @@
  <div class="empty">Belum ada peserta yang menyelesaikan tes ini.</div>
  @endif
  </div>
+ </form>
 
  {{-- KRAEPELIN RESULTS SECTION --}}
  @php
@@ -636,6 +661,55 @@ function renderPapiChart(key) {
    }
   }
  });
+}
+
+// Checkbox selection handling
+document.addEventListener('DOMContentLoaded', function() {
+ const selectAllCheckbox = document.getElementById('selectAll');
+ const responseCheckboxes = document.querySelectorAll('.response-checkbox');
+ const bulkDeleteActions = document.getElementById('bulkDeleteActions');
+ const selectedCountSpan = document.getElementById('selectedCount');
+
+ // Select/Deselect all
+ if (selectAllCheckbox) {
+  selectAllCheckbox.addEventListener('change', function() {
+   responseCheckboxes.forEach(cb => cb.checked = this.checked);
+   updateBulkDeleteUI();
+  });
+ }
+
+ // Update UI when individual checkboxes change
+ responseCheckboxes.forEach(cb => {
+  cb.addEventListener('change', function() {
+   updateSelectAllCheckbox();
+   updateBulkDeleteUI();
+  });
+ });
+
+ function updateSelectAllCheckbox() {
+  const allChecked = Array.from(responseCheckboxes).every(cb => cb.checked);
+  const someChecked = Array.from(responseCheckboxes).some(cb => cb.checked);
+  if (selectAllCheckbox) {
+   selectAllCheckbox.checked = allChecked;
+   selectAllCheckbox.indeterminate = someChecked && !allChecked;
+  }
+ }
+
+ function updateBulkDeleteUI() {
+  const checkedCount = Array.from(responseCheckboxes).filter(cb => cb.checked).length;
+  if (checkedCount > 0) {
+   bulkDeleteActions.classList.add('show');
+   selectedCountSpan.textContent = checkedCount;
+  } else {
+   bulkDeleteActions.classList.remove('show');
+  }
+ }
+});
+
+function clearAllCheckboxes() {
+ document.getElementById('selectAll').checked = false;
+ document.querySelectorAll('.response-checkbox').forEach(cb => cb.checked = false);
+ document.getElementById('bulkDeleteActions').classList.remove('show');
 }
 </script>
 </body>

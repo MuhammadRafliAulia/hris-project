@@ -870,6 +870,46 @@ class BankController extends Controller
         return view('banks.results', compact('bank', 'responses', 'questions', 'subTests'));
     }
 
+    public function bulkDeleteResponses(Bank $bank, Request $request)
+    {
+        $this->authorize('update', $bank);
+        
+        $validated = $request->validate([
+            'response_ids' => 'required|array|min:1',
+            'response_ids.*' => 'integer|exists:participant_responses,id'
+        ]);
+        
+        $responseIds = $validated['response_ids'];
+        $count = 0;
+        $names = [];
+        
+        // Delete responses and log activity
+        foreach ($responseIds as $id) {
+            $response = ParticipantResponse::findOrFail($id);
+            
+            // Verify the response belongs to this bank
+            if ($response->bank_id !== $bank->id) {
+                continue;
+            }
+            
+            // Store name for logging
+            $names[] = $response->participant_name;
+            $response->delete();
+            $count++;
+        }
+        
+        // Log the bulk deletion
+        if ($count > 0) {
+            $message = "Menghapus $count hasil tes: " . implode(', ', array_slice($names, 0, 3));
+            if (count($names) > 3) {
+                $message .= " dan " . (count($names) - 3) . " lainnya";
+            }
+            ActivityLog::log('delete', 'participant_response', $message);
+        }
+        
+        return back()->with('success', "$count hasil tes peserta berhasil dihapus.");
+    }
+
 
 
     public function toggleBank(Bank $bank)

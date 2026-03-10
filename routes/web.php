@@ -79,6 +79,7 @@ Route::middleware(['auth', 'role:superadmin,recruitmentteam'])->group(function (
     Route::post('/banks/{bank}/credentials/import', [BankController::class, 'importCredentials'])->name('banks.credentials.import');
     Route::post('/banks/{bank}/credentials/delete-multiple', [BankController::class, 'deleteMultipleCredentials'])->name('banks.credentials.delete_multiple');
     Route::get('/banks/{bank}/results', [BankController::class, 'results'])->name('banks.results');
+    Route::post('/banks/{bank}/responses/bulk-delete', [BankController::class, 'bulkDeleteResponses'])->name('banks.bulk-delete-responses');
 
     Route::post('/banks/{bank}/toggle', [BankController::class, 'toggleBank'])->name('banks.toggle');
 
