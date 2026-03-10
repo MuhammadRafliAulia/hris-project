@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class SurveyQuestion extends Model
 {
     protected $fillable = [
-        'survey_id', 'type', 'question', 'options', 'is_required', 'order',
+        'survey_id', 'section_id', 'type', 'question', 'options', 'is_required', 'order',
     ];
 
     protected $casts = [
@@ -18,6 +18,11 @@ class SurveyQuestion extends Model
     public function survey()
     {
         return $this->belongsTo(Survey::class);
+    }
+
+    public function section()
+    {
+        return $this->belongsTo(SurveySection::class, 'section_id');
     }
 
     public function answers()

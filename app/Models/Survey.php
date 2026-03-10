@@ -35,6 +35,11 @@ class Survey extends Model
         return $this->hasMany(SurveyQuestion::class)->orderBy('order');
     }
 
+    public function sections()
+    {
+        return $this->hasMany(SurveySection::class)->orderBy('order');
+    }
+
     public function responses()
     {
         return $this->hasMany(SurveyResponse::class);

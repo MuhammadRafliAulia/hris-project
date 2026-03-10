@@ -42,6 +42,21 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-s
 .scale-value{font-size:18px;font-weight:800;color:var(--primary);}
 .scale-label{font-size:9px;color:var(--text-muted);margin-top:2px;}
 
+.section-progress{padding:0 28px 16px 28px;}
+.progress-bar{height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-bottom:8px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-light));transition:width 0.3s;}
+.progress-text{font-size:12px;color:var(--text-secondary);text-align:center;}
+.section-nav{display:flex;gap:12px;margin-top:24px;justify-content:space-between;}
+.btn-prev{background:var(--text-secondary);color:#fff;padding:12px 20px;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-family:inherit;}
+.btn-prev:hover{background:#334155;}
+.btn-next{background:var(--primary);color:#fff;padding:12px 20px;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-family:inherit;}
+.btn-next:hover{background:var(--primary-light);}
+.btn-submit{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;margin-top:8px;}
+.btn-submit:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,62,111,.25);}
+.section-title-form{font-size:16px;font-weight:700;color:var(--primary);margin-bottom:8px;}
+.section-desc-form{font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.5;}
+.hidden-section{display:none;}
+
 /* Multiple choice */
 .choice-group{display:flex;flex-direction:column;gap:6px;}
 .choice-option input{display:none;}
@@ -143,6 +158,91 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-s
       </div>
       @endif
 
+      {{-- SECTION PROGRESS --}}
+      @php
+        $totalSections = $survey->sections->count();
+        $currentSection = intval(request()->query('section', 0));
+        if ($currentSection >= $totalSections || $currentSection < 0) $currentSection = 0;
+        $progressPercent = $totalSections > 0 ? (($currentSection + 1) / $totalSections) * 100 : 0;
+        $section = $survey->sections->sortBy('order')->values()->get($currentSection);
+      @endphp
+
+      @if($totalSections > 0)
+      <div class="section-progress">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: {{ $progressPercent }}%"></div>
+        </div>
+        <div class="progress-text">
+          Section {{ $currentSection + 1 }} dari {{ $totalSections }}
+        </div>
+      </div>
+
+      @if($section)
+      <div class="section-title-form">{{ $section->title }}</div>
+      @if($section->description)
+      <div class="section-desc-form">{{ $section->description }}</div>
+      @endif
+
+      @foreach($section->questions->sortBy('order') as $qIdx => $question)
+      <div class="question-card">
+        <div class="q-header">
+          <div class="q-number">{{ $qIdx + 1 }}</div>
+          <div class="q-text">
+            {{ $question->question }}
+            @if($question->is_required)<span class="required">*</span>@endif
+          </div>
+        </div>
+
+        @if($question->type === 'scale')
+        <div class="scale-group">
+          @php $scaleLabels = ['','Sangat Tidak Setuju','Tidak Setuju','Netral','Setuju','Sangat Setuju']; @endphp
+          @for($s = 1; $s <= 5; $s++)
+          <div class="scale-option">
+            <input type="radio" name="answers[{{ $question->id }}]" value="{{ $s }}" id="q{{ $question->id }}_s{{ $s }}" {{ old('answers.'.$question->id) == $s ? 'checked' : '' }} {{ $question->is_required ? 'required' : '' }}>
+            <label for="q{{ $question->id }}_s{{ $s }}">
+              <span class="scale-value">{{ $s }}</span>
+              <span class="scale-label">{{ $scaleLabels[$s] }}</span>
+            </label>
+          </div>
+          @endfor
+        </div>
+
+        @elseif($question->type === 'multiple_choice')
+        <div class="choice-group">
+          @foreach($question->options as $opt)
+          <div class="choice-option">
+            <input type="radio" name="answers[{{ $question->id }}]" value="{{ $opt }}" id="q{{ $question->id }}_{{ Str::slug($opt) }}" {{ old('answers.'.$question->id) == $opt ? 'checked' : '' }} {{ $question->is_required ? 'required' : '' }}>
+            <label for="q{{ $question->id }}_{{ Str::slug($opt) }}">
+              <div class="choice-dot"></div>
+              {{ $opt }}
+            </label>
+          </div>
+          @endforeach
+        </div>
+
+        @else
+        <textarea name="answers[{{ $question->id }}]" class="form-textarea" placeholder="Tulis jawaban Anda..." {{ $question->is_required ? 'required' : '' }}>{{ old('answers.'.$question->id) }}</textarea>
+        @endif
+      </div>
+      @endforeach
+
+      {{-- SECTION NAVIGATION --}}
+      <div class="section-nav">
+        @if($currentSection > 0)
+        <button type="button" class="btn-prev" onclick="goToSection({{ $currentSection - 1 }})">← Sebelumnya</button>
+        @else
+        <div></div>
+        @endif
+
+        @if($currentSection < $totalSections - 1)
+        <button type="button" class="btn-next" onclick="validateAndGoToSection({{ $currentSection + 1 }})">Selanjutnya →</button>
+        @else
+        <button type="submit" class="btn-submit">📤 Kirim Jawaban</button>
+        @endif
+      </div>
+      @endif
+      @else
+      {{-- NO SECTIONS (fallback) --}}
       @foreach($survey->questions->sortBy('order') as $qIdx => $question)
       <div class="question-card">
         <div class="q-header">
@@ -186,9 +286,54 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-s
       </div>
       @endforeach
 
-      <button type="submit" class="submit-btn">📤 Kirim Jawaban</button>
+      <button type="submit" class="btn-submit">📤 Kirim Jawaban</button>
+      @endif
     </div>
   </form>
 </div>
+
+<script>
+function goToSection(sectionIndex) {
+  // Navigate to the specified section
+  window.location.href = '{{ url("survey/" . $survey->token . "/fill") }}?section=' + sectionIndex;
+}
+
+function validateAndGoToSection(sectionIndex) {
+  // Validate current section before moving to next
+  const form = document.querySelector('form');
+  const requiredInputs = form.querySelectorAll('[required]');
+  
+  let isValid = true;
+  const currentSection = parseInt(new URLSearchParams(window.location.search).get('section') || '0');
+  const identitySection = form.querySelector('.identity-section');
+  
+  // Check identity section if it's the first section
+  if (currentSection === 0 && identitySection) {
+    const identityInputs = identitySection.querySelectorAll('[required]');
+    identityInputs.forEach(input => {
+      if (!input.value.trim()) {
+        input.classList.add('is-invalid');
+        isValid = false;
+      }
+    });
+  }
+  
+  // Check current section questions
+  requiredInputs.forEach(input => {
+    // Only check if input is visible
+    if (input.offsetParent !== null && !input.value) {
+      input.classList.add('is-invalid');
+      isValid = false;
+    }
+  });
+
+  if (!isValid) {
+    alert('Silakan isi semua pertanyaan yang wajib pada section ini terlebih dahulu.');
+    return;
+  }
+
+  goToSection(sectionIndex);
+}
+</script>
 </body>
 </html>

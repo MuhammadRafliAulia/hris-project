@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Survey;
+use App\Models\SurveySection;
 use App\Models\SurveyQuestion;
 use App\Models\SurveyResponse;
 use App\Models\SurveyAnswer;
@@ -42,11 +43,14 @@ class SurveyController extends Controller
             'is_anonymous' => 'nullable|boolean',
             'start_date'   => 'nullable|date',
             'end_date'     => 'nullable|date|after_or_equal:start_date',
-            'questions'    => 'required|array|min:1',
-            'questions.*.question' => 'required|string',
-            'questions.*.type'     => 'required|in:scale,multiple_choice,text',
-            'questions.*.options'  => 'nullable|array',
-            'questions.*.is_required' => 'nullable|boolean',
+            'sections'     => 'required|array|min:1',
+            'sections.*.title' => 'required|string|max:255',
+            'sections.*.description' => 'nullable|string',
+            'sections.*.questions' => 'required|array|min:1',
+            'sections.*.questions.*.question' => 'required|string',
+            'sections.*.questions.*.type' => 'required|in:scale,multiple_choice,text',
+            'sections.*.questions.*.options' => 'nullable|array',
+            'sections.*.questions.*.is_required' => 'nullable|boolean',
         ]);
 
         $survey = Survey::create([
@@ -59,15 +63,26 @@ class SurveyController extends Controller
             'created_by'   => auth()->id(),
         ]);
 
-        foreach ($validated['questions'] as $i => $q) {
-            SurveyQuestion::create([
+        // Create sections with questions
+        foreach ($validated['sections'] as $sIdx => $section) {
+            $sec = SurveySection::create([
                 'survey_id'   => $survey->id,
-                'type'        => $q['type'],
-                'question'    => $q['question'],
-                'options'     => $q['type'] === 'multiple_choice' ? ($q['options'] ?? []) : null,
-                'is_required' => $q['is_required'] ?? true,
-                'order'       => $i,
+                'title'       => $section['title'],
+                'description' => $section['description'] ?? null,
+                'order'       => $sIdx,
             ]);
+
+            foreach ($section['questions'] as $qIdx => $q) {
+                SurveyQuestion::create([
+                    'survey_id'    => $survey->id,
+                    'section_id'   => $sec->id,
+                    'type'         => $q['type'],
+                    'question'     => $q['question'],
+                    'options'      => $q['type'] === 'multiple_choice' ? ($q['options'] ?? []) : null,
+                    'is_required'  => $q['is_required'] ?? true,
+                    'order'        => $qIdx,
+                ]);
+            }
         }
 
         ActivityLog::log('create', 'survey', 'Membuat survey: ' . $survey->title);
@@ -78,7 +93,7 @@ class SurveyController extends Controller
     // ─── EDIT ───────────────────────────────────────────────
     public function edit(Survey $survey)
     {
-        $survey->load('questions');
+        $survey->load('sections.questions');
         return view('surveys.edit', compact('survey'));
     }
 
@@ -91,11 +106,14 @@ class SurveyController extends Controller
             'is_anonymous' => 'nullable|boolean',
             'start_date'   => 'nullable|date',
             'end_date'     => 'nullable|date|after_or_equal:start_date',
-            'questions'    => 'required|array|min:1',
-            'questions.*.question' => 'required|string',
-            'questions.*.type'     => 'required|in:scale,multiple_choice,text',
-            'questions.*.options'  => 'nullable|array',
-            'questions.*.is_required' => 'nullable|boolean',
+            'sections'     => 'required|array|min:1',
+            'sections.*.title' => 'required|string|max:255',
+            'sections.*.description' => 'nullable|string',
+            'sections.*.questions' => 'required|array|min:1',
+            'sections.*.questions.*.question' => 'required|string',
+            'sections.*.questions.*.type' => 'required|in:scale,multiple_choice,text',
+            'sections.*.questions.*.options' => 'nullable|array',
+            'sections.*.questions.*.is_required' => 'nullable|boolean',
         ]);
 
         $survey->update([
@@ -106,17 +124,29 @@ class SurveyController extends Controller
             'end_date'     => $validated['end_date'] ?? null,
         ]);
 
-        // Replace all questions
-        $survey->questions()->delete();
-        foreach ($validated['questions'] as $i => $q) {
-            SurveyQuestion::create([
+        // Delete all old sections and questions
+        $survey->sections()->delete();
+
+        // Create new sections with questions
+        foreach ($validated['sections'] as $sIdx => $section) {
+            $sec = SurveySection::create([
                 'survey_id'   => $survey->id,
-                'type'        => $q['type'],
-                'question'    => $q['question'],
-                'options'     => $q['type'] === 'multiple_choice' ? ($q['options'] ?? []) : null,
-                'is_required' => $q['is_required'] ?? true,
-                'order'       => $i,
+                'title'       => $section['title'],
+                'description' => $section['description'] ?? null,
+                'order'       => $sIdx,
             ]);
+
+            foreach ($section['questions'] as $qIdx => $q) {
+                SurveyQuestion::create([
+                    'survey_id'    => $survey->id,
+                    'section_id'   => $sec->id,
+                    'type'         => $q['type'],
+                    'question'     => $q['question'],
+                    'options'      => $q['type'] === 'multiple_choice' ? ($q['options'] ?? []) : null,
+                    'is_required'  => $q['is_required'] ?? true,
+                    'order'        => $qIdx,
+                ]);
+            }
         }
 
         ActivityLog::log('update', 'survey', 'Mengupdate survey: ' . $survey->title);
