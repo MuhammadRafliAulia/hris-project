@@ -36,9 +36,11 @@
     .incorrect { color: #991b1b; font-weight: 600; }
 
     .footer { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 30px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+    .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 120px; font-weight: 900; color: #d1d5db; opacity: 0.08; z-index: -1; pointer-events: none; letter-spacing: 8px; }
   </style>
 </head>
 <body>
+  <div class="watermark">CONFIDENTIAL</div>
 
   <div class="header">
     <h1>LAPORAN HASIL TES PSIKOTEST</h1>

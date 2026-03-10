@@ -2,30 +2,35 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<title>Laporan Rapor - {{ $response->participant_name }}</title>
+<title>Laporan Hasil Tes - {{ $response->participant_name }}</title>
 <style>
  * { margin:0; padding:0; box-sizing:border-box; }
- body { font-family:'Helvetica','Arial',sans-serif; font-size:11px; color:#1a1a1a; line-height:1.5; }
- .header { background:#003e6f; color:#fff; padding:20px 30px; text-align:center; }
+ body { font-family:'Helvetica','Arial',sans-serif; font-size:10.5px; color:#1e293b; line-height:1.6; }
+ .header { background:#003e6f; color:#fff; padding:22px 30px; text-align:center; }
  .header h1 { font-size:18px; margin-bottom:2px; letter-spacing:1px; }
  .header p { font-size:10px; opacity:0.85; }
  .content { padding:20px 30px; }
- .section-title { font-size:13px; font-weight:700; color:#003e6f; margin:18px 0 8px 0; padding-bottom:4px; border-bottom:2px solid #003e6f; }
- .section-title-purple { font-size:13px; font-weight:700; color:#5b21b6; margin:18px 0 8px 0; padding-bottom:4px; border-bottom:2px solid #7c3aed; }
- .section-title-teal { font-size:13px; font-weight:700; color:#0d9488; margin:18px 0 8px 0; padding-bottom:4px; border-bottom:2px solid #14b8a6; }
- .section-title-violet { font-size:13px; font-weight:700; color:#7c3aed; margin:18px 0 8px 0; padding-bottom:4px; border-bottom:2px solid #a78bfa; }
+
+ .section-title { font-size:13px; font-weight:700; color:#003e6f; margin:18px 0 8px 0; padding-bottom:4px; border-bottom:2px solid #003e6f; text-transform:uppercase; }
+ .section-title-purple { font-size:13px; font-weight:700; color:#5b21b6; margin:18px 0 8px 0; padding-bottom:4px; border-bottom:2px solid #7c3aed; text-transform:uppercase; }
+ .section-title-teal { font-size:13px; font-weight:700; color:#0d9488; margin:18px 0 8px 0; padding-bottom:4px; border-bottom:2px solid #14b8a6; text-transform:uppercase; }
+ .section-title-violet { font-size:13px; font-weight:700; color:#7c3aed; margin:18px 0 8px 0; padding-bottom:4px; border-bottom:2px solid #a78bfa; text-transform:uppercase; }
+
  .info-table { width:100%; border-collapse:collapse; margin-bottom:16px; }
  .info-table td { padding:5px 10px; border:1px solid #d1d5db; font-size:10px; }
  .info-table .label { background:#f1f5f9; font-weight:600; width:140px; color:#334155; }
  .info-table .value { color:#1e293b; }
+
  .metrics-grid { width:100%; border-collapse:collapse; margin-bottom:14px; }
  .metrics-grid td { padding:10px; text-align:center; border:1px solid #e2e8f0; }
  .metrics-grid .m-val { font-size:18px; font-weight:800; }
  .metrics-grid .m-lbl { font-size:8px; color:#64748b; margin-top:2px; }
+
  .score-box { background:#f0f9ff; border:2px solid #003e6f; border-radius:6px; padding:14px; text-align:center; margin-bottom:16px; }
  .score-box .score-number { font-size:24px; font-weight:700; color:#003e6f; }
  .score-box .score-label { font-size:10px; color:#64748b; margin-top:2px; }
  .score-good { color:#065f46; } .score-ok { color:#92400e; } .score-poor { color:#991b1b; }
+
  .metric-good { color:#065f46; background:#d1fae5; }
  .metric-warn { color:#92400e; background:#fef3c7; }
  .metric-bad { color:#991b1b; background:#fecaca; }
@@ -35,39 +40,54 @@
  .metric-i { color:#d97706; background:#fffbeb; }
  .metric-s { color:#059669; background:#ecfdf5; }
  .metric-c { color:#2563eb; background:#eff6ff; }
+
  .profile-box { background:#f0fdfa; border:2px solid #14b8a6; border-radius:8px; padding:12px; margin-bottom:14px; text-align:center; }
  .profile-box .profile-type { font-size:24px; font-weight:800; color:#0d9488; }
  .profile-box .profile-desc { font-size:9px; color:#374151; margin-top:2px; }
- .interp-box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px 12px; margin-bottom:14px; font-size:10px; color:#374151; line-height:1.6; }
- .interp-box strong { color:#1e293b; }
+
+ .chart-box { text-align:center; margin-bottom:14px; padding:8px; background:#fafafe; border:1px solid #e2e8f0; border-radius:6px; }
+
  .cat-legend { width:100%; border-collapse:collapse; margin-bottom:12px; }
  .cat-legend td { padding:2px 5px; font-size:9px; }
  .cat-dot { width:10px; height:10px; border-radius:2px; display:inline-block; }
+
  .dim-table { width:100%; border-collapse:collapse; margin-bottom:14px; font-size:9px; }
  .dim-table th { background:#7c3aed; color:#fff; padding:4px 6px; text-align:left; font-weight:600; }
  .dim-table td { padding:3px 6px; border-bottom:1px solid #e2e8f0; }
  .dim-table tr:nth-child(even) { background:#faf5ff; }
- .graph-box { border:1px solid #e2e8f0; border-radius:6px; padding:10px; margin-bottom:14px; background:#fafafe; }
- .conclusion-box { background:#ede9fe; border-left:4px solid #7c3aed; padding:10px 12px; border-radius:0 6px 6px 0; margin-bottom:14px; font-size:10px; line-height:1.6; }
+
+ .conclusion-section { background:#f8fafc; border:2px solid #003e6f; border-radius:6px; padding:16px 18px; margin-bottom:16px; }
+ .conclusion-item { margin-bottom:12px; padding-bottom:10px; border-bottom:1px dashed #cbd5e1; }
+ .conclusion-item:last-child { margin-bottom:0; padding-bottom:0; border-bottom:none; }
+ .conclusion-label { font-weight:700; font-size:11px; margin-bottom:4px; }
+ .conclusion-text { font-size:9.5px; color:#374151; line-height:1.8; text-align:justify; }
+
  .job-box { background:#f0fdf4; border-left:4px solid #059669; padding:10px 12px; border-radius:0 6px 6px 0; margin-bottom:14px; }
  .job-box h4 { color:#059669; margin:0 0 4px 0; font-size:11px; }
  .job-box ul { margin:0; padding-left:16px; font-size:10px; line-height:1.6; }
+
  .footer { text-align:center; font-size:9px; color:#94a3b8; margin-top:20px; padding-top:10px; border-top:1px solid #e2e8f0; }
  .page-break { page-break-before:always; }
- .no-data { color:#94a3b8; font-style:italic; font-size:10px; padding:8px 0; }
+ .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 120px; font-weight: 900; color: #d1d5db; opacity: 0.08; z-index: -1; pointer-events: none; letter-spacing: 8px; }
 </style>
 </head>
 <body>
+ <div class="watermark">CONFIDENTIAL</div>
+
+@php
+ $conclusionParts = [];
+ $jobRecs = [];
+@endphp
 
 <div class="header">
- <h1>LAPORAN HASIL TES PSIKOTEST</h1>
+ <h1>LAPORAN LENGKAP HASIL TES</h1>
  <p>{{ $bank->title }}</p>
 </div>
 
 <div class="content">
 
  {{-- ===== INFORMASI PESERTA ===== --}}
- <div class="section-title">INFORMASI PESERTA</div>
+ <div class="section-title">Informasi Peserta</div>
  <table class="info-table">
   <tr>
    <td class="label">Nama Peserta</td>
@@ -110,16 +130,13 @@
   @endif
  </table>
 
- {{-- ===== SECTION 1: SKOR SOAL UMUM (Default) ===== --}}
+ {{-- ===== SECTION 1: SKOR SOAL UMUM ===== --}}
  @php
   $defaultSubTests = $subTests->whereNotIn('type', ['kraepelin', 'disc', 'papikostik']);
   $defaultQuestions = collect();
   if ($defaultSubTests->count() > 0) {
-   foreach ($defaultSubTests as $dst2) {
-    $defaultQuestions = $defaultQuestions->merge($dst2->questions);
-   }
+   foreach ($defaultSubTests as $dst2) { $defaultQuestions = $defaultQuestions->merge($dst2->questions); }
   }
-  // Also include questions not in any subtest
   $directQuestions = $bank->questions()->whereNull('sub_test_id')->orderBy('order')->get();
   $defaultQuestions = $defaultQuestions->merge($directQuestions);
   $scoreableQ = $defaultQuestions->whereNotIn('type', ['narrative', 'survey'])->count();
@@ -127,17 +144,23 @@
  @endphp
 
  @if($hasDefaultScore)
- <div class="section-title">HASIL TES PENGETAHUAN</div>
+ <div class="section-title">Hasil Tes Pengetahuan</div>
  @php
   $scorePct = $scoreableQ > 0 ? round(($response->score / $scoreableQ) * 100, 2) : 0;
+  $scoreLevel = $scorePct >= 70 ? 'BAIK' : ($scorePct >= 50 ? 'CUKUP' : 'KURANG');
  @endphp
  <div class="score-box">
   <div class="score-number">{{ $response->score }} / {{ $scoreableQ }}</div>
   <div class="score-label">Jawaban Benar</div>
   <div style="font-size:14px;font-weight:600;margin-top:4px;" class="{{ $scorePct >= 70 ? 'score-good' : ($scorePct >= 50 ? 'score-ok' : 'score-poor') }}">
-   {{ $scorePct }}% — @if($scorePct >= 70) BAIK @elseif($scorePct >= 50) CUKUP @else KURANG @endif
+   {{ $scorePct }}% &mdash; {{ $scoreLevel }}
   </div>
  </div>
+ @php
+  $conclusionParts['knowledge'] = [
+   'score' => $response->score, 'total' => $scoreableQ, 'pct' => $scorePct, 'level' => $scoreLevel
+  ];
+ @endphp
  @endif
 
  {{-- ===== SECTION 2: KRAEPELIN ===== --}}
@@ -149,7 +172,7 @@
   $colCount = count($cols);
  @endphp
  @if($colCount > 0)
- <div class="section-title-purple">HASIL KRAEPELIN — {{ $kst->title }}</div>
+ <div class="section-title-purple">Hasil Kraepelin &mdash; {{ $kst->title }}</div>
  @php
   $correctPerCol = array_map(fn($c) => $c['correct_count'] ?? 0, $cols);
   $attemptedPerCol = array_map(fn($c) => $c['attempted'] ?? 0, $cols);
@@ -193,55 +216,103 @@
   </tr>
  </table>
 
- {{-- Kraepelin SVG line graph --}}
- <div class="graph-box">
-  @php
-   $graphW = 660; $graphH = 140;
-   $padL = 28; $padR = 10; $padT = 8; $padB = 20;
-   $plotW = $graphW - $padL - $padR;
-   $plotH = $graphH - $padT - $padB;
-   $yMax = max($maxCorrect + 2, 10);
-   $stepX = $colCount > 1 ? $plotW / ($colCount - 1) : $plotW;
-   $points = []; $areaPoints = [];
-   for ($i = 0; $i < $colCount; $i++) {
-    $x = $padL + ($i * $stepX);
-    $y = $padT + $plotH - (($correctPerCol[$i] / $yMax) * $plotH);
-    $points[] = round($x,1).','.round($y,1);
-    $areaPoints[] = round($x,1).','.round($y,1);
+ {{-- Kraepelin GD Line Chart --}}
+ @php
+  $kImgW=680; $kImgH=170; $kPadL=32; $kPadR=10; $kPadT=10; $kPadB=22;
+  $kPlotW=$kImgW-$kPadL-$kPadR; $kPlotH=$kImgH-$kPadT-$kPadB;
+  $kImg=imagecreatetruecolor($kImgW,$kImgH);
+  imagesavealpha($kImg,true); imagealphablending($kImg,true); imageantialias($kImg,true);
+  $kW=imagecolorallocate($kImg,255,255,255);
+  $kGL=imagecolorallocate($kImg,226,232,240);
+  $kGB=imagecolorallocate($kImg,203,213,225);
+  $kPurp=imagecolorallocate($kImg,124,58,237);
+  $kPurpFill=imagecolorallocatealpha($kImg,124,58,237,100);
+  $kRed=imagecolorallocate($kImg,220,38,38);
+  $kMut=imagecolorallocate($kImg,148,163,184);
+  imagefill($kImg,0,0,$kW);
+  $kYMax=max($maxCorrect+2,10);
+  // horizontal grid
+  for($gy=0;$gy<=$kYMax;$gy+=max(1,intval($kYMax/5))){
+   $yy=(int)round($kPadT+$kPlotH-(($gy/$kYMax)*$kPlotH));
+   imageline($kImg,$kPadL,$yy,$kImgW-$kPadR,$yy,$kGL);
+   imagestring($kImg,2,$kPadL-20,$yy-6,(string)$gy,$kMut);
+  }
+  // area fill
+  $kArea=[$kPadL,$kPadT+$kPlotH];
+  for($i=0;$i<$colCount;$i++){
+   $x=(int)round($kPadL+($colCount>1?($i*$kPlotW/($colCount-1)):$kPlotW/2));
+   $y=(int)round($kPadT+$kPlotH-(($correctPerCol[$i]/$kYMax)*$kPlotH));
+   $kArea[]=$x; $kArea[]=$y;
+  }
+  $kLastX=(int)round($kPadL+($colCount>1?(($colCount-1)*$kPlotW/($colCount-1)):$kPlotW/2));
+  $kArea[]=$kLastX; $kArea[]=$kPadT+$kPlotH;
+  imagefilledpolygon($kImg,$kArea,$kPurpFill);
+  // data line
+  imagesetthickness($kImg,2);
+  for($i=1;$i<$colCount;$i++){
+   $x1=(int)round($kPadL+(($i-1)*$kPlotW/max(1,$colCount-1)));
+   $y1=(int)round($kPadT+$kPlotH-(($correctPerCol[$i-1]/$kYMax)*$kPlotH));
+   $x2=(int)round($kPadL+($i*$kPlotW/max(1,$colCount-1)));
+   $y2=(int)round($kPadT+$kPlotH-(($correctPerCol[$i]/$kYMax)*$kPlotH));
+   imageline($kImg,$x1,$y1,$x2,$y2,$kPurp);
+  }
+  // mean dashed line
+  $kMeanY=(int)round($kPadT+$kPlotH-(($speed/$kYMax)*$kPlotH));
+  for($dx=$kPadL;$dx<$kImgW-$kPadR;$dx+=12){
+   $ex=min($dx+7,$kImgW-$kPadR);
+   imageline($kImg,$dx,$kMeanY,$ex,$kMeanY,$kRed);
+  }
+  // dots
+  imagesetthickness($kImg,1);
+  for($i=0;$i<$colCount;$i++){
+   $x=(int)round($kPadL+($colCount>1?($i*$kPlotW/($colCount-1)):$kPlotW/2));
+   $y=(int)round($kPadT+$kPlotH-(($correctPerCol[$i]/$kYMax)*$kPlotH));
+   imagefilledellipse($kImg,$x,$y,7,7,$kPurp);
+  }
+  // x-axis labels (every 5th)
+  for($i=0;$i<$colCount;$i++){
+   if($i%5===0||$i===$colCount-1){
+    $x=(int)round($kPadL+($colCount>1?($i*$kPlotW/($colCount-1)):$kPlotW/2));
+    $lb=(string)($i+1);
+    imagestring($kImg,1,$x-(int)(strlen($lb)*imagefontwidth(1)/2),$kPadT+$kPlotH+5,$lb,$kMut);
    }
-   $linePath = implode(' ', $points);
-   $areaPath = 'M'.$padL.','.($padT+$plotH).' L'.implode(' L', $areaPoints).' L'.round($padL+($colCount-1)*$stepX,1).','.($padT+$plotH).' Z';
-   $meanY = $padT + $plotH - (($speed / $yMax) * $plotH);
-  @endphp
-  <svg width="{{ $graphW }}" height="{{ $graphH }}" viewBox="0 0 {{ $graphW }} {{ $graphH }}" style="width:100%;height:auto;">
-   @for($gy = 0; $gy <= $yMax; $gy += max(1, intval($yMax / 5)))
-    @php $yy = $padT + $plotH - (($gy / $yMax) * $plotH); @endphp
-    <line x1="{{ $padL }}" y1="{{ $yy }}" x2="{{ $graphW - $padR }}" y2="{{ $yy }}" stroke="#e2e8f0" stroke-width="0.5"/>
-    <text x="{{ $padL - 4 }}" y="{{ $yy + 3 }}" text-anchor="end" font-size="7" fill="#94a3b8">{{ $gy }}</text>
-   @endfor
-   <path d="{{ $areaPath }}" fill="rgba(124,58,237,0.1)"/>
-   <line x1="{{ $padL }}" y1="{{ round($meanY,1) }}" x2="{{ $graphW - $padR }}" y2="{{ round($meanY,1) }}" stroke="#7c3aed" stroke-width="0.8" stroke-dasharray="4,3"/>
-   <polyline points="{{ $linePath }}" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-linejoin="round"/>
-   @for($i = 0; $i < $colCount; $i++)
-    @php $px = $padL+($i*$stepX); $py = $padT+$plotH-(($correctPerCol[$i]/$yMax)*$plotH); @endphp
-    <circle cx="{{ round($px,1) }}" cy="{{ round($py,1) }}" r="2" fill="#7c3aed"/>
-   @endfor
-  </svg>
+  }
+  // legend: mean line indicator
+  imagestring($kImg,2,$kImgW-$kPadR-80,$kMeanY-12,'avg='.$speed,$kRed);
+  ob_start(); imagepng($kImg); $kPng=ob_get_clean(); imagedestroy($kImg);
+  $kChartB64='data:image/png;base64,'.base64_encode($kPng);
+ @endphp
+ <div class="chart-box">
+  <img src="{{ $kChartB64 }}" width="580" style="display:inline-block;">
  </div>
 
- <div class="interp-box">
-  <strong>Interpretasi:</strong>
-  Kecepatan kerja {{ $speed >= 15 ? 'tinggi' : ($speed >= 8 ? 'sedang' : 'rendah') }} ({{ $speed }}/kolom).
-  Ketelitian {{ $accuracy >= 85 ? 'sangat baik' : ($accuracy >= 70 ? 'baik' : ($accuracy >= 50 ? 'cukup' : 'kurang')) }} ({{ $accuracy }}%).
-  Ketahanan kerja {{ $endurance >= 90 ? 'sangat baik' : ($endurance >= 75 ? 'baik' : ($endurance >= 60 ? 'cukup' : 'kurang')) }} ({{ $endurance }}%).
-  Stabilitas emosi {{ $stdDev <= 2 ? 'sangat stabil' : ($stdDev <= 4 ? 'stabil' : ($stdDev <= 6 ? 'cukup' : 'kurang stabil')) }} (SD={{ $stdDev }}).
-  Semangat kerja {{ strtolower($motivation) }}.
- </div>
+ @php
+  $conclusionParts['kraepelin'] = [
+   'title'=>$kst->title, 'speed'=>$speed,
+   'speedLvl'=>$speed>=15?'tinggi':($speed>=8?'sedang':'rendah'),
+   'accuracy'=>$accuracy,
+   'accLvl'=>$accuracy>=85?'sangat baik':($accuracy>=70?'baik':($accuracy>=50?'cukup':'kurang')),
+   'endurance'=>$endurance,
+   'endLvl'=>$endurance>=90?'sangat baik':($endurance>=75?'baik':($endurance>=60?'cukup':'kurang')),
+   'stdDev'=>$stdDev,
+   'stabLvl'=>$stdDev<=2?'sangat stabil':($stdDev<=4?'stabil':($stdDev<=6?'cukup':'kurang stabil')),
+   'motivation'=>strtolower($motivation),
+  ];
+ @endphp
  @endif
  @endforeach
 
  {{-- ===== SECTION 3: DISC ===== --}}
- @php $discSTs = $subTests->where('type', 'disc'); @endphp
+ @php
+  $discSTs = $subTests->where('type', 'disc');
+  $pNames = ['D'=>'Dominance','I'=>'Influence','S'=>'Steadiness','C'=>'Compliance'];
+  $pDescs = [
+   'D'=>'Tegas, berorientasi hasil, kompetitif, dan suka memimpin.',
+   'I'=>'Antusias, optimis, komunikatif, dan suka bersosialisasi.',
+   'S'=>'Sabar, stabil, loyal, dan kooperatif.',
+   'C'=>'Teliti, analitis, sistematis, dan berorientasi kualitas.',
+  ];
+ @endphp
  @foreach($discSTs as $dst)
  @php
   $dData = ($response->responses ?? [])['disc_' . $dst->id] ?? null;
@@ -253,19 +324,8 @@
   $maxScore = max($dM, $iM, $sM, $cM, 1);
  @endphp
  @if($hasDiscData)
-
- <div class="section-title-teal">HASIL DISC — {{ $dst->title }}</div>
-
- @php
-  $pNames = ['D'=>'Dominance','I'=>'Influence','S'=>'Steadiness','C'=>'Compliance'];
-  $pDescs = [
-   'D'=>'Tegas, berorientasi hasil, kompetitif, dan suka memimpin.',
-   'I'=>'Antusias, optimis, komunikatif, dan suka bersosialisasi.',
-   'S'=>'Sabar, stabil, loyal, dan kooperatif.',
-   'C'=>'Teliti, analitis, sistematis, dan berorientasi kualitas.',
-  ];
-  $pt = strlen($profileType) > 0 ? substr($profileType,0,1) : 'D';
- @endphp
+ <div class="section-title-teal">Hasil DISC &mdash; {{ $dst->title }}</div>
+ @php $pt = strlen($profileType) > 0 ? substr($profileType,0,1) : 'D'; @endphp
 
  <div class="profile-box">
   <div class="profile-type">{{ $profileType }}</div>
@@ -282,47 +342,52 @@
   </tr>
  </table>
 
- {{-- DISC radar chart as SVG --}}
- <div class="graph-box">
-  @php
-   $gW2=300; $gH2=240; $cx2=$gW2/2; $cy2=$gH2/2; $maxR2=90;
-   $dAxes=[['l'=>'D','a'=>-90],['l'=>'I','a'=>0],['l'=>'S','a'=>90],['l'=>'C','a'=>180]];
-   $dVals=[$dM,$iM,$sM,$cM];
-   $dColors=['#dc2626','#f59e0b','#059669','#2563eb'];
-   $dPts=[];
-   foreach($dAxes as $ai=>$ax){
-    $rad=deg2rad($ax['a']); $r=$maxR2*($dVals[$ai]/max($maxScore,1));
-    $dPts[]=['x'=>round($cx2+$r*cos($rad),1),'y'=>round($cy2+$r*sin($rad),1)];
-   }
-   $dPoly=implode(' ',array_map(fn($p)=>$p['x'].','.$p['y'], $dPts));
-  @endphp
-  <svg width="{{ $gW2 }}" height="{{ $gH2 }}" viewBox="0 0 {{ $gW2 }} {{ $gH2 }}" style="width:100%;height:auto;max-width:300px;display:block;margin:0 auto;">
-   @for($gl=1;$gl<=4;$gl++)
-    @php $gr2=$maxR2*($gl/4); @endphp
-    <polygon points="{{ $cx2 }},{{ round($cy2-$gr2,1) }} {{ round($cx2+$gr2,1) }},{{ $cy2 }} {{ $cx2 }},{{ round($cy2+$gr2,1) }} {{ round($cx2-$gr2,1) }},{{ $cy2 }}" fill="none" stroke="#e2e8f0" stroke-width="0.5"/>
-   @endfor
-   @foreach($dAxes as $ai=>$ax)
-    @php $rad=deg2rad($ax['a']); $ex2=round($cx2+$maxR2*cos($rad),1); $ey2=round($cy2+$maxR2*sin($rad),1); @endphp
-    <line x1="{{ $cx2 }}" y1="{{ $cy2 }}" x2="{{ $ex2 }}" y2="{{ $ey2 }}" stroke="#cbd5e1" stroke-width="0.5"/>
-    @php $lx2=round($cx2+($maxR2+16)*cos($rad),1); $ly2=round($cy2+($maxR2+16)*sin($rad),1); @endphp
-    <text x="{{ $lx2 }}" y="{{ round($ly2+4,1) }}" text-anchor="middle" font-size="10" font-weight="700" fill="{{ $dColors[$ai] }}">{{ $ax['l'] }}</text>
-   @endforeach
-   <polygon points="{{ $dPoly }}" fill="rgba(13,148,136,0.15)" stroke="#0d9488" stroke-width="2"/>
-   @foreach($dPts as $pi=>$ptp)
-    <circle cx="{{ $ptp['x'] }}" cy="{{ $ptp['y'] }}" r="4" fill="{{ $dColors[$pi] }}" stroke="#fff" stroke-width="1"/>
-    <text x="{{ $ptp['x'] }}" y="{{ round($ptp['y']-8,1) }}" text-anchor="middle" font-size="8" font-weight="700" fill="{{ $dColors[$pi] }}">{{ $dVals[$pi] }}</text>
-   @endforeach
-  </svg>
- </div>
 
- <div class="interp-box">
-  <strong>Interpretasi:</strong>
-  Profil dominan <strong>{{ $pNames[$pt] ?? '' }} ({{ $pt }})</strong> — {{ $pDescs[$pt] ?? '' }}
-  @php $st2 = strlen($profileType) > 1 ? substr($profileType,1,1) : null; @endphp
-  @if($st2 && $st2 !== $pt)
-   Diperkuat oleh dimensi <strong>{{ $pNames[$st2] ?? $st2 }} ({{ $st2 }})</strong>, membentuk kombinasi profil <strong>{{ $profileType }}</strong>.
-  @endif
- </div>
+ @php
+  // Detailed DISC profile descriptions
+  $discProfiles = [
+   'D'=>[
+    'kekuatan'=>'Hasil-oriented, decisive, leadership, challenging situations, autonomy',
+    'kelemahan'=>'Lack of patience, insensitive to others feelings, overly direct',
+    'kerja'=>'Individu dengan tipe D unggul saat diberikan otonomi dan tantangan, namun perlu mengembangkan kesabaran serta kepekaan terhadap perasaan rekan kerja agar tercipta kolaborasi yang lebih efektif.',
+    'longForm'=>'Individu dengan tipe ini memiliki dorongan kuat untuk mencapai hasil, mengambil keputusan secara cepat, dan mampu memimpin dalam situasi yang menantang. Mereka cenderung langsung, tegas, dan berorientasi pada pencapaian target.',
+   ],
+   'I'=>[
+    'kekuatan'=>'Enthusiastic, optimistic, communicative, social, persuasive, team player',
+    'kelemahan'=>'Impulsive, lack of follow-through, emotional, needs social approval',
+    'kerja'=>'Individu dengan tipe I berkembang dalam lingkungan yang kolaboratif dan sosial, namun perlu mengembangkan fokus dan kedisiplinan dalam menyelesaikan tugas terstruktur.',
+    'longForm'=>'Individu dengan tipe ini memiliki antusiasme tinggi, optimisme, dan komunikasi yang baik. Mereka senang bersosialisasi, persuasif, dan excellent dalam teamwork. Mereka bersemangat dalam berbagi ide dan menciptakan lingkungan yang positif.',
+   ],
+   'S'=>[
+    'kekuatan'=>'Patient, stable, loyal, cooperative, reliable, good listener, supportive',
+    'kelemahan'=>'Resistant to change, lack of assertiveness, avoids conflict, slow to decide',
+    'kerja'=>'Individu dengan tipe S memberikan kontribusi besar dalam lingkungan kerja yang stabil dan mendukung. Mereka perlu didorong untuk lebih assertive dan terbuka terhadap perubahan untuk mengembangkan kepemimpinan.',
+    'longForm'=>'Individu dengan tipe ini sabar, stabil, loyal, dan sangat kooperatif. Mereka dapat diandalkan, pendengar yang baik, dan selalu memberikan dukungan kepada rekan kerja. Stabilitas dan konsistensi mereka menjadi aset berharga dalam organisasi.',
+   ],
+   'C'=>[
+    'kekuatan'=>'Detail-oriented, analytical, systematic, quality-focused, accurate, organized',
+    'kelemahan'=>'Perfectionist, overly critical, slow decision-making, difficulty with ambiguity',
+    'kerja'=>'Individu dengan tipe C excellent dalam role yang membutuhkan akurasi dan perhatian detail. Mereka perlu belajar untuk lebih fleksibel dan beradaptasi dengan perubahan yang lebih cepat.',
+    'longForm'=>'Individu dengan tipe ini teliti, analitis, sistematis, dan berorientasi pada kualitas. Mereka memiliki standar tinggi dan memastikan setiap detail dikerjakan dengan sempurna. Pendekatan mereka yang metodis sangat valuable untuk work requiring precision.',
+   ],
+  ];
+
+  // Get primary and secondary types
+  $st2 = strlen($profileType) > 1 ? substr($profileType,1,1) : null;
+  $ptProfile = $discProfiles[$pt] ?? [];
+  $st2Profile = isset($discProfiles[$st2]) ? $discProfiles[$st2] : [];
+
+  $conclusionParts['disc'] = [
+   'title'=>$dst->title, 'profileType'=>$profileType,
+   'name'=>$response->participant_name,
+   'pt'=>$pt, 'ptName'=>$pNames[$pt]??'', 'ptDesc'=>$pDescs[$pt]??'',
+   'ptLongForm'=>$ptProfile['longForm']??'',
+   'ptKerja'=>$ptProfile['kerja']??'',
+   'st2'=>$st2, 'st2Name'=>isset($pNames[$st2])?$pNames[$st2]:$st2,
+   'st2LongForm'=>$st2Profile['longForm']??'',
+   'dM'=>$dM,'iM'=>$iM,'sM'=>$sM,'cM'=>$cM,
+  ];
+ @endphp
  @endif
  @endforeach
 
@@ -368,7 +433,7 @@
  @endphp
  @if($hasPapiData)
  <div class="page-break"></div>
- <div class="section-title-violet">HASIL PAPIKOSTIK — {{ $pst->title }}</div>
+ <div class="section-title-violet">Hasil PAPIKOSTIK &mdash; {{ $pst->title }}</div>
 
  {{-- GD Wheel chart --}}
  @php
@@ -432,8 +497,8 @@
   $chartBase64='data:image/png;base64,'.base64_encode($pngData);
  @endphp
 
- <div style="text-align:center;margin-bottom:8px;">
-  <img src="{{ $chartBase64 }}" width="340" height="340" style="display:inline-block;">
+ <div class="chart-box">
+  <img src="{{ $chartBase64 }}" width="340" style="display:inline-block;">
  </div>
 
  <table class="cat-legend">
@@ -446,7 +511,6 @@
   @endforeach
  </table>
 
- {{-- Top/Bottom dimensions --}}
  @php
   $sortedPapi = [];
   foreach ($wheelDims as $d) $sortedPapi[$d] = $pScores[$d] ?? 0;
@@ -476,17 +540,13 @@
   </tbody>
  </table>
 
- <div class="conclusion-box">
-  @php
-   $topNames = array_map(fn($d) => $d.' ('.$pDimNames[$d].')', $topDims);
-   $bottomNames = array_map(fn($d) => $d.' ('.$pDimNames[$d].')', $bottomDims);
-  @endphp
-  <strong>Kesimpulan:</strong> {{ $response->participant_name }} menunjukkan dimensi kepribadian dominan pada
-  <strong>{{ implode(', ', $topNames) }}</strong>.
-  Dimensi yang lebih rendah: <strong>{{ implode(', ', $bottomNames) }}</strong>.
- </div>
-
  @php
+  $topNames = array_map(fn($d) => $d.' ('.$pDimNames[$d].')', $topDims);
+  $bottomNames = array_map(fn($d) => $d.' ('.$pDimNames[$d].')', $bottomDims);
+  $conclusionParts['papikostik'] = [
+   'title'=>$pst->title, 'topDims'=>$topNames, 'bottomDims'=>$bottomNames,
+   'participantName'=>$response->participant_name,
+  ];
   $pJobMap = [
    'G'=>'Posisi pekerja keras dan dedikasi tinggi','N'=>'Posisi ketelitian dan penyelesaian tugas mandiri',
    'A'=>'Posisi dengan target dan tenggat waktu ketat','L'=>'Posisi kepemimpinan, manajer',
@@ -499,19 +559,88 @@
    'E'=>'Posisi trainer, pembicara, negosiator','K'=>'Posisi ketahanan dan kegigihan',
    'F'=>'Posisi mentoring, coaching, support role','W'=>'Posisi administrasi terstruktur, back office'
   ];
+  foreach($topDims as $td){ if(isset($pJobMap[$td])) $jobRecs[] = ['dim'=>$td, 'desc'=>$pJobMap[$td]]; }
  @endphp
- <div class="job-box">
-  <h4>Rekomendasi Posisi (PAPIKOSTIK):</h4>
-  <ul>
-   @foreach($topDims as $td)
-    @if(isset($pJobMap[$td]))
-    <li><strong>{{ $td }}</strong>: {{ $pJobMap[$td] }}</li>
+ @endif
+ @endforeach
+
+ {{-- ===== KESIMPULAN AKHIR ===== --}}
+ @if(count($conclusionParts) > 0)
+ <div class="page-break"></div>
+ <div class="section-title">Kesimpulan Akhir</div>
+ <div class="conclusion-section">
+
+  @if(isset($conclusionParts['knowledge']))
+  <div class="conclusion-item">
+   <div class="conclusion-label" style="color:#003e6f;">Tes Pengetahuan</div>
+   <div class="conclusion-text">
+    Peserta memperoleh skor <strong>{{ $conclusionParts['knowledge']['score'] }}/{{ $conclusionParts['knowledge']['total'] }} ({{ $conclusionParts['knowledge']['pct'] }}%)</strong>.
+    Kategori: <strong style="color:{{ $conclusionParts['knowledge']['pct'] >= 70 ? '#059669' : ($conclusionParts['knowledge']['pct'] >= 50 ? '#d97706' : '#dc2626') }}">{{ $conclusionParts['knowledge']['level'] }}</strong>.
+    @if($conclusionParts['knowledge']['pct'] >= 70)
+     Peserta menunjukkan pemahaman yang baik terhadap materi tes.
+    @elseif($conclusionParts['knowledge']['pct'] >= 50)
+     Peserta menunjukkan pemahaman yang cukup terhadap materi tes dan masih perlu peningkatan.
+    @else
+     Peserta menunjukkan pemahaman yang kurang terhadap materi tes dan perlu bimbingan lebih lanjut.
     @endif
+   </div>
+  </div>
+  @endif
+
+  @if(isset($conclusionParts['kraepelin']))
+  @php $kr = $conclusionParts['kraepelin']; @endphp
+  <div class="conclusion-item">
+   <div class="conclusion-label" style="color:#5b21b6;">Kraepelin &mdash; {{ $kr['title'] }}</div>
+   <div class="conclusion-text">
+    Kecepatan kerja <strong>{{ $kr['speedLvl'] }}</strong> ({{ $kr['speed'] }}/kolom).
+    Ketelitian <strong>{{ $kr['accLvl'] }}</strong> ({{ $kr['accuracy'] }}%).
+    Ketahanan kerja <strong>{{ $kr['endLvl'] }}</strong> ({{ $kr['endurance'] }}%).
+    Stabilitas emosi <strong>{{ $kr['stabLvl'] }}</strong> (SD={{ $kr['stdDev'] }}).
+    Semangat kerja <strong>{{ $kr['motivation'] }}</strong>.
+   </div>
+  </div>
+  @endif
+
+  @if(isset($conclusionParts['disc']))
+  @php $dc = $conclusionParts['disc']; @endphp
+  <div class="conclusion-item">
+   <div class="conclusion-label" style="color:#0d9488;">DISC &mdash; {{ $dc['title'] }}</div>
+   <div class="conclusion-text">
+    Berdasarkan hasil tes DISC, <strong>{{ $dc['name'] }}</strong> menunjukkan profil kepribadian dominan bertipe <strong>{{ $dc['ptName'] }} ({{ $dc['pt'] }})</strong> dengan skor <strong>{{ $dc[strtolower($dc['pt']).'M'] }}/24</strong>. 
+    {{ $dc['ptLongForm'] }} 
+    {{ $dc['ptKerja'] }}
+    @if($dc['st2'] && $dc['st2'] !== $dc['pt'])
+     Profil ini diperkuat dengan sentuhan karakteristik dari dimensi <strong>{{ $dc['st2Name'] }}</strong>, yang membentuk kombinasi unik <strong>{{ $dc['profileType'] }}</strong> dalam pendekatan kerja sehari-hari.
+    @endif
+   </div>
+  </div>
+  @endif
+
+  @if(isset($conclusionParts['papikostik']))
+  @php $pp = $conclusionParts['papikostik']; @endphp
+  <div class="conclusion-item">
+   <div class="conclusion-label" style="color:#7c3aed;">PAPIKOSTIK &mdash; {{ $pp['title'] }}</div>
+   <div class="conclusion-text">
+    {{ $pp['participantName'] }} menunjukkan dimensi kepribadian dominan pada
+    <strong>{{ implode(', ', $pp['topDims']) }}</strong>.
+    Dimensi yang lebih rendah: <strong>{{ implode(', ', $pp['bottomDims']) }}</strong>.
+   </div>
+  </div>
+  @endif
+
+ </div>
+
+ @if(count($jobRecs) > 0)
+ <div class="job-box">
+  <h4>Rekomendasi Posisi:</h4>
+  <ul>
+   @foreach($jobRecs as $rec)
+    <li><strong>{{ $rec['dim'] }}</strong>: {{ $rec['desc'] }}</li>
    @endforeach
   </ul>
  </div>
  @endif
- @endforeach
+ @endif
 
  <div class="footer">
   Dokumen ini digenerate secara otomatis oleh Sistem Psikotest Online<br>

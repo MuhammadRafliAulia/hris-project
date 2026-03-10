@@ -45,9 +45,11 @@
 
     .footer { text-align: center; font-size: 9px; color: #94a3b8; margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; }
     .page-break { page-break-before: always; }
+    .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 120px; font-weight: 900; color: #d1d5db; opacity: 0.08; z-index: -1; pointer-events: none; letter-spacing: 8px; }
   </style>
 </head>
 <body>
+  <div class="watermark">CONFIDENTIAL</div>
 
   <div class="header">
     <h1>LAPORAN HASIL TES KRAEPELIN</h1>

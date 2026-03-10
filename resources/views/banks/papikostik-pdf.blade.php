@@ -26,6 +26,7 @@
  .job-match-box h4 { color:#059669; margin:0 0 8px 0; font-size:12px; }
  .job-match-box ul { margin:0; padding-left:18px; font-size:11px; color:#1e293b; line-height:1.6; }
  .footer { text-align:center; font-size:9px; color:#94a3b8; margin-top:20px; border-top:1px solid #e2e8f0; padding-top:10px; }
+ .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 120px; font-weight: 900; color: #d1d5db; opacity: 0.08; z-index: -1; pointer-events: none; letter-spacing: 8px; }
  .score-grid { display:table; width:100%; margin-bottom:16px; }
  .score-grid-row { display:table-row; }
  .score-grid-cell { display:table-cell; text-align:center; padding:6px 2px; }
@@ -34,6 +35,7 @@
 </style>
 </head>
 <body>
+<div class="watermark">CONFIDENTIAL</div>
 <div class="page">
  <div class="header">
   <h1>LAPORAN TES PAPIKOSTIK</h1>
