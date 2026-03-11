@@ -5,77 +5,67 @@
   <title>Laporan DISC - {{ $response->participant_name }}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11px; color: #1a1a1a; line-height: 1.5; }
-    .header { background: #0d9488; color: #fff; padding: 18px 30px; }
-    .header h1 { font-size: 16px; margin-bottom: 2px; }
-    .header p { font-size: 10px; opacity: 0.85; }
-    .content { padding: 20px 30px; }
-    .section-title { font-size: 12px; font-weight: 700; color: #0d9488; margin: 16px 0 8px 0; padding-bottom: 4px; border-bottom: 2px solid #14b8a6; }
-    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-    .info-table td { padding: 5px 10px; border: 1px solid #d1d5db; font-size: 10px; }
-    .info-table .label { background: #f0fdfa; font-weight: 600; width: 160px; color: #0d9488; }
-    .info-table .value { color: #1e293b; }
-
-    .metrics-grid { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-    .metrics-grid td { padding: 12px; text-align: center; border: 1px solid #e2e8f0; width: 25%; }
-    .metrics-grid .metric-val { font-size: 22px; font-weight: 800; }
-    .metrics-grid .metric-label { font-size: 9px; color: #64748b; margin-top: 2px; }
-    .metric-d { color: #dc2626; background: #fef2f2; }
-    .metric-i { color: #d97706; background: #fffbeb; }
-    .metric-s { color: #059669; background: #ecfdf5; }
-    .metric-c { color: #2563eb; background: #eff6ff; }
-
-    .profile-box { background: #f0fdfa; border: 2px solid #14b8a6; border-radius: 8px; padding: 14px; margin-bottom: 16px; text-align: center; }
-    .profile-box .profile-type { font-size: 28px; font-weight: 800; color: #0d9488; }
-    .profile-box .profile-desc { font-size: 10px; color: #374151; margin-top: 4px; }
-
-    .graph-box { border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-bottom: 16px; background: #fafafe; }
-    .graph-title { font-size: 11px; font-weight: 700; color: #0d9488; margin-bottom: 8px; }
-
-    .interpretation-box { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; }
-    .interpretation-box h3 { font-size: 11px; color: #0d9488; margin-bottom: 6px; }
-    .interpretation-box p { font-size: 10px; color: #374151; margin-bottom: 4px; }
-    .interp-item { padding: 4px 0; }
+    body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 10px; color: #1e293b; line-height: 1.45; }
+    .header-bar { background: #0d9488; color: #fff; padding: 14px 50px; }
+    .header-bar h1 { font-size: 14px; font-weight: 700; margin: 0; display: inline; }
+    .header-bar p { font-size: 9px; opacity: .8; margin: 2px 0 0 0; }
+    .header-bar .conf { float: right; font-size: 9px; font-weight: 700; color: #fecaca; letter-spacing: 1px; margin-top: 2px; }
+    .content { padding: 14px 50px 30px 50px; }
+    .section-title { font-size: 11px; font-weight: 700; color: #0d9488; margin: 12px 0 6px 0; padding-bottom: 3px; border-bottom: 1.5px solid #14b8a6; text-transform: uppercase; letter-spacing: 0.3px; }
+    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    .info-table td { padding: 4px 8px; border: 1px solid #d1d5db; font-size: 9px; }
+    .info-table .label { background: #f0fdfa; font-weight: 600; width: 130px; color: #0d9488; }
+    .metrics-grid { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    .metrics-grid td { padding: 8px 4px; text-align: center; border: 1px solid #e2e8f0; width: 25%; }
+    .metrics-grid .mv { font-size: 20px; font-weight: 800; }
+    .metrics-grid .ml { font-size: 8px; color: #64748b; margin-top: 1px; }
+    .md { color: #dc2626; background: #fef2f2; }
+    .mi { color: #d97706; background: #fffbeb; }
+    .ms { color: #059669; background: #ecfdf5; }
+    .mc { color: #2563eb; background: #eff6ff; }
+    .profile-box { background: #f0fdfa; border: 1.5px solid #14b8a6; border-radius: 6px; padding: 10px; margin-bottom: 10px; text-align: center; }
+    .profile-box .pt { font-size: 24px; font-weight: 800; color: #0d9488; }
+    .profile-box .pn { font-size: 11px; font-weight: 600; color: #0f766e; margin-top: 1px; }
+    .profile-box .pd { font-size: 9px; color: #374151; margin-top: 3px; line-height: 1.4; }
+    .graph-box { border: 1px solid #e2e8f0; border-radius: 5px; padding: 8px; margin-bottom: 10px; background: #fafafa; text-align: center; }
+    .graph-box .gt { font-size: 10px; font-weight: 700; color: #0d9488; margin-bottom: 6px; text-align: left; }
+    .interp-box { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 5px; padding: 10px 12px; margin-bottom: 10px; }
+    .interp-box h3 { font-size: 10px; color: #0d9488; margin-bottom: 4px; }
+    .interp-item { padding: 2px 0; font-size: 9px; color: #374151; line-height: 1.5; }
     .interp-label { font-weight: 700; }
-
-    .conclusion-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 16px; margin-bottom: 16px; }
-    .conclusion-box h3 { font-size: 12px; color: #0d9488; margin-bottom: 8px; }
-    .conclusion-box p { font-size: 10px; color: #1e293b; line-height: 1.7; text-align: justify; }
-
-    .job-match-box { background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px; padding: 14px 16px; margin-bottom: 16px; }
-    .job-match-box h3 { font-size: 12px; color: #1d4ed8; margin-bottom: 8px; }
-    .job-match-box .job-category { margin-bottom: 8px; }
-    .job-match-box .job-category-title { font-size: 10px; font-weight: 700; color: #1e40af; margin-bottom: 3px; }
-    .job-match-box .job-list { font-size: 10px; color: #374151; line-height: 1.6; }
-    .job-match-box .job-tag { display: inline-block; background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 600; margin: 2px 2px; }
-    .job-match-box .match-note { font-size: 9px; color: #6b7280; margin-top: 8px; font-style: italic; }
-    .interp-d { color: #dc2626; }
-    .interp-i { color: #d97706; }
-    .interp-s { color: #059669; }
-    .interp-c { color: #2563eb; }
-
-    .detail-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 9px; }
-    .detail-table th { background: #0d9488; color: #fff; padding: 5px 4px; text-align: center; font-weight: 600; }
-    .detail-table td { padding: 4px; border: 1px solid #d1d5db; text-align: center; }
+    .id { color: #dc2626; } .ii { color: #d97706; } .is { color: #059669; } .ic { color: #2563eb; }
+    .concl-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 5px; padding: 10px 12px; margin-bottom: 10px; }
+    .concl-box h3 { font-size: 10px; color: #0d9488; margin-bottom: 4px; }
+    .concl-box p { font-size: 9px; color: #1e293b; line-height: 1.6; text-align: justify; }
+    .job-box { background: #eff6ff; border: 1px solid #93c5fd; border-radius: 5px; padding: 10px 12px; margin-bottom: 10px; }
+    .job-box h3 { font-size: 10px; color: #1d4ed8; margin-bottom: 6px; }
+    .job-cat { margin-bottom: 5px; }
+    .job-cat-t { font-size: 9px; font-weight: 700; color: #1e40af; margin-bottom: 2px; }
+    .job-tag { display: inline-block; background: #dbeafe; color: #1e40af; padding: 1px 6px; border-radius: 3px; font-size: 8px; font-weight: 600; margin: 1px; }
+    .job-env { margin-top: 6px; padding: 6px 8px; background: #f0f9ff; border-radius: 3px; font-size: 9px; }
+    .job-env strong { color: #0369a1; }
+    .match-note { font-size: 8px; color: #6b7280; margin-top: 6px; font-style: italic; }
+    .detail-table { width: 100%; border-collapse: collapse; font-size: 8px; }
+    .detail-table th { background: #0d9488; color: #fff; padding: 4px 3px; text-align: center; font-weight: 600; }
+    .detail-table td { padding: 3px; border: 1px solid #d1d5db; text-align: center; }
     .detail-table tr:nth-child(even) td { background: #f8fafc; }
-    .badge-m { background: #059669; color: #fff; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 600; }
-    .badge-l { background: #dc2626; color: #fff; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 600; }
-
-    .footer { text-align: center; font-size: 9px; color: #94a3b8; margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; }
+    .bm { background: #059669; color: #fff; padding: 1px 4px; border-radius: 2px; font-size: 7px; font-weight: 600; }
+    .bl { background: #dc2626; color: #fff; padding: 1px 4px; border-radius: 2px; font-size: 7px; font-weight: 600; }
+    .footer { text-align: center; font-size: 8px; color: #94a3b8; margin-top: 12px; padding-top: 6px; border-top: 1px solid #e2e8f0; }
     .page-break { page-break-before: always; }
-  .watermark { position: fixed; top: 10px; right: 10px; font-size: 14px; font-weight: 700; color: #dc2626; opacity: 1; z-index: 999; pointer-events: none; }
- </style>
+  </style>
 </head>
 <body>
-  <div class="watermark">CONFIDENTIAL</div>
+
+  <div class="header-bar">
+    <span class="conf">CONFIDENTIAL</span>
     <h1>LAPORAN HASIL TES DISC</h1>
-    <p>{{ $bank->title }} — {{ $subTest->title }}</p>
+    <p>{{ $bank->title }} &mdash; {{ $subTest->title }}</p>
   </div>
 
   <div class="content">
 
-    {{-- Informasi Peserta --}}
-    <div class="section-title">INFORMASI PESERTA</div>
+    <div class="section-title">Informasi Peserta</div>
     <table class="info-table">
       <tr>
         <td class="label">Nama Peserta</td>
@@ -106,319 +96,213 @@
       @endif
       <tr>
         <td class="label">Waktu Mulai</td>
-        <td class="value">{{ $response->started_at ? $response->started_at->format('d/m/Y H:i:s') : '-' }}</td>
+        <td class="value">{{ $response->started_at ? $response->started_at->format('d/m/Y H:i') : '-' }}</td>
         <td class="label">Waktu Selesai</td>
-        <td class="value">{{ $response->completed_at ? $response->completed_at->format('d/m/Y H:i:s') : '-' }}</td>
+        <td class="value">{{ $response->completed_at ? $response->completed_at->format('d/m/Y H:i') : '-' }}</td>
       </tr>
     </table>
 
-    {{-- Scores --}}
     @php
       $dData = ($response->responses ?? [])['disc_' . $subTest->id] ?? null;
-      $scores = $dData['scores'] ?? ['D' => ['most' => 0, 'least' => 0], 'I' => ['most' => 0, 'least' => 0], 'S' => ['most' => 0, 'least' => 0], 'C' => ['most' => 0, 'least' => 0]];
+      $scores = $dData['scores'] ?? ['D'=>['most'=>0,'least'=>0],'I'=>['most'=>0,'least'=>0],'S'=>['most'=>0,'least'=>0],'C'=>['most'=>0,'least'=>0]];
       $profileType = $dData['profile_type'] ?? '-';
       $answers = $dData['answers'] ?? [];
-      $dM = $scores['D']['most'] ?? 0;
-      $iM = $scores['I']['most'] ?? 0;
-      $sM = $scores['S']['most'] ?? 0;
-      $cM = $scores['C']['most'] ?? 0;
-      $dL = $scores['D']['least'] ?? 0;
-      $iL = $scores['I']['least'] ?? 0;
-      $sL = $scores['S']['least'] ?? 0;
-      $cL = $scores['C']['least'] ?? 0;
+      $dM = $scores['D']['most'] ?? 0; $iM = $scores['I']['most'] ?? 0;
+      $sM = $scores['S']['most'] ?? 0; $cM = $scores['C']['most'] ?? 0;
+      $dL = $scores['D']['least'] ?? 0; $iL = $scores['I']['least'] ?? 0;
+      $sL = $scores['S']['least'] ?? 0; $cL = $scores['C']['least'] ?? 0;
       $maxScore = max($dM, $iM, $sM, $cM, 1);
-
-      // Profile names
-      $profileNames = [
-        'D' => 'Dominance',
-        'I' => 'Influence',
-        'S' => 'Steadiness',
-        'C' => 'Compliance',
-      ];
+      $profileNames = ['D'=>'Dominance','I'=>'Influence','S'=>'Steadiness','C'=>'Compliance'];
       $profileDescriptions = [
-        'D' => 'Tipe kepribadian yang tegas, berorientasi hasil, kompetitif, dan suka memimpin. Fokus pada pencapaian tujuan dan pengendalian situasi.',
-        'I' => 'Tipe kepribadian yang antusias, optimis, komunikatif, dan suka bersosialisasi. Fokus pada hubungan interpersonal dan mempengaruhi orang lain.',
-        'S' => 'Tipe kepribadian yang sabar, stabil, loyal, dan kooperatif. Fokus pada kestabilan, harmoni, dan mendukung tim.',
-        'C' => 'Tipe kepribadian yang teliti, analitis, sistematis, dan berorientasi kualitas. Fokus pada akurasi, prosedur, dan standar tinggi.',
+        'D'=>'Tegas, berorientasi hasil, kompetitif, dan suka memimpin.',
+        'I'=>'Antusias, optimis, komunikatif, dan suka bersosialisasi.',
+        'S'=>'Sabar, stabil, loyal, dan kooperatif.',
+        'C'=>'Teliti, analitis, sistematis, dan berorientasi kualitas.',
       ];
       $primaryType = strlen($profileType) > 0 ? substr($profileType, 0, 1) : 'D';
       $primaryName = $profileNames[$primaryType] ?? 'Unknown';
       $primaryDesc = $profileDescriptions[$primaryType] ?? '';
     @endphp
 
-    {{-- Profile Type --}}
-    <div class="section-title">PROFIL KEPRIBADIAN</div>
+    <div class="section-title">Profil Kepribadian</div>
     <div class="profile-box">
-      <div class="profile-type">{{ $profileType }}</div>
-      <div style="font-size:12px;font-weight:600;color:#0f766e;margin-top:2px;">{{ $primaryName }}</div>
-      <div class="profile-desc">{{ $primaryDesc }}</div>
+      <div class="pt">{{ $profileType }}</div>
+      <div class="pn">{{ $primaryName }}</div>
+      <div class="pd">{{ $primaryDesc }}</div>
     </div>
 
-    {{-- Score Metrics --}}
-    <div class="section-title">SKOR DISC (MOST)</div>
+    <div class="section-title">Skor DISC (Most)</div>
     <table class="metrics-grid">
       <tr>
-        <td class="metric-d">
-          <div class="metric-val">{{ $dM }}</div>
-          <div class="metric-label">Dominance (D)<br>Tegas & Berorientasi Hasil</div>
-        </td>
-        <td class="metric-i">
-          <div class="metric-val">{{ $iM }}</div>
-          <div class="metric-label">Influence (I)<br>Antusias & Komunikatif</div>
-        </td>
-        <td class="metric-s">
-          <div class="metric-val">{{ $sM }}</div>
-          <div class="metric-label">Steadiness (S)<br>Sabar & Stabil</div>
-        </td>
-        <td class="metric-c">
-          <div class="metric-val">{{ $cM }}</div>
-          <div class="metric-label">Compliance (C)<br>Teliti & Sistematis</div>
-        </td>
+        <td class="md"><div class="mv">{{ $dM }}</div><div class="ml">Dominance (D)</div></td>
+        <td class="mi"><div class="mv">{{ $iM }}</div><div class="ml">Influence (I)</div></td>
+        <td class="ms"><div class="mv">{{ $sM }}</div><div class="ml">Steadiness (S)</div></td>
+        <td class="mc"><div class="mv">{{ $cM }}</div><div class="ml">Compliance (C)</div></td>
       </tr>
     </table>
 
-    {{-- SVG Radar Chart --}}
+    {{-- GD Radar Chart --}}
     <div class="graph-box">
-      <div class="graph-title">Grafik Profil DISC</div>
+      <div class="gt">Grafik Profil DISC</div>
       @php
-        $gW = 400; $gH = 320;
-        $cx = $gW / 2; $cy = $gH / 2;
-        $maxR = 120;
-
-        // 4 axes: top=D, right=I, bottom=S, left=C
-        $axes = [
-          ['label' => 'D', 'angle' => -90],
-          ['label' => 'I', 'angle' => 0],
-          ['label' => 'S', 'angle' => 90],
-          ['label' => 'C', 'angle' => 180],
-        ];
-        $vals = [$dM, $iM, $sM, $cM];
-        $colors = ['#dc2626', '#f59e0b', '#059669', '#2563eb'];
-
-        // Calculate polygon points
-        $points = [];
-        foreach ($axes as $ai => $axis) {
-          $rad = deg2rad($axis['angle']);
-          $r = $maxR * ($vals[$ai] / max($maxScore, 1));
-          $points[] = [
-            'x' => round($cx + $r * cos($rad), 1),
-            'y' => round($cy + $r * sin($rad), 1),
-          ];
+        $imgW = 400; $imgH = 300;
+        $cxR = (int)($imgW / 2); $cyR = (int)($imgH / 2);
+        $maxR = 110;
+        $img = imagecreatetruecolor($imgW, $imgH);
+        imagesavealpha($img, true); imagealphablending($img, true); imageantialias($img, true);
+        $bg = imagecolorallocate($img, 250, 250, 254);
+        $gc = imagecolorallocate($img, 226, 232, 240);
+        $gb = imagecolorallocate($img, 203, 213, 225);
+        $tl = imagecolorallocate($img, 13, 148, 136);
+        $tf = imagecolorallocatealpha($img, 13, 148, 136, 90);
+        $mt = imagecolorallocate($img, 148, 163, 184);
+        $cD = imagecolorallocate($img, 220, 38, 38);
+        $cI = imagecolorallocate($img, 217, 119, 6);
+        $cS = imagecolorallocate($img, 5, 150, 105);
+        $cC = imagecolorallocate($img, 37, 99, 235);
+        $wt = imagecolorallocate($img, 255, 255, 255);
+        imagefill($img, 0, 0, $bg);
+        $ax = [-90, 0, 90, 180]; $lb = ['D','I','S','C']; $ac = [$cD,$cI,$cS,$cC]; $av = [$dM,$iM,$sM,$cM];
+        for ($g = 1; $g <= 4; $g++) {
+          $gr = (int)round($maxR * $g / 4); $gp = [];
+          foreach ($ax as $a) { $r = deg2rad($a); $gp[] = (int)round($cxR+$gr*cos($r)); $gp[] = (int)round($cyR+$gr*sin($r)); }
+          imagepolygon($img, $gp, $g===4?$gb:$gc);
+          imagestring($img, 1, $cxR+3, $cyR-$gr-8, (string)round(($maxScore/4)*$g), $mt);
         }
-        $polyPoints = implode(' ', array_map(fn($p) => $p['x'] . ',' . $p['y'], $points));
+        foreach ($ax as $a) { $r = deg2rad($a); imageline($img, $cxR, $cyR, (int)round($cxR+$maxR*cos($r)), (int)round($cyR+$maxR*sin($r)), $gc); }
+        $pp = []; $dd = [];
+        foreach ($ax as $i => $a) {
+          $r = deg2rad($a); $sr = $maxR*($av[$i]/max($maxScore,1));
+          $px = (int)round($cxR+$sr*cos($r)); $py = (int)round($cyR+$sr*sin($r));
+          $pp[] = $px; $pp[] = $py; $dd[] = [$px, $py];
+        }
+        imagefilledpolygon($img, $pp, $tf);
+        imagesetthickness($img, 2); imagepolygon($img, $pp, $tl); imagesetthickness($img, 1);
+        foreach ($dd as $i => $d) {
+          imagefilledellipse($img, $d[0], $d[1], 10, 10, $ac[$i]);
+          imagefilledellipse($img, $d[0], $d[1], 5, 5, $wt);
+          $vs = (string)$av[$i]; imagestring($img, 3, $d[0]-(int)(strlen($vs)*imagefontwidth(3)/2), $d[1]-16, $vs, $ac[$i]);
+        }
+        foreach ($ax as $i => $a) {
+          $r = deg2rad($a); $lx = (int)round($cxR+($maxR+18)*cos($r)); $ly = (int)round($cyR+($maxR+18)*sin($r));
+          $fw = strlen($lb[$i])*imagefontwidth(4);
+          imagestring($img, 4, $lx-(int)($fw/2), $ly-(int)(imagefontheight(4)/2), $lb[$i], $ac[$i]);
+        }
+        ob_start(); imagepng($img); $pngD = ob_get_clean(); imagedestroy($img);
+        $discChart = 'data:image/png;base64,' . base64_encode($pngD);
       @endphp
-      <svg width="{{ $gW }}" height="{{ $gH }}" viewBox="0 0 {{ $gW }} {{ $gH }}" style="width:100%;height:auto;">
-        {{-- Grid circles --}}
-        @for($gl = 1; $gl <= 4; $gl++)
-          @php $gr = $maxR * ($gl / 4); @endphp
-          <polygon points="{{ round($cx, 1) }},{{ round($cy - $gr, 1) }} {{ round($cx + $gr, 1) }},{{ round($cy, 1) }} {{ round($cx, 1) }},{{ round($cy + $gr, 1) }} {{ round($cx - $gr, 1) }},{{ round($cy, 1) }}"
-            fill="none" stroke="#e2e8f0" stroke-width="0.5"/>
-          <text x="{{ round($cx + 4, 1) }}" y="{{ round($cy - $gr + 10, 1) }}" font-size="7" fill="#94a3b8">{{ round(($maxScore / 4) * $gl) }}</text>
-        @endfor
-
-        {{-- Axis lines --}}
-        @foreach($axes as $ai => $axis)
-          @php
-            $rad = deg2rad($axis['angle']);
-            $ex = round($cx + $maxR * cos($rad), 1);
-            $ey = round($cy + $maxR * sin($rad), 1);
-          @endphp
-          <line x1="{{ $cx }}" y1="{{ $cy }}" x2="{{ $ex }}" y2="{{ $ey }}" stroke="#cbd5e1" stroke-width="0.5"/>
-          @php
-            $lx = round($cx + ($maxR + 20) * cos($rad), 1);
-            $ly = round($cy + ($maxR + 20) * sin($rad), 1);
-          @endphp
-          <text x="{{ $lx }}" y="{{ round($ly + 4, 1) }}" text-anchor="middle" font-size="10" font-weight="700" fill="{{ $colors[$ai] }}">{{ $axis['label'] }}</text>
-        @endforeach
-
-        {{-- Data polygon --}}
-        <polygon points="{{ $polyPoints }}" fill="rgba(13,148,136,0.15)" stroke="#0d9488" stroke-width="2"/>
-
-        {{-- Data points --}}
-        @foreach($points as $pi => $pt)
-          <circle cx="{{ $pt['x'] }}" cy="{{ $pt['y'] }}" r="4" fill="{{ $colors[$pi] }}" stroke="#fff" stroke-width="1"/>
-          <text x="{{ $pt['x'] }}" y="{{ round($pt['y'] - 8, 1) }}" text-anchor="middle" font-size="9" font-weight="700" fill="{{ $colors[$pi] }}">{{ $vals[$pi] }}</text>
-        @endforeach
-      </svg>
+      <img src="{{ $discChart }}" width="340" style="display:inline-block;">
     </div>
 
-    {{-- Least Scores --}}
-    <div class="section-title">SKOR LEAST (Paling Tidak Sesuai)</div>
+    <div class="section-title">Skor Least</div>
     <table class="metrics-grid">
       <tr>
-        <td class="metric-d">
-          <div class="metric-val">{{ $dL }}</div>
-          <div class="metric-label">D (Least)</div>
-        </td>
-        <td class="metric-i">
-          <div class="metric-val">{{ $iL }}</div>
-          <div class="metric-label">I (Least)</div>
-        </td>
-        <td class="metric-s">
-          <div class="metric-val">{{ $sL }}</div>
-          <div class="metric-label">S (Least)</div>
-        </td>
-        <td class="metric-c">
-          <div class="metric-val">{{ $cL }}</div>
-          <div class="metric-label">C (Least)</div>
-        </td>
+        <td class="md"><div class="mv">{{ $dL }}</div><div class="ml">D (Least)</div></td>
+        <td class="mi"><div class="mv">{{ $iL }}</div><div class="ml">I (Least)</div></td>
+        <td class="ms"><div class="mv">{{ $sL }}</div><div class="ml">S (Least)</div></td>
+        <td class="mc"><div class="mv">{{ $cL }}</div><div class="ml">C (Least)</div></td>
       </tr>
     </table>
 
-    {{-- Interpretation --}}
-    <div class="section-title">INTERPRETASI HASIL</div>
-    <div class="interpretation-box">
+    <div class="section-title">Interpretasi Hasil</div>
+    <div class="interp-box">
       <h3>Analisis Profil Kepribadian DISC</h3>
-
       <div class="interp-item">
-        <span class="interp-label interp-d">1. Dominance / D (Skor: {{ $dM }}/24):</span>
-        <span>
-          @if($dM >= 16) Sangat Tinggi — Anda sangat tegas, kompetitif, dan suka mengambil kendali. Anda cenderung berorientasi pada hasil dan tidak takut mengambil keputusan sulit.
-          @elseif($dM >= 10) Sedang — Anda memiliki ketegasan yang cukup baik. Anda bisa memimpin saat dibutuhkan namun juga tahu kapan harus berkolaborasi.
-          @elseif($dM >= 5) Rendah — Anda cenderung lebih kooperatif dan menghindari konfrontasi langsung. Anda lebih suka bekerja dalam tim daripada memimpin sendiri.
-          @else Sangat Rendah — Anda sangat menghindari konfrontasi dan lebih memilih mengikuti arahan orang lain.
-          @endif
-        </span>
+        <span class="interp-label id">1. Dominance ({{ $dM }}/24):</span>
+        @if($dM >= 16) Sangat Tinggi — sangat tegas, kompetitif, dan berorientasi pada hasil.
+        @elseif($dM >= 10) Sedang — memiliki ketegasan yang cukup, bisa memimpin saat dibutuhkan.
+        @elseif($dM >= 5) Rendah — lebih kooperatif dan menghindari konfrontasi langsung.
+        @else Sangat Rendah — cenderung mengikuti arahan orang lain.
+        @endif
       </div>
-
       <div class="interp-item">
-        <span class="interp-label interp-i">2. Influence / I (Skor: {{ $iM }}/24):</span>
-        <span>
-          @if($iM >= 16) Sangat Tinggi — Anda sangat komunikatif, antusias, dan pandai mempengaruhi orang lain. Anda menikmati interaksi sosial dan membangun hubungan.
-          @elseif($iM >= 10) Sedang — Anda cukup komunikatif dan bisa membangun hubungan baik. Anda nyaman berinteraksi namun juga menghargai waktu sendiri.
-          @elseif($iM >= 5) Rendah — Anda cenderung lebih pendiam dan selektif dalam berinteraksi. Anda lebih fokus pada tugas daripada hubungan sosial.
-          @else Sangat Rendah — Anda sangat introvert dan lebih memilih bekerja secara mandiri dengan sedikit interaksi sosial.
-          @endif
-        </span>
+        <span class="interp-label ii">2. Influence ({{ $iM }}/24):</span>
+        @if($iM >= 16) Sangat Tinggi — sangat komunikatif dan pandai mempengaruhi orang lain.
+        @elseif($iM >= 10) Sedang — cukup komunikatif dan bisa membangun hubungan baik.
+        @elseif($iM >= 5) Rendah — lebih pendiam dan selektif dalam berinteraksi.
+        @else Sangat Rendah — sangat introvert dan memilih bekerja mandiri.
+        @endif
       </div>
-
       <div class="interp-item">
-        <span class="interp-label interp-s">3. Steadiness / S (Skor: {{ $sM }}/24):</span>
-        <span>
-          @if($sM >= 16) Sangat Tinggi — Anda sangat sabar, stabil, dan dapat diandalkan. Anda menghargai konsistensi dan harmoni dalam lingkungan kerja.
-          @elseif($sM >= 10) Sedang — Anda memiliki keseimbangan yang baik antara stabilitas dan fleksibilitas. Anda bisa beradaptasi namun juga menghargai rutinitas.
-          @elseif($sM >= 5) Rendah — Anda cenderung menyukai perubahan dan variasi. Anda mudah beradaptasi tetapi mungkin kurang sabar dengan rutinitas.
-          @else Sangat Rendah — Anda sangat dinamis dan cepat bosan dengan rutinitas. Anda selalu mencari tantangan dan perubahan baru.
-          @endif
-        </span>
+        <span class="interp-label is">3. Steadiness ({{ $sM }}/24):</span>
+        @if($sM >= 16) Sangat Tinggi — sangat sabar, stabil, dan dapat diandalkan.
+        @elseif($sM >= 10) Sedang — keseimbangan baik antara stabilitas dan fleksibilitas.
+        @elseif($sM >= 5) Rendah — menyukai perubahan dan variasi, mudah beradaptasi.
+        @else Sangat Rendah — sangat dinamis dan cepat bosan dengan rutinitas.
+        @endif
       </div>
-
       <div class="interp-item">
-        <span class="interp-label interp-c">4. Compliance / C (Skor: {{ $cM }}/24):</span>
-        <span>
-          @if($cM >= 16) Sangat Tinggi — Anda sangat teliti, analitis, dan berorientasi pada kualitas. Anda mematuhi standar tinggi dan prosedur yang terstruktur.
-          @elseif($cM >= 10) Sedang — Anda memiliki ketelitian yang baik dan menghargai kualitas. Anda bisa bekerja secara terstruktur namun juga fleksibel saat dibutuhkan.
-          @elseif($cM >= 5) Rendah — Anda cenderung lebih fleksibel dan tidak terlalu terikat pada aturan. Anda lebih suka kebebasan daripada struktur yang kaku.
-          @else Sangat Rendah — Anda sangat fleksibel dan spontan. Anda tidak terlalu mementingkan detail dan lebih fokus pada gambaran besar.
-          @endif
-        </span>
+        <span class="interp-label ic">4. Compliance ({{ $cM }}/24):</span>
+        @if($cM >= 16) Sangat Tinggi — sangat teliti, analitis, dan berorientasi pada kualitas.
+        @elseif($cM >= 10) Sedang — ketelitian baik, bisa terstruktur namun juga fleksibel.
+        @elseif($cM >= 5) Rendah — lebih fleksibel dan tidak terlalu terikat aturan.
+        @else Sangat Rendah — sangat fleksibel, fokus pada gambaran besar.
+        @endif
       </div>
     </div>
 
-    {{-- Kesimpulan --}}
     @php
       $secondaryType = strlen($profileType) > 1 ? substr($profileType, 1, 1) : null;
-      $secondaryName = $secondaryType ? ($profileNames[$secondaryType] ?? '') : '';
-
-      // Conclusions per primary type
       $conclusions = [
-        'D' => 'Berdasarkan hasil tes DISC, ' . $response->participant_name . ' menunjukkan profil kepribadian dominan bertipe <strong>Dominance (D)</strong> dengan skor ' . $dM . '/24. Individu dengan tipe ini memiliki dorongan kuat untuk mencapai hasil, mengambil keputusan secara cepat, dan mampu memimpin dalam situasi yang menantang. Mereka cenderung langsung, tegas, dan berorientasi pada pencapaian target. Dalam lingkungan kerja, individu tipe D unggul saat diberikan otonomi dan tantangan, namun perlu mengembangkan kesabaran serta kepekaan terhadap perasaan rekan kerja agar tercipta kolaborasi yang lebih efektif.',
-        'I' => 'Berdasarkan hasil tes DISC, ' . $response->participant_name . ' menunjukkan profil kepribadian dominan bertipe <strong>Influence (I)</strong> dengan skor ' . $iM . '/24. Individu dengan tipe ini memiliki kemampuan komunikasi yang sangat baik, antusiasme tinggi, dan secara alami mampu membangun hubungan interpersonal yang positif. Mereka cenderung optimis, persuasif, dan senang bekerja dalam tim yang dinamis. Dalam lingkungan kerja, individu tipe I sangat efektif dalam peran yang melibatkan interaksi sosial dan memotivasi orang lain, namun perlu mengembangkan fokus pada detail dan konsistensi dalam menyelesaikan tugas-tugas administratif.',
-        'S' => 'Berdasarkan hasil tes DISC, ' . $response->participant_name . ' menunjukkan profil kepribadian dominan bertipe <strong>Steadiness (S)</strong> dengan skor ' . $sM . '/24. Individu dengan tipe ini memiliki loyalitas tinggi, kesabaran yang luar biasa, dan kemampuan untuk menciptakan stabilitas dalam tim. Mereka cenderung kooperatif, dapat diandalkan, dan berorientasi pada harmoni lingkungan kerja. Dalam organisasi, individu tipe S menjadi penopang tim yang sangat berharga karena konsistensi dan kemampuan mendengarkan mereka, namun perlu didorong untuk lebih terbuka terhadap perubahan dan menyuarakan pendapat secara asertif.',
-        'C' => 'Berdasarkan hasil tes DISC, ' . $response->participant_name . ' menunjukkan profil kepribadian dominan bertipe <strong>Compliance (C)</strong> dengan skor ' . $cM . '/24. Individu dengan tipe ini memiliki standar kualitas yang tinggi, pola pikir analitis, dan ketelitian dalam setiap pekerjaan. Mereka cenderung sistematis, objektif, dan sangat memperhatikan akurasi data serta kepatuhan terhadap prosedur. Dalam lingkungan kerja, individu tipe C sangat handal dalam peran yang membutuhkan presisi dan pemecahan masalah berbasis data, namun perlu mengembangkan fleksibilitas dan kemampuan mengambil keputusan cepat dalam situasi yang ambigu.',
+        'D' => 'Berdasarkan hasil tes DISC, ' . $response->participant_name . ' menunjukkan profil dominan bertipe <strong>Dominance (D)</strong> dengan skor ' . $dM . '/24. Individu tipe ini memiliki dorongan kuat untuk mencapai hasil, mengambil keputusan cepat, dan mampu memimpin dalam situasi menantang. Dalam lingkungan kerja, tipe D unggul saat diberikan otonomi dan tantangan, namun perlu mengembangkan kesabaran serta kepekaan terhadap rekan kerja.',
+        'I' => 'Berdasarkan hasil tes DISC, ' . $response->participant_name . ' menunjukkan profil dominan bertipe <strong>Influence (I)</strong> dengan skor ' . $iM . '/24. Individu tipe ini memiliki kemampuan komunikasi sangat baik, antusiasme tinggi, dan mampu membangun hubungan interpersonal positif. Dalam lingkungan kerja, tipe I sangat efektif dalam peran interaksi sosial, namun perlu mengembangkan fokus pada detail dan konsistensi.',
+        'S' => 'Berdasarkan hasil tes DISC, ' . $response->participant_name . ' menunjukkan profil dominan bertipe <strong>Steadiness (S)</strong> dengan skor ' . $sM . '/24. Individu tipe ini memiliki loyalitas tinggi, kesabaran luar biasa, dan kemampuan menciptakan stabilitas tim. Dalam organisasi, tipe S menjadi penopang tim yang berharga, namun perlu didorong untuk lebih terbuka terhadap perubahan.',
+        'C' => 'Berdasarkan hasil tes DISC, ' . $response->participant_name . ' menunjukkan profil dominan bertipe <strong>Compliance (C)</strong> dengan skor ' . $cM . '/24. Individu tipe ini memiliki standar kualitas tinggi, pola pikir analitis, dan ketelitian dalam setiap pekerjaan. Dalam lingkungan kerja, tipe C sangat handal dalam peran presisi, namun perlu mengembangkan fleksibilitas.',
       ];
-
-      $secondaryNote = '';
-      if ($secondaryType && $secondaryType !== $primaryType) {
-        $secTraits = [
-          'D' => 'dengan sentuhan ketegasan dan orientasi hasil dari dimensi Dominance',
-          'I' => 'dengan sentuhan kemampuan komunikasi dan persuasi dari dimensi Influence',
-          'S' => 'dengan sentuhan stabilitas dan loyalitas dari dimensi Steadiness',
-          'C' => 'dengan sentuhan ketelitian dan pendekatan analitis dari dimensi Compliance',
-        ];
-        $secondaryNote = ' Profil ini diperkuat ' . ($secTraits[$secondaryType] ?? '') . ', yang membentuk kombinasi unik <strong>' . $profileType . '</strong> dalam pendekatan kerja sehari-hari.';
-      }
-
-      $conclusionText = ($conclusions[$primaryType] ?? $conclusions['D']) . $secondaryNote;
-
-      // Job matches per primary type (based on DISC occupational psychology)
+      $secTraits = ['D'=>'ketegasan dari Dominance','I'=>'komunikasi dari Influence','S'=>'stabilitas dari Steadiness','C'=>'ketelitian dari Compliance'];
+      $secNote = ($secondaryType && $secondaryType !== $primaryType) ? ' Diperkuat sentuhan ' . ($secTraits[$secondaryType] ?? '') . ', membentuk kombinasi <strong>'.$profileType.'</strong>.' : '';
+      $conclusionText = ($conclusions[$primaryType] ?? $conclusions['D']) . $secNote;
       $jobMatches = [
-        'D' => [
-          'Sangat Sesuai' => ['CEO / Direktur', 'Manajer Proyek', 'Entrepreneur', 'Sales Manager', 'Operations Director', 'Business Development Manager', 'Konsultan Strategi'],
-          'Sesuai' => ['Team Leader', 'Manajer Produksi', 'Pengacara / Litigator', 'Manajer Logistik', 'Supervisor Lapangan', 'Risk Manager'],
-        ],
-        'I' => [
-          'Sangat Sesuai' => ['Public Relations Manager', 'Marketing Manager', 'Account Executive', 'Event Organizer', 'Trainer / Fasilitator', 'Brand Manager', 'Media Specialist'],
-          'Sesuai' => ['HR Recruitment', 'Customer Relationship Manager', 'Sales Representative', 'Content Creator', 'Tour Leader', 'MC / Presenter'],
-        ],
-        'S' => [
-          'Sangat Sesuai' => ['HR & People Development', 'Customer Service Manager', 'Admin Manager', 'Konselor / Psikolog', 'Perawat / Healthcare', 'Social Worker', 'Office Manager'],
-          'Sesuai' => ['Staff Administrasi', 'Guru / Pengajar', 'Librarian', 'Lab Technician', 'Quality Assurance', 'Technical Support'],
-        ],
-        'C' => [
-          'Sangat Sesuai' => ['Data Analyst', 'Akuntan / Auditor', 'Software Engineer', 'Quality Control Manager', 'Research Analyst', 'Compliance Officer', 'Apoteker'],
-          'Sesuai' => ['Programmer / Developer', 'Drafter / Engineering', 'Financial Planner', 'Arsiparis / Dokumentasi', 'Lab Analyst', 'Statistician'],
-        ],
+        'D'=>['Sangat Sesuai'=>['CEO/Direktur','Manajer Proyek','Entrepreneur','Sales Manager','Operations Director','Business Development'],'Sesuai'=>['Team Leader','Manajer Produksi','Pengacara','Manajer Logistik','Supervisor','Risk Manager']],
+        'I'=>['Sangat Sesuai'=>['PR Manager','Marketing Manager','Account Executive','Event Organizer','Trainer','Brand Manager'],'Sesuai'=>['HR Recruitment','CRM','Sales Representative','Content Creator','MC/Presenter']],
+        'S'=>['Sangat Sesuai'=>['HR & People Dev','CS Manager','Admin Manager','Konselor/Psikolog','Healthcare','Social Worker'],'Sesuai'=>['Staff Admin','Guru/Pengajar','Lab Technician','Quality Assurance','Technical Support']],
+        'C'=>['Sangat Sesuai'=>['Data Analyst','Akuntan/Auditor','Software Engineer','QC Manager','Research Analyst','Compliance Officer'],'Sesuai'=>['Programmer','Financial Planner','Arsiparis','Lab Analyst','Statistician']],
       ];
-
       $matchData = $jobMatches[$primaryType] ?? $jobMatches['D'];
-
-      // Job environment recommendation
-      $envRecommendations = [
-        'D' => 'Lingkungan kerja ideal: kompetitif, cepat berubah, memberikan otonomi dalam pengambilan keputusan, dan berorientasi pada pencapaian target yang terukur.',
-        'I' => 'Lingkungan kerja ideal: kolaboratif, dinamis, banyak interaksi sosial, dan memberikan ruang untuk kreativitas serta pengakuan atas kontribusi.',
-        'S' => 'Lingkungan kerja ideal: stabil, terstruktur, harmonis, memiliki prosedur yang jelas, dan memberikan apresiasi atas kesetiaan serta konsistensi kerja.',
-        'C' => 'Lingkungan kerja ideal: terorganisir, berbasis data, memiliki standar kualitas tinggi, dan memberikan waktu yang cukup untuk analisis mendalam.',
-      ];
-      $envNote = $envRecommendations[$primaryType] ?? '';
+      $envRec = ['D'=>'Kompetitif, cepat berubah, otonomi tinggi, target terukur.','I'=>'Kolaboratif, dinamis, banyak interaksi sosial, ruang kreativitas.','S'=>'Stabil, terstruktur, harmonis, prosedur jelas.','C'=>'Terorganisir, berbasis data, standar kualitas tinggi.'];
+      $envNote = $envRec[$primaryType] ?? '';
     @endphp
 
-    <div class="section-title">KESIMPULAN</div>
-    <div class="conclusion-box">
+    <div class="section-title">Kesimpulan</div>
+    <div class="concl-box">
       <h3>Ringkasan Profil {{ $response->participant_name }}</h3>
       <p>{!! $conclusionText !!}</p>
     </div>
 
-    {{-- Job Match --}}
-    <div class="section-title">REKOMENDASI KESESUAIAN JABATAN (JOB MATCH)</div>
-    <div class="job-match-box">
-      <h3>Posisi yang Direkomendasikan untuk Profil {{ $profileType }} ({{ $primaryName }})</h3>
-
+    <div class="section-title">Rekomendasi Kesesuaian Jabatan</div>
+    <div class="job-box">
+      <h3>Posisi Direkomendasikan &mdash; Profil {{ $profileType }} ({{ $primaryName }})</h3>
       @foreach($matchData as $category => $jobs)
-      <div class="job-category">
-        <div class="job-category-title">{{ $category }}:</div>
-        <div class="job-list">
-          @foreach($jobs as $job)
-            <span class="job-tag">{{ $job }}</span>
-          @endforeach
-        </div>
+      <div class="job-cat">
+        <div class="job-cat-t">{{ $category }}:</div>
+        <div>@foreach($jobs as $j)<span class="job-tag">{{ $j }}</span>@endforeach</div>
       </div>
       @endforeach
-
-      <div style="margin-top:10px;padding:8px 10px;background:#f0f9ff;border-radius:4px;">
-        <div style="font-size:10px;font-weight:600;color:#0369a1;margin-bottom:3px;">Lingkungan Kerja Ideal:</div>
-        <div style="font-size:9px;color:#374151;">{{ $envNote }}</div>
-      </div>
-
-      <div class="match-note">
-        * Rekomendasi ini disusun berdasarkan teori DISC oleh William Moulton Marston dan praktik psikologi industri-organisasi. Hasil bersifat indikatif dan sebaiknya dikombinasikan dengan asesmen kompetensi, wawancara, serta pengalaman kerja untuk keputusan penempatan yang optimal.
-      </div>
+      <div class="job-env"><strong>Lingkungan Kerja Ideal:</strong> {{ $envNote }}</div>
+      <div class="match-note">* Rekomendasi berdasarkan teori DISC oleh William Moulton Marston. Bersifat indikatif.</div>
     </div>
 
-    {{-- Detail per group --}}
     @if(count($answers) > 0)
+    </div>
     <div class="page-break"></div>
-    <div class="section-title">DETAIL JAWABAN PER GRUP</div>
+    <div class="header-bar">
+      <span class="conf">CONFIDENTIAL</span>
+      <h1>DETAIL JAWABAN &mdash; {{ $response->participant_name }}</h1>
+      <p>{{ $bank->title }} &mdash; {{ $subTest->title }}</p>
+    </div>
+    <div class="content">
+
+    <div class="section-title">Detail Jawaban Per Grup</div>
     <table class="detail-table">
       <thead>
         <tr>
-          <th style="width:35px;">Grup</th>
+          <th style="width:28px;">Grup</th>
           <th>Pernyataan D</th>
           <th>Pernyataan I</th>
           <th>Pernyataan S</th>
           <th>Pernyataan C</th>
-          <th style="width:50px;">Most</th>
-          <th style="width:50px;">Least</th>
+          <th style="width:36px;">Most</th>
+          <th style="width:36px;">Least</th>
         </tr>
       </thead>
       <tbody>
@@ -426,34 +310,31 @@
         @foreach($answers as $ai => $ans)
         @php
           $q = $questions[$ai] ?? null;
-          $stmts = ['D' => '', 'I' => '', 'S' => '', 'C' => ''];
-          if ($q) {
-            foreach ($q['statements'] as $s) {
-              $stmts[$s['trait']] = $s['text'];
-            }
-          }
+          $stmts = ['D'=>'','I'=>'','S'=>'','C'=>''];
+          if ($q) { foreach ($q['statements'] as $s) { $stmts[$s['trait']] = $s['text']; } }
         @endphp
         <tr>
           <td>{{ $ai + 1 }}</td>
-          <td style="text-align:left;font-size:8px;">{{ $stmts['D'] }}</td>
-          <td style="text-align:left;font-size:8px;">{{ $stmts['I'] }}</td>
-          <td style="text-align:left;font-size:8px;">{{ $stmts['S'] }}</td>
-          <td style="text-align:left;font-size:8px;">{{ $stmts['C'] }}</td>
-          <td>@if($ans['most'] ?? null)<span class="badge-m">{{ $ans['most'] }}</span>@else - @endif</td>
-          <td>@if($ans['least'] ?? null)<span class="badge-l">{{ $ans['least'] }}</span>@else - @endif</td>
+          <td style="text-align:left;font-size:7px;">{{ $stmts['D'] }}</td>
+          <td style="text-align:left;font-size:7px;">{{ $stmts['I'] }}</td>
+          <td style="text-align:left;font-size:7px;">{{ $stmts['S'] }}</td>
+          <td style="text-align:left;font-size:7px;">{{ $stmts['C'] }}</td>
+          <td>@if($ans['most'] ?? null)<span class="bm">{{ $ans['most'] }}</span>@else -@endif</td>
+          <td>@if($ans['least'] ?? null)<span class="bl">{{ $ans['least'] }}</span>@else -@endif</td>
         </tr>
         @endforeach
         <tr style="background:#f0fdfa;font-weight:700;">
           <td colspan="5" style="text-align:right;">TOTAL MOST / LEAST</td>
-          <td>{{ $dM + $iM + $sM + $cM }}</td>
-          <td>{{ $dL + $iL + $sL + $cL }}</td>
+          <td>{{ $dM+$iM+$sM+$cM }}</td>
+          <td>{{ $dL+$iL+$sL+$cL }}</td>
         </tr>
       </tbody>
     </table>
     @endif
 
     <div class="footer">
-      Digenerate otomatis oleh HRIS — {{ now()->format('d/m/Y H:i') }}
+      Dokumen digenerate otomatis oleh Sistem HRIS &mdash; Tanggal cetak: {{ now()->format('d/m/Y H:i') }}
+      | &copy; {{ date('Y') }} Shindengen HR Internal Team
     </div>
 
   </div>

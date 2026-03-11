@@ -5,61 +5,53 @@
   <title>Laporan Kraepelin - {{ $response->participant_name }}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11px; color: #1a1a1a; line-height: 1.5; }
-    .header { background: #5b21b6; color: #fff; padding: 18px 30px; }
-    .header h1 { font-size: 16px; margin-bottom: 2px; }
-    .header p { font-size: 10px; opacity: 0.85; }
-    .content { padding: 20px 30px; }
-    .section-title { font-size: 12px; font-weight: 700; color: #5b21b6; margin: 16px 0 8px 0; padding-bottom: 4px; border-bottom: 2px solid #7c3aed; }
-    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-    .info-table td { padding: 5px 10px; border: 1px solid #d1d5db; font-size: 10px; }
-    .info-table .label { background: #f5f3ff; font-weight: 600; width: 160px; color: #5b21b6; }
-    .info-table .value { color: #1e293b; }
-
-    .metrics-grid { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-    .metrics-grid td { padding: 10px; text-align: center; border: 1px solid #e2e8f0; width: 20%; }
-    .metrics-grid .metric-val { font-size: 18px; font-weight: 800; }
-    .metrics-grid .metric-label { font-size: 9px; color: #64748b; margin-top: 2px; }
-    .metric-good { color: #065f46; background: #d1fae5; }
-    .metric-warn { color: #92400e; background: #fef3c7; }
-    .metric-bad { color: #991b1b; background: #fecaca; }
-    .metric-purple { color: #5b21b6; background: #ede9fe; }
-    .metric-blue { color: #003e6f; background: #e0f2fe; }
-
-    .graph-box { border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-bottom: 16px; background: #fafafe; }
-    .graph-title { font-size: 11px; font-weight: 700; color: #5b21b6; margin-bottom: 8px; }
-
-    .detail-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 9px; }
-    .detail-table th { background: #5b21b6; color: #fff; padding: 5px 4px; text-align: center; font-weight: 600; }
-    .detail-table td { padding: 4px; border: 1px solid #d1d5db; text-align: center; }
-    .detail-table tr:nth-child(even) td { background: #f8fafc; }
-    .val-good { color: #065f46; font-weight: 700; }
-    .val-bad { color: #991b1b; }
-
-    .interpretation-box { background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; }
-    .interpretation-box h3 { font-size: 11px; color: #5b21b6; margin-bottom: 6px; }
-    .interpretation-box p { font-size: 10px; color: #374151; margin-bottom: 4px; }
-    .interp-item { padding: 3px 0; }
+    body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 10px; color: #1e293b; line-height: 1.45; }
+    .header-bar { background: #5b21b6; color: #fff; padding: 14px 50px; }
+    .header-bar h1 { font-size: 14px; font-weight: 700; margin: 0; display: inline; }
+    .header-bar p { font-size: 9px; opacity: .8; margin: 2px 0 0 0; }
+    .header-bar .conf { float: right; font-size: 9px; font-weight: 700; color: #e9d5ff; letter-spacing: 1px; margin-top: 2px; }
+    .content { padding: 14px 50px 30px 50px; }
+    .section-title { font-size: 11px; font-weight: 700; color: #5b21b6; margin: 12px 0 6px 0; padding-bottom: 3px; border-bottom: 1.5px solid #7c3aed; text-transform: uppercase; letter-spacing: 0.3px; }
+    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    .info-table td { padding: 4px 8px; border: 1px solid #d1d5db; font-size: 9px; }
+    .info-table .label { background: #f5f3ff; font-weight: 600; width: 130px; color: #5b21b6; }
+    .metrics-grid { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    .metrics-grid td { padding: 8px 4px; text-align: center; border: 1px solid #e2e8f0; width: 20%; }
+    .metrics-grid .mv { font-size: 16px; font-weight: 800; }
+    .metrics-grid .ml { font-size: 8px; color: #64748b; margin-top: 1px; }
+    .m-good { color: #065f46; background: #d1fae5; }
+    .m-warn { color: #92400e; background: #fef3c7; }
+    .m-bad  { color: #991b1b; background: #fecaca; }
+    .m-purp { color: #5b21b6; background: #ede9fe; }
+    .m-blue { color: #003e6f; background: #e0f2fe; }
+    .graph-box { border: 1px solid #e2e8f0; border-radius: 5px; padding: 8px; margin-bottom: 10px; background: #fafafa; text-align: center; }
+    .graph-box .gt { font-size: 10px; font-weight: 700; color: #5b21b6; margin-bottom: 6px; text-align: left; }
+    .interp-box { background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 5px; padding: 10px 12px; margin-bottom: 10px; }
+    .interp-box h3 { font-size: 10px; color: #5b21b6; margin-bottom: 4px; }
+    .interp-item { padding: 2px 0; font-size: 9px; color: #374151; line-height: 1.5; }
     .interp-label { font-weight: 700; color: #5b21b6; }
     .interp-val { font-weight: 600; }
-
-    .footer { text-align: center; font-size: 9px; color: #94a3b8; margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; }
+    .detail-table { width: 100%; border-collapse: collapse; font-size: 8px; }
+    .detail-table th { background: #5b21b6; color: #fff; padding: 4px 3px; text-align: center; font-weight: 600; }
+    .detail-table td { padding: 3px; border: 1px solid #d1d5db; text-align: center; }
+    .detail-table tr:nth-child(even) td { background: #f8fafc; }
+    .vg { color: #065f46; font-weight: 700; }
+    .vb { color: #991b1b; }
+    .footer { text-align: center; font-size: 8px; color: #94a3b8; margin-top: 12px; padding-top: 6px; border-top: 1px solid #e2e8f0; }
     .page-break { page-break-before: always; }
-    .watermark { position: fixed; top: 10px; right: 10px; font-size: 14px; font-weight: 700; color: #dc2626; opacity: 1; z-index: 999; pointer-events: none; }
   </style>
 </head>
 <body>
-  <div class="watermark">CONFIDENTIAL</div>
 
-  <div class="header">
+  <div class="header-bar">
+    <span class="conf">CONFIDENTIAL</span>
     <h1>LAPORAN HASIL TES KRAEPELIN</h1>
-    <p>{{ $bank->title }} — {{ $subTest->title }}</p>
+    <p>{{ $bank->title }} &mdash; {{ $subTest->title }}</p>
   </div>
 
   <div class="content">
 
-    {{-- Informasi Peserta --}}
-    <div class="section-title">INFORMASI PESERTA</div>
+    <div class="section-title">Informasi Peserta</div>
     <table class="info-table">
       <tr>
         <td class="label">Nama Peserta</td>
@@ -90,13 +82,12 @@
       @endif
       <tr>
         <td class="label">Waktu Mulai</td>
-        <td class="value">{{ $response->started_at ? $response->started_at->format('d/m/Y H:i:s') : '-' }}</td>
+        <td class="value">{{ $response->started_at ? $response->started_at->format('d/m/Y H:i') : '-' }}</td>
         <td class="label">Waktu Selesai</td>
-        <td class="value">{{ $response->completed_at ? $response->completed_at->format('d/m/Y H:i:s') : '-' }}</td>
+        <td class="value">{{ $response->completed_at ? $response->completed_at->format('d/m/Y H:i') : '-' }}</td>
       </tr>
     </table>
 
-    {{-- Metrics Summary --}}
     @php
       $kData = ($response->responses ?? [])['kraepelin_' . $subTest->id] ?? null;
       $cols = $kData['columns'] ?? [];
@@ -105,220 +96,219 @@
       $attemptedPerCol = array_map(fn($c) => $c['attempted'] ?? 0, $cols);
       $totalCorrect = array_sum($correctPerCol);
       $totalAttempted = array_sum($attemptedPerCol);
-
       $speed = $colCount > 0 ? round($totalCorrect / $colCount, 1) : 0;
       $accuracy = $totalAttempted > 0 ? round(($totalCorrect / $totalAttempted) * 100, 1) : 0;
-
       $third = max(1, intval($colCount / 3));
       $firstThirdAvg = $colCount > 0 ? array_sum(array_slice($correctPerCol, 0, $third)) / $third : 0;
       $lastThirdAvg = $colCount > 0 ? array_sum(array_slice($correctPerCol, -$third)) / $third : 0;
       $endurance = $firstThirdAvg > 0 ? round(($lastThirdAvg / $firstThirdAvg) * 100, 0) : 0;
-
       $mean = $speed;
       $variance = $colCount > 0 ? array_sum(array_map(fn($v) => pow($v - $mean, 2), $correctPerCol)) / $colCount : 0;
       $stdDev = round(sqrt($variance), 1);
-
       $motivation = $lastThirdAvg > $firstThirdAvg ? 'Positif' : ($lastThirdAvg < $firstThirdAvg ? 'Menurun' : 'Stabil');
-
       $maxCorrect = $colCount > 0 ? max($correctPerCol) : 0;
       $minCorrect = $colCount > 0 ? min($correctPerCol) : 0;
     @endphp
 
-    <div class="section-title">RINGKASAN METRIK PSIKOLOGI</div>
+    <div class="section-title">Ringkasan Metrik</div>
     <table class="metrics-grid">
       <tr>
-        <td class="metric-purple">
-          <div class="metric-val">{{ $speed }}</div>
-          <div class="metric-label">Kecepatan Kerja<br>(rata-rata benar/kolom)</div>
-        </td>
-        <td class="{{ $accuracy >= 80 ? 'metric-good' : ($accuracy >= 60 ? 'metric-warn' : 'metric-bad') }}">
-          <div class="metric-val">{{ $accuracy }}%</div>
-          <div class="metric-label">Ketelitian<br>(akurasi jawaban)</div>
-        </td>
-        <td class="{{ $endurance >= 85 ? 'metric-good' : ($endurance >= 65 ? 'metric-warn' : 'metric-bad') }}">
-          <div class="metric-val">{{ $endurance }}%</div>
-          <div class="metric-label">Ketahanan Kerja<br>(1/3 akhir vs 1/3 awal)</div>
-        </td>
-        <td class="metric-blue">
-          <div class="metric-val">{{ $stdDev }}</div>
-          <div class="metric-label">Stabilitas Emosi<br>(standar deviasi)</div>
-        </td>
-        <td class="{{ $motivation === 'Positif' ? 'metric-good' : ($motivation === 'Stabil' ? 'metric-warn' : 'metric-bad') }}">
-          <div class="metric-val">{{ $motivation }}</div>
-          <div class="metric-label">Semangat Kerja<br>(tren performa)</div>
-        </td>
+        <td class="m-purp"><div class="mv">{{ $speed }}</div><div class="ml">Kecepatan Kerja<br>(rata-rata benar/kolom)</div></td>
+        <td class="{{ $accuracy >= 80 ? 'm-good' : ($accuracy >= 60 ? 'm-warn' : 'm-bad') }}"><div class="mv">{{ $accuracy }}%</div><div class="ml">Ketelitian<br>(akurasi)</div></td>
+        <td class="{{ $endurance >= 85 ? 'm-good' : ($endurance >= 65 ? 'm-warn' : 'm-bad') }}"><div class="mv">{{ $endurance }}%</div><div class="ml">Ketahanan Kerja<br>(akhir vs awal)</div></td>
+        <td class="m-blue"><div class="mv">{{ $stdDev }}</div><div class="ml">Stabilitas Emosi<br>(std deviasi)</div></td>
+        <td class="{{ $motivation === 'Positif' ? 'm-good' : ($motivation === 'Stabil' ? 'm-warn' : 'm-bad') }}"><div class="mv">{{ $motivation }}</div><div class="ml">Semangat Kerja<br>(tren performa)</div></td>
       </tr>
     </table>
 
-    {{-- Graph (SVG) --}}
+    {{-- GD Line Chart --}}
     @if($colCount > 0)
-    <div class="section-title">GRAFIK PERFORMA PER KOLOM</div>
+    <div class="section-title">Grafik Performa Per Kolom</div>
     <div class="graph-box">
-      <div class="graph-title">Jumlah Jawaban Benar per Kolom ({{ $colCount }} kolom)</div>
+      <div class="gt">Jawaban Benar per Kolom ({{ $colCount }} kolom)</div>
       @php
-        $graphW = 700;
-        $graphH = 180;
-        $padL = 30;
-        $padR = 10;
-        $padT = 10;
-        $padB = 25;
-        $plotW = $graphW - $padL - $padR;
-        $plotH = $graphH - $padT - $padB;
-        $yMax = max($maxCorrect + 2, 10);
-        $stepX = $colCount > 1 ? $plotW / ($colCount - 1) : $plotW;
+        $gW = 680; $gH = 180;
+        $pL = 35; $pR = 12; $pT = 12; $pB = 22;
+        $pW = $gW-$pL-$pR; $pH = $gH-$pT-$pB;
+        $yMax = max($maxCorrect+2, 10);
+        $stX = $colCount > 1 ? $pW/($colCount-1) : $pW;
 
-        // Build SVG path
-        $points = [];
-        $areaPoints = [];
-        for ($i = 0; $i < $colCount; $i++) {
-          $x = $padL + ($i * $stepX);
-          $y = $padT + $plotH - (($correctPerCol[$i] / $yMax) * $plotH);
-          $points[] = round($x, 1) . ',' . round($y, 1);
-          $areaPoints[] = round($x, 1) . ',' . round($y, 1);
+        $img = imagecreatetruecolor($gW, $gH);
+        imagesavealpha($img, true); imagealphablending($img, true); imageantialias($img, true);
+        $w = imagecolorallocate($img, 250, 250, 254);
+        $gc = imagecolorallocate($img, 226, 232, 240);
+        $pc = imagecolorallocate($img, 124, 58, 237);
+        $pf = imagecolorallocatealpha($img, 124, 58, 237, 100);
+        $mt = imagecolorallocate($img, 148, 163, 184);
+        imagefill($img, 0, 0, $w);
+
+        $ySt = max(1, intval($yMax/5));
+        for ($gy = 0; $gy <= $yMax; $gy += $ySt) {
+          $yy = (int)round($pT+$pH-($gy/$yMax)*$pH);
+          imageline($img, $pL, $yy, $gW-$pR, $yy, $gc);
+          imagestring($img, 1, 2, $yy-5, (string)$gy, $mt);
         }
-        $linePath = implode(' ', $points);
-        // Area fill (close path to bottom)
-        $areaPath = 'M' . ($padL) . ',' . ($padT + $plotH) . ' L' . implode(' L', $areaPoints) . ' L' . round($padL + ($colCount - 1) * $stepX, 1) . ',' . ($padT + $plotH) . ' Z';
 
-        // Mean line Y
-        $meanY = $padT + $plotH - (($speed / $yMax) * $plotH);
+        // area
+        $ap = [$pL, $pT+$pH];
+        for ($i = 0; $i < $colCount; $i++) { $ap[] = (int)round($pL+$i*$stX); $ap[] = (int)round($pT+$pH-($correctPerCol[$i]/$yMax)*$pH); }
+        $ap[] = (int)round($pL+($colCount-1)*$stX); $ap[] = $pT+$pH;
+        imagefilledpolygon($img, $ap, $pf);
+
+        // line
+        imagesetthickness($img, 2);
+        for ($i = 1; $i < $colCount; $i++) {
+          $x1 = (int)round($pL+($i-1)*$stX); $y1 = (int)round($pT+$pH-($correctPerCol[$i-1]/$yMax)*$pH);
+          $x2 = (int)round($pL+$i*$stX);     $y2 = (int)round($pT+$pH-($correctPerCol[$i]/$yMax)*$pH);
+          imageline($img, $x1, $y1, $x2, $y2, $pc);
+        }
+        imagesetthickness($img, 1);
+
+        // dots
+        for ($i = 0; $i < $colCount; $i++) {
+          $dx = (int)round($pL+$i*$stX); $dy = (int)round($pT+$pH-($correctPerCol[$i]/$yMax)*$pH);
+          imagefilledellipse($img, $dx, $dy, 4, 4, $pc);
+        }
+
+        // mean dashed
+        $mY = (int)round($pT+$pH-($speed/$yMax)*$pH);
+        for ($x = $pL; $x < $gW-$pR; $x += 7) imageline($img, $x, $mY, min($x+4, $gW-$pR), $mY, $pc);
+        imagestring($img, 1, $gW-$pR-18, $mY-8, 'avg', $pc);
+
+        // x labels
+        $le = max(1, intval($colCount/20));
+        for ($i = 0; $i < $colCount; $i += $le) {
+          $lx = (int)round($pL+$i*$stX); $s = (string)($i+1);
+          imagestring($img, 1, $lx-(int)(strlen($s)*imagefontwidth(1)/2), $gH-12, $s, $mt);
+        }
+
+        ob_start(); imagepng($img); $png1 = ob_get_clean(); imagedestroy($img);
+        $lineChart = 'data:image/png;base64,' . base64_encode($png1);
       @endphp
-      <svg width="{{ $graphW }}" height="{{ $graphH }}" viewBox="0 0 {{ $graphW }} {{ $graphH }}" style="width:100%;height:auto;">
-        {{-- Y-axis grid --}}
-        @for($gy = 0; $gy <= $yMax; $gy += max(1, intval($yMax / 5)))
-          @php $yy = $padT + $plotH - (($gy / $yMax) * $plotH); @endphp
-          <line x1="{{ $padL }}" y1="{{ $yy }}" x2="{{ $graphW - $padR }}" y2="{{ $yy }}" stroke="#e2e8f0" stroke-width="0.5"/>
-          <text x="{{ $padL - 4 }}" y="{{ $yy + 3 }}" text-anchor="end" font-size="8" fill="#94a3b8">{{ $gy }}</text>
-        @endfor
-
-        {{-- Area fill --}}
-        <path d="{{ $areaPath }}" fill="rgba(124,58,237,0.1)" />
-
-        {{-- Mean line --}}
-        <line x1="{{ $padL }}" y1="{{ round($meanY, 1) }}" x2="{{ $graphW - $padR }}" y2="{{ round($meanY, 1) }}" stroke="#7c3aed" stroke-width="0.8" stroke-dasharray="4,3"/>
-        <text x="{{ $graphW - $padR + 2 }}" y="{{ round($meanY, 1) + 3 }}" font-size="7" fill="#7c3aed">avg</text>
-
-        {{-- Data line --}}
-        <polyline points="{{ $linePath }}" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-linejoin="round"/>
-
-        {{-- Data points --}}
-        @for($i = 0; $i < $colCount; $i++)
-          @php
-            $px = $padL + ($i * $stepX);
-            $py = $padT + $plotH - (($correctPerCol[$i] / $yMax) * $plotH);
-          @endphp
-          <circle cx="{{ round($px, 1) }}" cy="{{ round($py, 1) }}" r="2" fill="#7c3aed"/>
-        @endfor
-
-        {{-- X-axis labels (show every Nth) --}}
-        @php $labelEvery = max(1, intval($colCount / 20)); @endphp
-        @for($i = 0; $i < $colCount; $i += $labelEvery)
-          @php $lx = $padL + ($i * $stepX); @endphp
-          <text x="{{ round($lx, 1) }}" y="{{ $graphH - 4 }}" text-anchor="middle" font-size="7" fill="#94a3b8">{{ $i + 1 }}</text>
-        @endfor
-      </svg>
+      <img src="{{ $lineChart }}" width="660" style="display:inline-block;">
     </div>
 
-    {{-- Additional graph: attempted vs correct --}}
+    {{-- GD Bar Chart --}}
     <div class="graph-box">
-      <div class="graph-title">Perbandingan Dijawab vs Benar per Kolom</div>
+      <div class="gt">Perbandingan Dijawab vs Benar</div>
       @php
-        $barW = max(4, $plotW / $colCount - 1);
-        $maxAttempted = $colCount > 0 ? max(max($attemptedPerCol), $maxCorrect + 1) : 10;
+        $bW = max(4, $pW/$colCount - 1);
+        $mxA = $colCount > 0 ? max(max($attemptedPerCol), $maxCorrect+1) : 10;
+
+        $img2 = imagecreatetruecolor($gW, $gH);
+        imagesavealpha($img2, true); imagealphablending($img2, true); imageantialias($img2, true);
+        $w2 = imagecolorallocate($img2, 250, 250, 254);
+        $gc2 = imagecolorallocate($img2, 226, 232, 240);
+        $gb = imagecolorallocatealpha($img2, 148, 163, 184, 60);
+        $pb = imagecolorallocatealpha($img2, 124, 58, 237, 30);
+        $mt2 = imagecolorallocate($img2, 148, 163, 184);
+        $tp = imagecolorallocate($img2, 91, 33, 182);
+        $tg = imagecolorallocate($img2, 100, 116, 139);
+        imagefill($img2, 0, 0, $w2);
+
+        $ySt2 = max(1, intval($mxA/5));
+        for ($gy = 0; $gy <= $mxA; $gy += $ySt2) {
+          $yy = (int)round($pT+$pH-($gy/$mxA)*$pH);
+          imageline($img2, $pL, $yy, $gW-$pR, $yy, $gc2);
+          imagestring($img2, 1, 2, $yy-5, (string)$gy, $mt2);
+        }
+
+        for ($i = 0; $i < $colCount; $i++) {
+          $bx = (int)round($pL+$i*($pW/$colCount));
+          $aH = $mxA > 0 ? ($attemptedPerCol[$i]/$mxA)*$pH : 0;
+          $cH = $mxA > 0 ? ($correctPerCol[$i]/$mxA)*$pH : 0;
+          $hw = (int)round($bW*0.45);
+          imagefilledrectangle($img2, $bx, (int)round($pT+$pH-$aH), $bx+$hw, $pT+$pH, $gb);
+          imagefilledrectangle($img2, (int)round($bx+$bW*0.5), (int)round($pT+$pH-$cH), (int)round($bx+$bW*0.5)+$hw, $pT+$pH, $pb);
+        }
+
+        // legend
+        $lx = $gW-140;
+        imagefilledrectangle($img2, $lx, 4, $lx+8, 12, $gb);
+        imagestring($img2, 2, $lx+12, 2, 'Dijawab', $tg);
+        imagefilledrectangle($img2, $lx+65, 4, $lx+73, 12, $pb);
+        imagestring($img2, 2, $lx+77, 2, 'Benar', $tp);
+
+        ob_start(); imagepng($img2); $png2 = ob_get_clean(); imagedestroy($img2);
+        $barChart = 'data:image/png;base64,' . base64_encode($png2);
       @endphp
-      <svg width="{{ $graphW }}" height="{{ $graphH }}" viewBox="0 0 {{ $graphW }} {{ $graphH }}" style="width:100%;height:auto;">
-        @for($gy = 0; $gy <= $maxAttempted; $gy += max(1, intval($maxAttempted / 5)))
-          @php $yy = $padT + $plotH - (($gy / $maxAttempted) * $plotH); @endphp
-          <line x1="{{ $padL }}" y1="{{ $yy }}" x2="{{ $graphW - $padR }}" y2="{{ $yy }}" stroke="#e2e8f0" stroke-width="0.5"/>
-          <text x="{{ $padL - 4 }}" y="{{ $yy + 3 }}" text-anchor="end" font-size="8" fill="#94a3b8">{{ $gy }}</text>
-        @endfor
-
-        @for($i = 0; $i < $colCount; $i++)
-          @php
-            $bx = $padL + ($i * ($plotW / $colCount));
-            $attH = $maxAttempted > 0 ? ($attemptedPerCol[$i] / $maxAttempted) * $plotH : 0;
-            $corH = $maxAttempted > 0 ? ($correctPerCol[$i] / $maxAttempted) * $plotH : 0;
-          @endphp
-          <rect x="{{ round($bx, 1) }}" y="{{ round($padT + $plotH - $attH, 1) }}" width="{{ round($barW * 0.45, 1) }}" height="{{ round($attH, 1) }}" fill="rgba(148,163,184,0.4)" rx="1"/>
-          <rect x="{{ round($bx + $barW * 0.5, 1) }}" y="{{ round($padT + $plotH - $corH, 1) }}" width="{{ round($barW * 0.45, 1) }}" height="{{ round($corH, 1) }}" fill="rgba(124,58,237,0.7)" rx="1"/>
-        @endfor
-
-        {{-- Legend --}}
-        <rect x="{{ $graphW - 130 }}" y="4" width="8" height="8" fill="rgba(148,163,184,0.4)" rx="1"/>
-        <text x="{{ $graphW - 118 }}" y="11" font-size="8" fill="#64748b">Dijawab</text>
-        <rect x="{{ $graphW - 72 }}" y="4" width="8" height="8" fill="rgba(124,58,237,0.7)" rx="1"/>
-        <text x="{{ $graphW - 60 }}" y="11" font-size="8" fill="#5b21b6">Benar</text>
-      </svg>
+      <img src="{{ $barChart }}" width="660" style="display:inline-block;">
     </div>
     @endif
 
-    {{-- Interpretation --}}
-    <div class="section-title">INTERPRETASI HASIL</div>
-    <div class="interpretation-box">
+    <div class="section-title">Interpretasi Hasil</div>
+    <div class="interp-box">
       <h3>Analisis Psikologis Tes Kraepelin</h3>
       <div class="interp-item">
-        <span class="interp-label">1. Kecepatan Kerja ({{ $speed }} benar/kolom):</span>
+        <span class="interp-label">1. Kecepatan Kerja ({{ $speed }}):</span>
         <span class="interp-val">
-          @if($speed >= 15) Tinggi — peserta mampu bekerja dengan cepat.
-          @elseif($speed >= 8) Sedang — kecepatan kerja dalam batas normal.
-          @else Rendah — peserta bekerja relatif lambat.
+          @if($speed >= 15) Tinggi — mampu bekerja dengan cepat.
+          @elseif($speed >= 8) Sedang — kecepatan dalam batas normal.
+          @else Rendah — bekerja relatif lambat.
           @endif
         </span>
       </div>
       <div class="interp-item">
         <span class="interp-label">2. Ketelitian ({{ $accuracy }}%):</span>
         <span class="interp-val">
-          @if($accuracy >= 85) Sangat Baik — peserta sangat teliti dan akurat.
-          @elseif($accuracy >= 70) Baik — tingkat ketelitian memadai.
-          @elseif($accuracy >= 50) Cukup — perlu peningkatan ketelitian.
-          @else Kurang — banyak kesalahan dalam perhitungan.
+          @if($accuracy >= 85) Sangat Baik — sangat teliti dan akurat.
+          @elseif($accuracy >= 70) Baik — ketelitian memadai.
+          @elseif($accuracy >= 50) Cukup — perlu peningkatan.
+          @else Kurang — banyak kesalahan.
           @endif
         </span>
       </div>
       <div class="interp-item">
         <span class="interp-label">3. Ketahanan Kerja ({{ $endurance }}%):</span>
         <span class="interp-val">
-          @if($endurance >= 90) Sangat Baik — performa konsisten hingga akhir.
-          @elseif($endurance >= 75) Baik — sedikit penurunan di akhir, masih wajar.
-          @elseif($endurance >= 60) Cukup — ada penurunan performa yang perlu diperhatikan.
-          @else Kurang — terjadi penurunan signifikan, stamina kerja rendah.
+          @if($endurance >= 90) Sangat Baik — konsisten hingga akhir.
+          @elseif($endurance >= 75) Baik — sedikit penurunan, masih wajar.
+          @elseif($endurance >= 60) Cukup — ada penurunan perlu diperhatikan.
+          @else Kurang — penurunan signifikan, stamina rendah.
           @endif
         </span>
       </div>
       <div class="interp-item">
-        <span class="interp-label">4. Stabilitas Emosi (SD = {{ $stdDev }}):</span>
+        <span class="interp-label">4. Stabilitas Emosi (SD={{ $stdDev }}):</span>
         <span class="interp-val">
-          @if($stdDev <= 2) Sangat Stabil — emosi terkendali dengan baik.
-          @elseif($stdDev <= 4) Stabil — fluktuasi masih dalam batas normal.
-          @elseif($stdDev <= 6) Cukup — ada fluktuasi yang perlu diperhatikan.
-          @else Kurang Stabil — performa sangat fluktuatif, emosi kurang stabil.
+          @if($stdDev <= 2) Sangat Stabil — emosi terkendali baik.
+          @elseif($stdDev <= 4) Stabil — fluktuasi normal.
+          @elseif($stdDev <= 6) Cukup — ada fluktuasi perlu diperhatikan.
+          @else Kurang Stabil — performa fluktuatif.
           @endif
         </span>
       </div>
       <div class="interp-item">
         <span class="interp-label">5. Semangat Kerja ({{ $motivation }}):</span>
         <span class="interp-val">
-          @if($motivation === 'Positif') Baik — peserta menunjukkan peningkatan performa seiring waktu.
-          @elseif($motivation === 'Stabil') Netral — performa awal dan akhir relatif sama.
-          @else Menurun — motivasi atau konsentrasi cenderung berkurang di akhir tes.
+          @if($motivation === 'Positif') Baik — peningkatan performa seiring waktu.
+          @elseif($motivation === 'Stabil') Netral — performa awal dan akhir sama.
+          @else Menurun — konsentrasi berkurang di akhir tes.
           @endif
         </span>
       </div>
     </div>
 
-    {{-- Per-column detail table --}}
+    </div>
     @if($colCount > 0)
     <div class="page-break"></div>
-    <div class="section-title">DETAIL PER KOLOM</div>
+    <div class="header-bar">
+      <span class="conf">CONFIDENTIAL</span>
+      <h1>DETAIL PER KOLOM &mdash; {{ $response->participant_name }}</h1>
+      <p>{{ $bank->title }} &mdash; {{ $subTest->title }}</p>
+    </div>
+    <div class="content">
+
+    <div class="section-title">Detail Per Kolom</div>
     <table class="detail-table">
       <thead>
         <tr>
-          <th style="width:40px;">Kolom</th>
-          <th style="width:50px;">Durasi (dtk)</th>
-          <th style="width:50px;">Dijawab</th>
-          <th style="width:50px;">Benar</th>
-          <th style="width:50px;">Salah</th>
-          <th style="width:50px;">Akurasi</th>
+          <th style="width:35px;">Kolom</th>
+          <th style="width:45px;">Durasi</th>
+          <th style="width:45px;">Dijawab</th>
+          <th style="width:45px;">Benar</th>
+          <th style="width:45px;">Salah</th>
+          <th style="width:45px;">Akurasi</th>
           <th>Catatan</th>
         </tr>
       </thead>
@@ -329,8 +319,7 @@
           $cor = $colData['correct_count'] ?? 0;
           $wrong = $att - $cor;
           $dur = $colData['duration'] ?? '-';
-          $colAcc = $att > 0 ? round(($cor / $att) * 100, 0) : 0;
-          $note = '';
+          $colAcc = $att > 0 ? round(($cor/$att)*100, 0) : 0;
           if ($att === 0) $note = 'Tidak dijawab';
           elseif ($colAcc >= 90) $note = 'Sangat Baik';
           elseif ($colAcc >= 70) $note = 'Baik';
@@ -341,8 +330,8 @@
           <td>{{ $ci + 1 }}</td>
           <td>{{ $dur }}</td>
           <td>{{ $att }}</td>
-          <td class="{{ $cor > 0 ? 'val-good' : '' }}">{{ $cor }}</td>
-          <td class="{{ $wrong > 0 ? 'val-bad' : '' }}">{{ $wrong }}</td>
+          <td class="{{ $cor > 0 ? 'vg' : '' }}">{{ $cor }}</td>
+          <td class="{{ $wrong > 0 ? 'vb' : '' }}">{{ $wrong }}</td>
           <td>{{ $colAcc }}%</td>
           <td>{{ $note }}</td>
         </tr>
@@ -350,8 +339,8 @@
         <tr style="background:#f5f3ff;font-weight:700;">
           <td colspan="2">TOTAL</td>
           <td>{{ $totalAttempted }}</td>
-          <td class="val-good">{{ $totalCorrect }}</td>
-          <td class="val-bad">{{ $totalAttempted - $totalCorrect }}</td>
+          <td class="vg">{{ $totalCorrect }}</td>
+          <td class="vb">{{ $totalAttempted - $totalCorrect }}</td>
           <td>{{ $accuracy }}%</td>
           <td></td>
         </tr>
@@ -360,10 +349,10 @@
     @endif
 
     <div class="footer">
-      Dokumen ini digenerate secara otomatis oleh Sistem Psikotest Online<br>
-      Tanggal cetak: {{ now()->format('d/m/Y H:i:s') }} | copyright &copy;2026 Shindengen HR Internal Team
+      Dokumen digenerate otomatis oleh Sistem HRIS &mdash; Tanggal cetak: {{ now()->format('d/m/Y H:i') }}
+      | &copy; {{ date('Y') }} Shindengen HR Internal Team
     </div>
-  </div>
 
+  </div>
 </body>
 </html>

@@ -90,7 +90,7 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-s
       </div>
       @endif
 
-      <form method="POST" action="{{ route('surveys.update', $survey) }}" id="surveyForm" onsubmit="validateForm(event)">
+      <form method="POST" action="{{ route('surveys.update', $survey) }}" id="surveyForm">
         @csrf @method('PUT')
 
         <div class="page-header">
@@ -170,7 +170,7 @@ function addSection(data) {
     if (q.type === 'multiple_choice' && q.options && q.options.length > 0) {
       q.options.forEach((opt, oi) => {
         optionsHtml += `<div class="option-row">
-          <input type="text" name="sections[${secIdx}][questions][${qIdx}][options][]" value="${escHtml(opt)}" placeholder="Opsi ${oi+1}">
+          <input type="text" name="sections[${secIdx}][questions][${qIdx}][options][]" value="${escHtml(opt)}" placeholder="Opsi ${oi+1}" required>
           <button type="button" class="remove-option" onclick="this.parentElement.remove()">✕</button>
         </div>`;
       });
@@ -334,7 +334,7 @@ function addOption(secIdx, qIdx) {
   const oi = list.children.length + 1;
   const row = document.createElement('div');
   row.className = 'option-row';
-  row.innerHTML = `<input type="text" name="sections[${secIdx}][questions][${qIdx}][options][]" placeholder="Opsi ${oi}" style="font-size:12px;padding:6px 10px;">
+  row.innerHTML = `<input type="text" name="sections[${secIdx}][questions][${qIdx}][options][]" placeholder="Opsi ${oi}" required style="font-size:12px;padding:6px 10px;">
     <button type="button" class="remove-option" onclick="this.parentElement.remove()">✕</button>`;
   list.appendChild(row);
 }
@@ -343,74 +343,6 @@ function escHtml(str) {
   var div = document.createElement('div');
   div.appendChild(document.createTextNode(str || ''));
   return div.innerHTML;
-}
-
-function validateForm(event) {
-  event.preventDefault();
-  console.log('=== Form Validation Start ===');
-  
-  const title = document.querySelector('input[name="title"]').value.trim();
-  console.log('Title:', title);
-  if (!title) {
-    alert('⚠️ Judul survey tidak boleh kosong!');
-    return false;
-  }
-
-  const sections = document.querySelectorAll('#sectionsContainer .section-card');
-  console.log('Sections found:', sections.length);
-  if (sections.length === 0) {
-    alert('⚠️ Tambahkan minimal 1 section!');
-    return false;
-  }
-
-  let isValid = true;
-  sections.forEach((section, sIdx) => {
-    const secTitle = section.querySelector('input[name*="[title]"]');
-    if (!secTitle) {
-      console.warn(`Section ${sIdx}: Title input not found`);
-      isValid = false;
-      return;
-    }
-    const secTitleVal = secTitle.value.trim();
-    console.log(`Section ${sIdx} title:`, secTitleVal);
-    if (!secTitleVal) {
-      alert(`⚠️ Section ${sIdx + 1}: Judul section wajib diisi!`);
-      isValid = false;
-      return;
-    }
-
-    const questions = section.querySelectorAll('.question-card');
-    console.log(`Section ${sIdx} questions found:`, questions.length);
-    if (questions.length === 0) {
-      alert(`⚠️ Section ${sIdx + 1}: Tambahkan minimal 1 pertanyaan!`);
-      isValid = false;
-      return;
-    }
-
-    questions.forEach((q, qIdx) => {
-      const questionInput = q.querySelector('input[name*="[question]"]');
-      if (!questionInput) {
-        console.warn(`Section ${sIdx}, Question ${qIdx}: Question input not found`);
-        isValid = false;
-        return;
-      }
-      const questionVal = questionInput.value.trim();
-      console.log(`Section ${sIdx}, Question ${qIdx}:`, questionVal);
-      if (!questionVal) {
-        alert(`⚠️ Section ${sIdx + 1}, Pertanyaan ${qIdx + 1}: Teks pertanyaan wajib diisi!`);
-        isValid = false;
-        return;
-      }
-    });
-  });
-
-  if (!isValid) {
-    console.log('Validation failed');
-    return false;
-  }
-
-  console.log('=== Form Validation Success - Submitting ===');
-  document.getElementById('surveyForm').submit();
 }
 
 // Load existing sections
