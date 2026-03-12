@@ -646,6 +646,12 @@
   Dokumen ini digenerate secara otomatis oleh Sistem Psikotest Online<br>
   Tanggal cetak: {{ now()->format('d/m/Y H:i:s') }} | copyright &copy;2026 Shindengen HR Internal Team
  </div>
+ <div style="font-size:7px; color:#9ca3af; line-height:1.4; padding:4px 0 0 0; text-align:center;">
+  Laporan ini digenerate berdasarkan: teori DISC oleh William M. Marston (1928), teori PAPI-Kostick oleh Max M. Kostick (1966)
+  berlandaskan <em>Need Theory</em> Henry A. Murray (1938), dan teori Kraepelin oleh Emil Kraepelin (1902) dengan adaptasi Pauli Test (1938).
+  Hasil bersifat indikatif dan dimaksudkan sebagai alat bantu asesmen internal, bukan sebagai diagnosis psikologis.
+  Interpretasi lebih lanjut disarankan dilakukan oleh psikolog profesional berlisensi.
+ </div>
 
 </div>
 </body>

@@ -315,6 +315,12 @@
       Dokumen digenerate otomatis oleh Sistem HRIS &mdash; Tanggal cetak: {{ now()->format('d/m/Y H:i') }}
       | &copy; {{ date('Y') }} Shindengen HR Internal Team
     </div>
+    <div style="font-size:7px; color:#9ca3af; line-height:1.4; padding:4px 0 0 0; text-align:center;">
+      Hasil tes ini digenerate berdasarkan teori PAPI-Kostick oleh Max M. Kostick (1966) yang mengukur 20 dimensi kepribadian kerja,
+      berlandaskan <em>Need Theory</em> oleh Henry A. Murray (1938) dalam <em>Explorations in Personality</em>.
+      Hasil bersifat indikatif dan dimaksudkan sebagai alat bantu asesmen, bukan sebagai diagnosis psikologis.
+      Interpretasi lebih lanjut disarankan dilakukan oleh psikolog profesional berlisensi.
+    </div>
 
   </div>
 </body>

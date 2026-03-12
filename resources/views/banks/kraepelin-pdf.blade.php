@@ -352,6 +352,12 @@
       Dokumen digenerate otomatis oleh Sistem HRIS &mdash; Tanggal cetak: {{ now()->format('d/m/Y H:i') }}
       | &copy; {{ date('Y') }} Shindengen HR Internal Team
     </div>
+    <div style="font-size:7px; color:#9ca3af; line-height:1.4; padding:4px 0 0 0; text-align:center;">
+      Hasil tes ini digenerate berdasarkan teori Kraepelin oleh Emil Kraepelin (1902) dalam <em>Die Arbeitskurve</em>
+      dan adaptasi Pauli Test oleh Richard Pauli (1938). Metrik yang diukur meliputi kecepatan, ketelitian, ketahanan,
+      stabilitas emosi, dan semangat kerja. Hasil bersifat indikatif dan dimaksudkan sebagai alat bantu asesmen,
+      bukan sebagai diagnosis psikologis. Interpretasi lebih lanjut disarankan dilakukan oleh psikolog profesional berlisensi.
+    </div>
 
   </div>
 </body>
