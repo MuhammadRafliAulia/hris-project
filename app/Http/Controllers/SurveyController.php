@@ -10,6 +10,7 @@ use App\Models\SurveyAnswer;
 use App\Models\ActivityLog;
 use App\Models\Department;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -232,7 +233,7 @@ class SurveyController extends Controller
     // ─── PUBLIC: FILL FORM ──────────────────────────────────
     public function fill($token)
     {
-        $survey = Survey::where('token', $token)->with('questions')->firstOrFail();
+        $survey = Survey::where('token', $token)->with(['sections.questions', 'questions'])->firstOrFail();
 
         if (!$survey->isActive()) {
             return view('surveys.closed', compact('survey'));
@@ -245,15 +246,17 @@ class SurveyController extends Controller
     // ─── PUBLIC: SUBMIT ─────────────────────────────────────
     public function submit($token, Request $request)
     {
-        $survey = Survey::where('token', $token)->with('questions')->firstOrFail();
+        $survey = Survey::where('token', $token)->with(['sections.questions', 'questions'])->firstOrFail();
 
         if (!$survey->isActive()) {
             return redirect()->back()->with('error', 'Survey sudah ditutup.');
         }
 
         $rules = [];
+        $messages = [];
         if (!$survey->is_anonymous) {
             $rules['respondent_name'] = 'required|string|max:255';
+            $messages['respondent_name.required'] = 'Nama responden wajib diisi.';
             $rules['respondent_department'] = 'nullable|string|max:255';
             $rules['respondent_nik'] = 'nullable|string|max:50';
         }
@@ -262,12 +265,14 @@ class SurveyController extends Controller
             $key = 'answers.' . $q->id;
             if ($q->is_required) {
                 $rules[$key] = 'required';
+                $label = Str::limit($q->question, 50);
+                $messages[$key . '.required'] = "Pertanyaan \"{$label}\" wajib dijawab.";
             } else {
                 $rules[$key] = 'nullable';
             }
         }
 
-        $validated = $request->validate($rules);
+        $validated = $request->validate($rules, $messages);
 
         $response = SurveyResponse::create([
             'survey_id'            => $survey->id,

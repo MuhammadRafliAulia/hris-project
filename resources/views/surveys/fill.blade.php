@@ -158,89 +158,81 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-s
       </div>
       @endif
 
-      {{-- SECTION PROGRESS --}}
       @php
-        $totalSections = $survey->sections->count();
-        $currentSection = intval(request()->query('section', 0));
-        if ($currentSection >= $totalSections || $currentSection < 0) $currentSection = 0;
-        $progressPercent = $totalSections > 0 ? (($currentSection + 1) / $totalSections) * 100 : 0;
-        $section = $survey->sections->sortBy('order')->values()->get($currentSection);
+        $allSections = $survey->sections->sortBy('order')->values();
+        $totalSections = $allSections->count();
       @endphp
 
       @if($totalSections > 0)
       <div class="section-progress">
         <div class="progress-bar">
-          <div class="progress-fill" style="width: {{ $progressPercent }}%"></div>
+          <div class="progress-fill" id="progressFill" style="width: {{ $totalSections > 0 ? (1 / $totalSections) * 100 : 100 }}%"></div>
         </div>
-        <div class="progress-text">
-          Section {{ $currentSection + 1 }} dari {{ $totalSections }}
+        <div class="progress-text" id="progressText">
+          Section 1 dari {{ $totalSections }}
         </div>
       </div>
 
-      @if($section)
-      <div class="section-title-form">{{ $section->title }}</div>
-      @if($section->description)
-      <div class="section-desc-form">{{ $section->description }}</div>
-      @endif
-
-      @foreach($section->questions->sortBy('order') as $qIdx => $question)
-      <div class="question-card">
-        <div class="q-header">
-          <div class="q-number">{{ $qIdx + 1 }}</div>
-          <div class="q-text">
-            {{ $question->question }}
-            @if($question->is_required)<span class="required">*</span>@endif
-          </div>
-        </div>
-
-        @if($question->type === 'scale')
-        <div class="scale-group">
-          @php $scaleLabels = ['','Sangat Tidak Setuju','Tidak Setuju','Netral','Setuju','Sangat Setuju']; @endphp
-          @for($s = 1; $s <= 5; $s++)
-          <div class="scale-option">
-            <input type="radio" name="answers[{{ $question->id }}]" value="{{ $s }}" id="q{{ $question->id }}_s{{ $s }}" {{ old('answers.'.$question->id) == $s ? 'checked' : '' }} {{ $question->is_required ? 'required' : '' }}>
-            <label for="q{{ $question->id }}_s{{ $s }}">
-              <span class="scale-value">{{ $s }}</span>
-              <span class="scale-label">{{ $scaleLabels[$s] }}</span>
-            </label>
-          </div>
-          @endfor
-        </div>
-
-        @elseif($question->type === 'multiple_choice')
-        <div class="choice-group">
-          @foreach($question->options as $opt)
-          <div class="choice-option">
-            <input type="radio" name="answers[{{ $question->id }}]" value="{{ $opt }}" id="q{{ $question->id }}_{{ Str::slug($opt) }}" {{ old('answers.'.$question->id) == $opt ? 'checked' : '' }} {{ $question->is_required ? 'required' : '' }}>
-            <label for="q{{ $question->id }}_{{ Str::slug($opt) }}">
-              <div class="choice-dot"></div>
-              {{ $opt }}
-            </label>
-          </div>
-          @endforeach
-        </div>
-
-        @else
-        <textarea name="answers[{{ $question->id }}]" class="form-textarea" placeholder="Tulis jawaban Anda..." {{ $question->is_required ? 'required' : '' }}>{{ old('answers.'.$question->id) }}</textarea>
+      @foreach($allSections as $sIdx => $section)
+      <div class="section-panel" data-section="{{ $sIdx }}" style="{{ $sIdx > 0 ? 'display:none;' : '' }}">
+        <div class="section-title-form">{{ $section->title }}</div>
+        @if($section->description)
+        <div class="section-desc-form">{{ $section->description }}</div>
         @endif
+
+        @foreach($section->questions->sortBy('order') as $qIdx => $question)
+        <div class="question-card">
+          <div class="q-header">
+            <div class="q-number">{{ $qIdx + 1 }}</div>
+            <div class="q-text">
+              {{ $question->question }}
+              @if($question->is_required)<span class="required">*</span>@endif
+            </div>
+          </div>
+
+          @if($question->type === 'scale')
+          <div class="scale-group">
+            @php $scaleLabels = ['','Sangat Tidak Setuju','Tidak Setuju','Netral','Setuju','Sangat Setuju']; @endphp
+            @for($s = 1; $s <= 5; $s++)
+            <div class="scale-option">
+              <input type="radio" name="answers[{{ $question->id }}]" value="{{ $s }}" id="q{{ $question->id }}_s{{ $s }}" {{ old('answers.'.$question->id) == $s ? 'checked' : '' }}>
+              <label for="q{{ $question->id }}_s{{ $s }}">
+                <span class="scale-value">{{ $s }}</span>
+                <span class="scale-label">{{ $scaleLabels[$s] }}</span>
+              </label>
+            </div>
+            @endfor
+          </div>
+
+          @elseif($question->type === 'multiple_choice')
+          <div class="choice-group">
+            @foreach($question->options as $opt)
+            <div class="choice-option">
+              <input type="radio" name="answers[{{ $question->id }}]" value="{{ $opt }}" id="q{{ $question->id }}_{{ Str::slug($opt) }}" {{ old('answers.'.$question->id) == $opt ? 'checked' : '' }}>
+              <label for="q{{ $question->id }}_{{ Str::slug($opt) }}">
+                <div class="choice-dot"></div>
+                {{ $opt }}
+              </label>
+            </div>
+            @endforeach
+          </div>
+
+          @else
+          <textarea name="answers[{{ $question->id }}]" class="form-textarea" placeholder="Tulis jawaban Anda...">{{ old('answers.'.$question->id) }}</textarea>
+          @endif
+        </div>
+        @endforeach
       </div>
       @endforeach
 
       {{-- SECTION NAVIGATION --}}
       <div class="section-nav">
-        @if($currentSection > 0)
-        <button type="button" class="btn-prev" onclick="goToSection({{ $currentSection - 1 }})">← Sebelumnya</button>
-        @else
-        <div></div>
-        @endif
-
-        @if($currentSection < $totalSections - 1)
-        <button type="button" class="btn-next" onclick="validateAndGoToSection({{ $currentSection + 1 }})">Selanjutnya →</button>
-        @else
-        <button type="submit" class="btn-submit">📤 Kirim Jawaban</button>
-        @endif
+        <button type="button" class="btn-prev" id="btnPrev" style="display:none;" onclick="changeSection(-1)">← Sebelumnya</button>
+        <div id="navSpacer"></div>
+        <button type="button" class="btn-next" id="btnNext" onclick="changeSection(1)">Selanjutnya →</button>
+        <button type="submit" class="btn-submit" id="btnSubmit" style="display:none;">📤 Kirim Jawaban</button>
       </div>
-      @endif
+
       @else
       {{-- NO SECTIONS (fallback) --}}
       @foreach($survey->questions->sortBy('order') as $qIdx => $question)
@@ -258,7 +250,7 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-s
           @php $scaleLabels = ['','Sangat Tidak Setuju','Tidak Setuju','Netral','Setuju','Sangat Setuju']; @endphp
           @for($s = 1; $s <= 5; $s++)
           <div class="scale-option">
-            <input type="radio" name="answers[{{ $question->id }}]" value="{{ $s }}" id="q{{ $question->id }}_s{{ $s }}" {{ old('answers.'.$question->id) == $s ? 'checked' : '' }} {{ $question->is_required ? 'required' : '' }}>
+            <input type="radio" name="answers[{{ $question->id }}]" value="{{ $s }}" id="q{{ $question->id }}_s{{ $s }}" {{ old('answers.'.$question->id) == $s ? 'checked' : '' }}>
             <label for="q{{ $question->id }}_s{{ $s }}">
               <span class="scale-value">{{ $s }}</span>
               <span class="scale-label">{{ $scaleLabels[$s] }}</span>
@@ -271,7 +263,7 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-s
         <div class="choice-group">
           @foreach($question->options as $opt)
           <div class="choice-option">
-            <input type="radio" name="answers[{{ $question->id }}]" value="{{ $opt }}" id="q{{ $question->id }}_{{ Str::slug($opt) }}" {{ old('answers.'.$question->id) == $opt ? 'checked' : '' }} {{ $question->is_required ? 'required' : '' }}>
+            <input type="radio" name="answers[{{ $question->id }}]" value="{{ $opt }}" id="q{{ $question->id }}_{{ Str::slug($opt) }}" {{ old('answers.'.$question->id) == $opt ? 'checked' : '' }}>
             <label for="q{{ $question->id }}_{{ Str::slug($opt) }}">
               <div class="choice-dot"></div>
               {{ $opt }}
@@ -281,7 +273,7 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-s
         </div>
 
         @else
-        <textarea name="answers[{{ $question->id }}]" class="form-textarea" placeholder="Tulis jawaban Anda..." {{ $question->is_required ? 'required' : '' }}>{{ old('answers.'.$question->id) }}</textarea>
+        <textarea name="answers[{{ $question->id }}]" class="form-textarea" placeholder="Tulis jawaban Anda...">{{ old('answers.'.$question->id) }}</textarea>
         @endif
       </div>
       @endforeach
@@ -293,46 +285,63 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-s
 </div>
 
 <script>
-function goToSection(sectionIndex) {
-  // Navigate to the specified section
-  window.location.href = '{{ url("survey/" . $survey->token . "/fill") }}?section=' + sectionIndex;
+const totalSections = {{ $totalSections }};
+let currentSection = 0;
+
+function changeSection(direction) {
+  const panels = document.querySelectorAll('.section-panel');
+  const current = panels[currentSection];
+
+  // Validate current section before moving forward
+  if (direction > 0) {
+    const radios = {};
+    const textareas = [];
+    current.querySelectorAll('input[type="radio"]').forEach(r => {
+      if (!radios[r.name]) radios[r.name] = false;
+      if (r.checked) radios[r.name] = true;
+    });
+    current.querySelectorAll('textarea').forEach(t => textareas.push(t));
+
+    // Check identity section if on first section
+    if (currentSection === 0) {
+      const nameInput = document.querySelector('input[name="respondent_name"]');
+      if (nameInput && nameInput.hasAttribute('required') && !nameInput.value.trim()) {
+        alert('Silakan isi nama responden terlebih dahulu.');
+        nameInput.focus();
+        return;
+      }
+    }
+
+    // We don't block navigation for unanswered optional questions,
+    // but we keep all answers in the DOM regardless
+  }
+
+  // Hide current, show target
+  current.style.display = 'none';
+  currentSection += direction;
+  panels[currentSection].style.display = '';
+
+  // Update progress
+  const pct = ((currentSection + 1) / totalSections) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = 'Section ' + (currentSection + 1) + ' dari ' + totalSections;
+
+  // Update buttons
+  document.getElementById('btnPrev').style.display = currentSection > 0 ? '' : 'none';
+  document.getElementById('navSpacer').style.display = currentSection > 0 ? 'none' : '';
+  document.getElementById('btnNext').style.display = currentSection < totalSections - 1 ? '' : 'none';
+  document.getElementById('btnSubmit').style.display = currentSection === totalSections - 1 ? '' : 'none';
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function validateAndGoToSection(sectionIndex) {
-  // Validate current section before moving to next
-  const form = document.querySelector('form');
-  const requiredInputs = form.querySelectorAll('[required]');
-  
-  let isValid = true;
-  const currentSection = parseInt(new URLSearchParams(window.location.search).get('section') || '0');
-  const identitySection = form.querySelector('.identity-section');
-  
-  // Check identity section if it's the first section
-  if (currentSection === 0 && identitySection) {
-    const identityInputs = identitySection.querySelectorAll('[required]');
-    identityInputs.forEach(input => {
-      if (!input.value.trim()) {
-        input.classList.add('is-invalid');
-        isValid = false;
-      }
-    });
-  }
-  
-  // Check current section questions
-  requiredInputs.forEach(input => {
-    // Only check if input is visible
-    if (input.offsetParent !== null && !input.value) {
-      input.classList.add('is-invalid');
-      isValid = false;
-    }
-  });
-
-  if (!isValid) {
-    alert('Silakan isi semua pertanyaan yang wajib pada section ini terlebih dahulu.');
-    return;
-  }
-
-  goToSection(sectionIndex);
+// Handle initial state for single-section surveys
+if (totalSections <= 1) {
+  const btnNext = document.getElementById('btnNext');
+  const btnSubmit = document.getElementById('btnSubmit');
+  if (btnNext) btnNext.style.display = 'none';
+  if (btnSubmit) btnSubmit.style.display = '';
 }
 </script>
 </body>
